@@ -1,4 +1,4 @@
-# Cygrind App
+# CyGrind App
 App developed for 309: Software Development. Built with SpringBoot. 
 
 CyGrind is a workout app aimed at communicating and competing with firends:  
