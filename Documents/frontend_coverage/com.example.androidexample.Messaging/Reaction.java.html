@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Reaction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Messaging</a> &gt; <span class="el_source">Reaction.java</span></div><h1>Reaction.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Messaging;
+
+import android.util.Log;
+
+import com.example.androidexample.User;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * The Reaction class represents a reaction that a user can apply to a message in a messaging application.
+ * A reaction is typically an emoji or other form of feedback on a message.
+ * This class encapsulates the user's information, the type of reaction, and the message to which the reaction applies.
+ * &lt;p&gt;
+ * Reactions are represented as integers, with each integer corresponding to a specific type of reaction (e.g., like, dislike, love).
+ */
+public class Reaction {
+
+    // Constants for different reaction types
+    static final int LIKED = 0;   // Reaction type: &quot;Liked&quot;
+    static final int DISLIKED = 1; // Reaction type: &quot;Disliked&quot;
+    static final int LOVED = 2;    // Reaction type: &quot;Loved&quot;
+    static final int LAUGHING = 3; // Reaction type: &quot;Laughing&quot;
+    static final int STRONG = 4;   // Reaction type: &quot;Strong&quot;
+    static final int COOL = 5;     // Reaction type: &quot;Cool&quot;
+    static final int CRY = 6;      // Reaction type: &quot;Cry&quot;
+
+    private Long id;       // Unique ID for the reaction
+    private User user;     // User who applied the reaction
+    private Message message; // Message to which the reaction is applied
+    private int reactionType; // Type of reaction (e.g., LIKED, DISLIKED, etc.)
+
+    /**
+     * Constructs a new Reaction instance with the specified user and reaction type.
+     *
+     * @param user The user who is reacting.
+     * @param reactionType The type of reaction (e.g., LIKED, DISLIKED, etc.).
+     */
+<span class="nc" id="L39">    public Reaction(User user, int reactionType) {</span>
+<span class="nc" id="L40">        this.user = user;</span>
+<span class="nc" id="L41">        this.reactionType = reactionType;</span>
+<span class="nc" id="L42">    }</span>
+
+    /**
+     * Constructs a new Reaction instance by parsing a JSON object.
+     * This constructor extracts the reaction type from the provided JSON object.
+     *
+     * @param reactionObj The JSON object representing the reaction.
+     */
+<span class="nc" id="L50">    public Reaction(JSONObject reactionObj) {</span>
+        try {
+<span class="nc" id="L52">            reactionType = reactionObj.getInt(&quot;reactionType&quot;);</span>
+<span class="nc" id="L53">        } catch (JSONException e) {</span>
+<span class="nc" id="L54">            Log.e(&quot;Reaction&quot;, &quot;JSONException parsing message reaction&quot;);</span>
+<span class="nc" id="L55">        }</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Gets the unique ID of the reaction.
+     *
+     * @return The ID of the reaction.
+     */
+    public Long getId() {
+<span class="nc" id="L64">        return id;</span>
+    }
+
+    /**
+     * Gets the user who applied the reaction.
+     *
+     * @return The user who reacted.
+     */
+    public User getUser() {
+<span class="nc" id="L73">        return this.user;</span>
+    }
+
+    /**
+     * Sets the user who applied the reaction.
+     *
+     * @param user The user to set as the one who reacted.
+     */
+    public void setUser(User user) {
+<span class="nc" id="L82">        this.user = user;</span>
+<span class="nc" id="L83">    }</span>
+
+    /**
+     * Gets the type of reaction (e.g., LIKED, DISLIKED, etc.).
+     *
+     * @return The reaction type.
+     */
+    public int getReactionType() {
+<span class="nc" id="L91">        return reactionType;</span>
+    }
+
+    /**
+     * Sets the type of reaction (e.g., LIKED, DISLIKED, etc.).
+     *
+     * @param reactionType The reaction type to set.
+     */
+    public void setReactionType(int reactionType) {
+<span class="nc" id="L100">        this.reactionType = reactionType;</span>
+<span class="nc" id="L101">    }</span>
+
+    /**
+     * Gets the message to which the reaction applies.
+     *
+     * @return The message associated with this reaction.
+     */
+    public Message getMessage() {
+<span class="nc" id="L109">        return this.message;</span>
+    }
+
+    /**
+     * Sets the message to which the reaction applies.
+     *
+     * @param message The message to set as the one associated with this reaction.
+     */
+    public void setMessage(Message message) {
+<span class="nc" id="L118">        this.message = message;</span>
+<span class="nc" id="L119">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

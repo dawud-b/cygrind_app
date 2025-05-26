@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".Leaderboard.EventActivity">
+
+    <!-- Toolbar / Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/cyred"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Back"
+            android:textColor="@android:color/white"
+            android:background="?android:attr/selectableItemBackground"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/event_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Event Title"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- Event Details Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#f5f5f5">
+
+        <TextView
+            android:id="@+id/event_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Exercise Type: Bench Press"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/time_remaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Event in progress"
+            android:textColor="@color/cyred"
+            android:textSize="16sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Submit Score Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/score_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Enter your score"
+            android:inputType="number"
+            android:maxLines="1"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/submit_score_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/cyred"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Weight Class Selector -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#f9f9f9">
+
+        <TextView
+            android:id="@+id/current_weight_class"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Middleweight Class"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Leaderboard Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:background="#e0e0e0">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rank"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="32dp"
+            android:text="Participant"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Score"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Leaderboard List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/leaderboard_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
+
+</LinearLayout>

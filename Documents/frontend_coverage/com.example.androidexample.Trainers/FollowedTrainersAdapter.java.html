@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowedTrainersAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">FollowedTrainersAdapter.java</span></div><h1>FollowedTrainersAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.List;
+/**
+ * RecyclerView Adapter for displaying a list of followed trainers.
+ * This adapter binds the trainer data to the view elements in the RecyclerView.
+ * It also handles the interactions for the &quot;view profile&quot; and &quot;unfollow&quot; actions.
+ * &lt;p&gt;
+ * The adapter uses a custom ViewHolder to hold references to the views and implements click listeners
+ * for actions like viewing the profile or unfollowing a trainer. The interactions are passed to the
+ * provided `OnTrainerActionListener` interface.
+ */
+public class FollowedTrainersAdapter extends RecyclerView.Adapter&lt;FollowedTrainersAdapter.TrainerViewHolder&gt; {
+
+    private Context context;                          // Context for accessing system resources
+    private List&lt;Trainer&gt; trainerList;                // List of trainers to be displayed
+    private OnTrainerActionListener onTrainerActionListener; // Listener for trainer-related actions
+
+    /**
+     * Constructor for initializing the adapter with the context, trainer list, and action listener.
+     *
+     * @param context The context to access system resources.
+     * @param trainerList The list of trainers to be displayed in the RecyclerView.
+     * @param listener The listener to handle actions like viewing the profile and unfollowing a trainer.
+     */
+<span class="fc" id="L36">    public FollowedTrainersAdapter(Context context, List&lt;Trainer&gt; trainerList, OnTrainerActionListener listener) {</span>
+<span class="fc" id="L37">        this.context = context;</span>
+<span class="fc" id="L38">        this.trainerList = trainerList;</span>
+<span class="fc" id="L39">        this.onTrainerActionListener = listener;</span>
+<span class="fc" id="L40">    }</span>
+
+    /**
+     * Called when RecyclerView needs a new ViewHolder to represent an item.
+     * Inflates the layout for each item in the RecyclerView.
+     *
+     * @param parent The parent view that the new item view will be attached to.
+     * @param viewType The view type of the new view.
+     * @return A new ViewHolder instance for the item.
+     */
+    @Override
+    public TrainerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each item in the RecyclerView
+<span class="fc" id="L53">        View view = LayoutInflater.from(context).inflate(R.layout.item_trainer, parent, false);</span>
+<span class="fc" id="L54">        return new TrainerViewHolder(view);</span>
+    }
+
+    /**
+     * Called when RecyclerView binds the data to a ViewHolder.
+     * Binds the trainer data to the corresponding views in the ViewHolder.
+     *
+     * @param holder The ViewHolder to bind data to.
+     * @param position The position of the item within the list.
+     */
+    @Override
+    public void onBindViewHolder(TrainerViewHolder holder, int position) {
+<span class="fc" id="L66">        Trainer trainer = trainerList.get(position);</span>
+
+        // Bind trainer data to TextViews
+<span class="fc" id="L69">        holder.trainerNameTextView.setText(trainer.getDisplayName());</span>
+<span class="fc" id="L70">        holder.trainerSpecializationTextView.setText(trainer.getSpecialization());</span>
+
+        // Set up the &quot;view profile&quot; button click listener
+<span class="fc" id="L73">        holder.viewProfileButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (onTrainerActionListener != null) {</span>
+<span class="nc" id="L75">                onTrainerActionListener.onViewProfileClicked(trainer);</span>
+            }
+<span class="nc" id="L77">        });</span>
+
+        // Set up the &quot;unfollow&quot; button click listener
+<span class="fc" id="L80">        holder.unfollowButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (onTrainerActionListener != null) {</span>
+<span class="nc" id="L82">                onTrainerActionListener.onUnfollowClicked(trainer);</span>
+            }
+<span class="nc" id="L84">        });</span>
+<span class="fc" id="L85">    }</span>
+
+    /**
+     * Returns the total number of items in the dataset.
+     *
+     * @return The number of trainers in the list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L94">        return trainerList.size();</span>
+    }
+
+    /**
+     * ViewHolder class for holding views for each item in the RecyclerView.
+     * This class holds references to the TextViews and ImageButtons used in the item layout.
+     */
+    public static class TrainerViewHolder extends RecyclerView.ViewHolder {
+        TextView trainerNameTextView;                  // TextView for displaying trainer's name
+        TextView trainerSpecializationTextView;        // TextView for displaying trainer's specialization
+        ImageButton viewProfileButton;                 // Button for viewing the trainer's profile
+        ImageButton unfollowButton;                    // Button for unfollowing the trainer
+
+        /**
+         * Constructor to initialize the ViewHolder with views from the item layout.
+         *
+         * @param itemView The view representing a single item in the RecyclerView.
+         */
+        public TrainerViewHolder(View itemView) {
+<span class="fc" id="L113">            super(itemView);</span>
+<span class="fc" id="L114">            trainerNameTextView = itemView.findViewById(R.id.trainerName);</span>
+<span class="fc" id="L115">            trainerSpecializationTextView = itemView.findViewById(R.id.trainerSpecialization);</span>
+<span class="fc" id="L116">            viewProfileButton = itemView.findViewById(R.id.viewProfileButton);</span>
+<span class="fc" id="L117">            unfollowButton = itemView.findViewById(R.id.unfollowButton);</span>
+<span class="fc" id="L118">        }</span>
+    }
+
+    /**
+     * Interface for handling trainer actions such as viewing a profile and unfollowing a trainer.
+     */
+    public interface OnTrainerActionListener {
+        /**
+         * Called when the &quot;view profile&quot; button is clicked for a trainer.
+         *
+         * @param trainer The trainer whose profile is to be viewed.
+         */
+        void onViewProfileClicked(Trainer trainer);
+
+        /**
+         * Called when the &quot;unfollow&quot; button is clicked for a trainer.
+         *
+         * @param trainer The trainer to be unfollowed.
+         */
+        void onUnfollowClicked(Trainer trainer);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

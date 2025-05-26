@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/dashboard_layout"
+    tools:context=".HomeActivity">
+
+    <!-- Top-left Profile Button and Name -->
+    <LinearLayout
+        android:id="@+id/profileLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <ImageButton
+            android:id="@+id/home_profile"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/baseline_account_circle_24" />
+
+        <TextView
+            android:id="@+id/home_username_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:text="John Doe"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/home_points_display"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:textColor="#FFD700"
+            android:text="points"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/home_premium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Premium ⭐"
+            android:layout_marginStart="5dp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/rounded_button"
+            app:layout_constraintTop_toBottomOf="@id/view_leaderboard_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </LinearLayout>
+
+    <!-- Top-right Logout Button -->
+    <ImageButton
+        android:id="@+id/home_logout"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/logout_svgrepo_com_1_"
+        android:contentDescription="Logout"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:background="?android:attr/colorBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <!-- Leaderboard Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"></LinearLayout>
+
+    <Button
+        android:id="@+id/view_achievements_button"
+        android:layout_width="308dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/cyred"
+        android:text="Achievements"
+        android:textColor="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view_leaderboard_button" />
+
+    <Button
+        android:id="@+id/view_leaderboard_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="View Event Leaderboard"
+        android:textColor="@android:color/black"
+        android:background="@color/cyred"
+        app:layout_constraintTop_toBottomOf="@id/profileLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- Bottom Navigation Bar with 4x2 grid -->
+    <LinearLayout
+        android:id="@+id/bottomNavigationBar"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:orientation="vertical"
+        android:background="#333333"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Row 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <ImageButton
+                android:id="@+id/home_friends"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/group_svgrepo_com"
+                android:contentDescription="Friends" />
+
+            <ImageButton
+                android:id="@+id/home_messages"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/message_square_chat_home"
+                android:contentDescription="Messages" />
+
+            <ImageButton
+                android:id="@+id/home_workout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/dumbbell_svgrepo_com"
+                android:contentDescription="Workouts" />
+
+            <ImageButton
+                android:id="@+id/home_calendar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/calendar_days_svgrepo_com"
+                android:contentDescription="Calendar" />
+        </LinearLayout>
+
+        <!-- Row 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <ImageButton
+                android:id="@+id/home_trainer"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/trainer_svgrepo_com"
+                android:contentDescription="Trainer" />
+
+            <ImageButton
+                android:id="@+id/home_groups"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/locker_school_gym_storage_safety_svgrepo_com"
+                android:contentDescription="Groups" />
+
+            <!-- NEW BUTTON 1 -->
+            <ImageButton
+                android:id="@+id/home_store"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:src="@drawable/store_svgrepo_com"
+                android:background="@color/cyred"
+                android:contentDescription="Stats" />
+
+            <!-- NEW BUTTON 2 -->
+            <ImageButton
+                android:id="@+id/home_nutrition_tracker"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/cyred"
+                android:src="@drawable/apple_4_svgrepo_com"
+                android:contentDescription="Settings" />
+        </LinearLayout>
+    </LinearLayout>
+
+<ImageView
+        android:id="@+id/imageView"
+    android:layout_width="53dp"
+    android:layout_height="53dp"
+    android:layout_marginTop="64dp"
+    app:layout_constraintEnd_toStartOf="@+id/view_achievements_button"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="@+id/view_leaderboard_button"
+    app:srcCompat="@drawable/achievement_svgrepo_com" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

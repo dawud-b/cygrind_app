@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">EventActivity.java</span></div><h1>EventActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.androidexample.R;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L25">public class EventActivity extends AppCompatActivity {</span>
+
+    private static final String TAG = &quot;EventActivity&quot;;
+    private static final String WEBSOCKET_URL = &quot;ws://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+    // UI components
+    private Button backButton;
+    private Button submitScoreButton;
+    private EditText scoreInput;
+    private TextView eventTitle;
+    private TextView eventDetails;
+    private TextView timeRemaining;
+    private TextView currentWeightClass;
+    private RecyclerView leaderboardRecyclerView;
+
+    // Data
+    private long eventId;
+    private String username;
+    private WebSocketClient webSocketClient;
+<span class="nc" id="L44">    private List&lt;LeaderboardEntry&gt; leaderboardEntries = new ArrayList&lt;&gt;();</span>
+    private LeaderboardAdapter leaderboardAdapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L49">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L50">        setContentView(R.layout.activity_event);</span>
+
+        // Initialize UI components
+<span class="nc" id="L53">        backButton = findViewById(R.id.back_button);</span>
+<span class="nc" id="L54">        submitScoreButton = findViewById(R.id.submit_score_button);</span>
+<span class="nc" id="L55">        scoreInput = findViewById(R.id.score_input);</span>
+<span class="nc" id="L56">        eventTitle = findViewById(R.id.event_title);</span>
+<span class="nc" id="L57">        eventDetails = findViewById(R.id.event_details);</span>
+<span class="nc" id="L58">        timeRemaining = findViewById(R.id.time_remaining);</span>
+<span class="nc" id="L59">        currentWeightClass = findViewById(R.id.current_weight_class);</span>
+<span class="nc" id="L60">        leaderboardRecyclerView = findViewById(R.id.leaderboard_recycler_view);</span>
+
+        // Set up RecyclerView
+<span class="nc" id="L63">        leaderboardAdapter = new LeaderboardAdapter(this, leaderboardEntries);</span>
+<span class="nc" id="L64">        leaderboardRecyclerView.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="nc" id="L65">        leaderboardRecyclerView.setAdapter(leaderboardAdapter);</span>
+
+        // Get data from intent
+<span class="nc" id="L68">        eventId = getIntent().getLongExtra(&quot;EVENT_ID&quot;, 1L);</span>
+<span class="nc" id="L69">        String title = getIntent().getStringExtra(&quot;EVENT_TITLE&quot;);</span>
+<span class="nc" id="L70">        username = getIntent().getStringExtra(&quot;USERNAME&quot;);</span>
+
+        // Set title
+<span class="nc bnc" id="L73" title="All 4 branches missed.">        if (title != null &amp;&amp; !title.isEmpty()) {</span>
+<span class="nc" id="L74">            eventTitle.setText(title);</span>
+        } else {
+<span class="nc" id="L76">            eventTitle.setText(&quot;Event #&quot; + eventId);</span>
+        }
+
+        // Example event details
+<span class="nc" id="L80">        eventDetails.setText(&quot;Exercise Type: Bench Press&quot;);</span>
+
+        // Set back button click listener
+<span class="nc" id="L83">        backButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L86">                finish(); // Close this activity and return to the previous one</span>
+<span class="nc" id="L87">            }</span>
+        });
+
+        // Set submit score button click listener
+<span class="nc" id="L91">        submitScoreButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L94">                submitScore();</span>
+<span class="nc" id="L95">            }</span>
+        });
+
+        // Connect to WebSocket
+<span class="nc" id="L99">        connectToWebSocket();</span>
+<span class="nc" id="L100">    }</span>
+
+    private void connectToWebSocket() {
+        try {
+<span class="nc" id="L104">            URI serverUri = new URI(WEBSOCKET_URL + &quot;/events/&quot; + username);</span>
+<span class="nc" id="L105">            webSocketClient = new WebSocketClient(serverUri) {</span>
+                @Override
+                public void onOpen(ServerHandshake handshakedata) {
+<span class="nc" id="L108">                    Log.d(TAG, &quot;WebSocket connection opened&quot;);</span>
+
+<span class="nc" id="L110">                    runOnUiThread(new Runnable() {</span>
+                        @Override
+                        public void run() {
+<span class="nc" id="L113">                            Toast.makeText(EventActivity.this, &quot;Connected to event server&quot;, Toast.LENGTH_SHORT).show();</span>
+                            // Request leaderboard data
+<span class="nc" id="L115">                            requestLeaderboard();</span>
+<span class="nc" id="L116">                        }</span>
+                    });
+<span class="nc" id="L118">                }</span>
+
+                @Override
+                public void onMessage(String message) {
+<span class="nc" id="L122">                    Log.d(TAG, &quot;WebSocket message received: &quot; + message);</span>
+
+                    // Handle different types of messages
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    if (message.contains(&quot;Leaderboard for&quot;)) {</span>
+<span class="nc" id="L126">                        handleLeaderboardData(message);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                    } else if (message.contains(&quot;Score submitted successfully&quot;)) {</span>
+<span class="nc" id="L128">                        runOnUiThread(new Runnable() {</span>
+                            @Override
+                            public void run() {
+<span class="nc" id="L131">                                Toast.makeText(EventActivity.this, &quot;Score submitted successfully!&quot;, Toast.LENGTH_SHORT).show();</span>
+                                // Refresh leaderboard
+<span class="nc" id="L133">                                requestLeaderboard();</span>
+<span class="nc" id="L134">                            }</span>
+                        });
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                    } else if (message.contains(&quot;Error:&quot;)) {</span>
+<span class="nc" id="L137">                        final String errorMsg = message;</span>
+<span class="nc" id="L138">                        runOnUiThread(new Runnable() {</span>
+                            @Override
+                            public void run() {
+<span class="nc" id="L141">                                Toast.makeText(EventActivity.this, errorMsg, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L142">                            }</span>
+                        });
+                    }
+<span class="nc" id="L145">                }</span>
+
+                @Override
+                public void onClose(int code, String reason, boolean remote) {
+<span class="nc" id="L149">                    Log.d(TAG, &quot;WebSocket connection closed: &quot; + reason);</span>
+
+<span class="nc" id="L151">                    runOnUiThread(new Runnable() {</span>
+                        @Override
+                        public void run() {
+<span class="nc" id="L154">                            Toast.makeText(EventActivity.this, &quot;Disconnected from event server&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L155">                        }</span>
+                    });
+<span class="nc" id="L157">                }</span>
+
+                @Override
+                public void onError(Exception ex) {
+<span class="nc" id="L161">                    Log.e(TAG, &quot;WebSocket error&quot;, ex);</span>
+
+<span class="nc" id="L163">                    runOnUiThread(new Runnable() {</span>
+                        @Override
+                        public void run() {
+<span class="nc" id="L166">                            Toast.makeText(EventActivity.this, &quot;Error connecting to server: &quot; + ex.getMessage(), Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L167">                        }</span>
+                    });
+<span class="nc" id="L169">                }</span>
+            };
+
+<span class="nc" id="L172">            webSocketClient.connect();</span>
+<span class="nc" id="L173">        } catch (URISyntaxException e) {</span>
+<span class="nc" id="L174">            Log.e(TAG, &quot;Invalid WebSocket URI&quot;, e);</span>
+<span class="nc" id="L175">            Toast.makeText(this, &quot;Error connecting to server&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L176">        }</span>
+<span class="nc" id="L177">    }</span>
+
+    private void requestLeaderboard() {
+<span class="nc bnc" id="L180" title="All 4 branches missed.">        if (webSocketClient != null &amp;&amp; webSocketClient.isOpen()) {</span>
+<span class="nc" id="L181">            String command = &quot;/leaderboard &quot; + eventId;</span>
+<span class="nc" id="L182">            webSocketClient.send(command);</span>
+<span class="nc" id="L183">            Log.d(TAG, &quot;Requested leaderboard data: &quot; + command);</span>
+        }
+<span class="nc" id="L185">    }</span>
+
+    private void handleLeaderboardData(String message) {
+        // Parse leaderboard data from message
+        // This is a simple example - you might want to use a more robust parser
+
+<span class="nc" id="L191">        final List&lt;LeaderboardEntry&gt; entries = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L192">        String currentWeightClassName = &quot;Default&quot;;</span>
+
+        // Simple parsing logic - extract entries from the message
+<span class="nc" id="L195">        String[] lines = message.split(&quot;\n&quot;);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        for (String line : lines) {</span>
+            // Check for weight class header
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            if (line.contains(&quot;Weight Class:&quot;)) {</span>
+<span class="nc" id="L199">                currentWeightClassName = line.replace(&quot;Weight Class:&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L200">                continue;</span>
+            }
+
+            // Check for participant entry (format: &quot;1. John Doe (username) - 250 pts&quot;)
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (line.matches(&quot;\\s*\\d+\\..*&quot;)) {</span>
+                try {
+                    // Extract name and score using regex
+<span class="nc" id="L207">                    String[] parts = line.trim().split(&quot;-&quot;);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                    if (parts.length &gt;= 2) {</span>
+<span class="nc" id="L209">                        String nameWithRank = parts[0].trim();</span>
+<span class="nc" id="L210">                        String scoreText = parts[1].trim().replace(&quot;pts&quot;, &quot;&quot;).trim();</span>
+
+                        // Extract rank and name
+<span class="nc" id="L213">                        int dotIndex = nameWithRank.indexOf(&quot;.&quot;);</span>
+<span class="nc" id="L214">                        String name = nameWithRank.substring(dotIndex + 1).trim();</span>
+
+                        // Extract username if present
+<span class="nc" id="L217">                        String username = name;</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">                        if (name.contains(&quot;(&quot;) &amp;&amp; name.contains(&quot;)&quot;)) {</span>
+<span class="nc" id="L219">                            username = name.substring(name.indexOf(&quot;(&quot;) + 1, name.indexOf(&quot;)&quot;)).trim();</span>
+<span class="nc" id="L220">                            name = name.substring(0, name.indexOf(&quot;(&quot;)).trim();</span>
+                        }
+
+                        // Parse score
+<span class="nc" id="L224">                        int score = Integer.parseInt(scoreText);</span>
+
+                        // Split name into first and last (if possible)
+<span class="nc" id="L227">                        String firstName = name;</span>
+<span class="nc" id="L228">                        String lastName = &quot;&quot;;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                        if (name.contains(&quot; &quot;)) {</span>
+<span class="nc" id="L230">                            String[] nameParts = name.split(&quot; &quot;, 2);</span>
+<span class="nc" id="L231">                            firstName = nameParts[0];</span>
+<span class="nc" id="L232">                            lastName = nameParts[1];</span>
+                        }
+
+<span class="nc" id="L235">                        entries.add(new LeaderboardEntry(username, firstName, lastName, currentWeightClassName, score));</span>
+                    }
+<span class="nc" id="L237">                } catch (Exception e) {</span>
+<span class="nc" id="L238">                    Log.e(TAG, &quot;Error parsing leaderboard entry: &quot; + line, e);</span>
+<span class="nc" id="L239">                }</span>
+            }
+        }
+
+        // Update UI on main thread
+<span class="nc" id="L244">        runOnUiThread(new Runnable() {</span>
+            @Override
+            public void run() {
+                // Update weight class text
+<span class="nc bnc" id="L248" title="All 4 branches missed.">                if (!entries.isEmpty() &amp;&amp; entries.get(0).getWeightClass() != null) {</span>
+<span class="nc" id="L249">                    currentWeightClass.setText(entries.get(0).getWeightClass() + &quot; Weight Class&quot;);</span>
+                }
+
+                // Update leaderboard
+<span class="nc" id="L253">                leaderboardEntries.clear();</span>
+<span class="nc" id="L254">                leaderboardEntries.addAll(entries);</span>
+<span class="nc" id="L255">                leaderboardAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L256">            }</span>
+        });
+<span class="nc" id="L258">    }</span>
+
+    private void submitScore() {
+        // Get the score from the input field
+<span class="nc" id="L262">        String scoreText = scoreInput.getText().toString().trim();</span>
+
+        // Validate input
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (scoreText.isEmpty()) {</span>
+<span class="nc" id="L266">            Toast.makeText(this, &quot;Please enter a score&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L267">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L271">            int score = Integer.parseInt(scoreText);</span>
+
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (score &lt;= 0) {</span>
+<span class="nc" id="L274">                Toast.makeText(this, &quot;Score must be greater than 0&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L275">                return;</span>
+            }
+
+            // Send score to server via WebSocket
+<span class="nc bnc" id="L279" title="All 4 branches missed.">            if (webSocketClient != null &amp;&amp; webSocketClient.isOpen()) {</span>
+<span class="nc" id="L280">                String command = &quot;/score &quot; + eventId + &quot; &quot; + score;</span>
+<span class="nc" id="L281">                webSocketClient.send(command);</span>
+<span class="nc" id="L282">                Log.d(TAG, &quot;Score submission command: &quot; + command);</span>
+
+                // Clear the input field
+<span class="nc" id="L285">                scoreInput.setText(&quot;&quot;);</span>
+
+<span class="nc" id="L287">                Toast.makeText(this, &quot;Submitting score...&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L288">            } else {</span>
+<span class="nc" id="L289">                Toast.makeText(this, &quot;Not connected to server&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+
+<span class="nc" id="L292">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L293">            Toast.makeText(this, &quot;Please enter a valid number&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L294">        }</span>
+<span class="nc" id="L295">    }</span>
+
+    @Override
+    protected void onDestroy() {
+        // Close WebSocket connection when activity is destroyed
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        if (webSocketClient != null) {</span>
+<span class="nc" id="L301">            webSocketClient.close();</span>
+        }
+<span class="nc" id="L303">        super.onDestroy();</span>
+<span class="nc" id="L304">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

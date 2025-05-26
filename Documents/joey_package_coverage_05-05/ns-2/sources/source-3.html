@@ -1,0 +1,218 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TrainerService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Trainer</a>
+</div>
+
+<h1>Coverage Summary for Class: TrainerService (onetoone.Trainer)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TrainerService</td>
+<td class="coverageStat">
+  <span class="percent">
+    25%
+  </span>
+  <span class="absValue">
+    (1/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5%
+  </span>
+  <span class="absValue">
+    (1/20)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TrainerService$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    25%
+  </span>
+  <span class="absValue">
+    (1/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5%
+  </span>
+  <span class="absValue">
+    (1/20)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Trainer;
+&nbsp;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;/**
+&nbsp; * Service class for trainer-related business logic.
+&nbsp; * Handles creation and management of trainer profiles.
+&nbsp; */
+&nbsp;@Service
+<b class="fc">&nbsp;public class TrainerService {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TrainerRepository trainerRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Checks if a user has trainer status
+&nbsp;     *
+&nbsp;     * @param username The username to check
+&nbsp;     * @return true if the user is an active trainer, false otherwise
+&nbsp;     */
+&nbsp;    public boolean isTrainer(String username) {
+&nbsp;        // First find the user
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Then check if they have an active trainer profile
+<b class="nc">&nbsp;        Trainer trainer = trainerRepository.findByUser(user);</b>
+<b class="nc">&nbsp;        return trainer != null &amp;&amp; trainer.isActive();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Find a trainer by their username
+&nbsp;     *
+&nbsp;     * @param username The username to look up
+&nbsp;     * @return The Trainer object or null if not found
+&nbsp;     */
+&nbsp;    public Trainer getTrainerByUsername(String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return trainerRepository.findByUser(user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates a new trainer profile for an existing user
+&nbsp;     *
+&nbsp;     * @param username The username of the existing user
+&nbsp;     * @param specialization The trainer&#39;s area of expertise
+&nbsp;     * @param bio Brief description of the trainer
+&nbsp;     * @return The created Trainer or null if user doesn&#39;t exist
+&nbsp;     */
+&nbsp;    @Transactional
+&nbsp;    public Trainer createTrainerProfile(String username, String specialization, String bio) {
+&nbsp;        // Find the user
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check if trainer profile already exists for this user
+<b class="nc">&nbsp;        Trainer existingTrainer = trainerRepository.findByUser(user);</b>
+<b class="nc">&nbsp;        if (existingTrainer != null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Create new trainer profile
+<b class="nc">&nbsp;        Trainer trainer = new Trainer(user);</b>
+<b class="nc">&nbsp;        trainer.setSpecialization(specialization);</b>
+<b class="nc">&nbsp;        trainer.setBio(bio);</b>
+&nbsp;
+<b class="nc">&nbsp;        return trainerRepository.save(trainer);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-05 22:24</div>
+</div>
+</body>
+</html>

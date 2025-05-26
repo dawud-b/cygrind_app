@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SignupActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">SignupActivity.java</span></div><h1>SignupActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+<span class="fc" id="L30">public class SignupActivity extends AppCompatActivity {</span>
+
+    private EditText usernameEditText;  // define username edittext variable
+    private EditText emailEditText;  // define username edittext variable
+    private EditText passwordEditText;  // define password edittext variable
+    private EditText confirmEditText;   // define confirm edittext variable
+    private Button signupButton;        // define signup button variable
+    private Button backButton;          // button for returning to login
+    private TextView entryErrorText;   // text entry error messages
+    private CheckBox trainerCheckBox;  // checkbox for trainer signup
+    private LinearLayout trainerInfoLayout; // layout for trainer-specific fields
+    private EditText specializationEditText; // trainer specialization field
+    private EditText bioEditText; // trainer bio field
+<span class="fc" id="L43">    private static String URL = &quot;http://7052c66e-8818-4f49-ace9-3f1e9f0c35c2.mock.pstmn.io/users&quot;;</span>
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L48">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L49">        setContentView(R.layout.activity_signup);</span>
+
+        /* initialize UI elements */
+<span class="fc" id="L52">        usernameEditText = findViewById(R.id.signup_username_edt);  // link to username edtext in the Signup activity XML</span>
+<span class="fc" id="L53">        emailEditText= findViewById(R.id.signup_email_edt);  // link to username edtext in the Signup activity XML</span>
+<span class="fc" id="L54">        passwordEditText = findViewById(R.id.signup_password_edt);  // link to password edtext in the Signup activity XML</span>
+<span class="fc" id="L55">        confirmEditText = findViewById(R.id.signup_confirm_edt);    // link to confirm edtext in the Signup activity XML</span>
+<span class="fc" id="L56">        signupButton = findViewById(R.id.signup_signup_btn);  // link to signup button in the Signup activity XML</span>
+<span class="fc" id="L57">        backButton = findViewById(R.id.signup_back_btn);  // link to signup button in the Signup activity XML</span>
+<span class="fc" id="L58">        entryErrorText = findViewById(R.id.signup_entry_message);  // link to signup button in the Signup activity XML</span>
+<span class="fc" id="L59">        trainerCheckBox = findViewById(R.id.signup_trainer_checkbox); // link to new trainer checkbox</span>
+<span class="fc" id="L60">        trainerInfoLayout = findViewById(R.id.trainer_info_layout); // layout for trainer fields</span>
+<span class="fc" id="L61">        specializationEditText = findViewById(R.id.signup_specialization_edt); // trainer specialization field</span>
+<span class="fc" id="L62">        bioEditText = findViewById(R.id.signup_bio_edt); // trainer bio field</span>
+
+        // error text initially empty
+<span class="fc" id="L65">        entryErrorText.setVisibility(View.INVISIBLE);</span>
+
+        // Initially hide trainer info fields
+<span class="fc" id="L68">        trainerInfoLayout.setVisibility(View.GONE);</span>
+
+        // add text change listeners to password entries
+<span class="fc" id="L71">        passwordEditText.addTextChangedListener(getTextWatcher());</span>
+<span class="fc" id="L72">        confirmEditText.addTextChangedListener(getTextWatcher());</span>
+<span class="fc" id="L73">        emailEditText.addTextChangedListener(getTextWatcher());</span>
+<span class="fc" id="L74">        usernameEditText.addTextChangedListener(getTextWatcher());</span>
+
+        // Set up checkbox listener to show/hide trainer fields
+<span class="fc" id="L77">        trainerCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -&gt; {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            trainerInfoLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);</span>
+<span class="nc" id="L79">        });</span>
+
+        /* click listener on login button pressed */
+<span class="fc" id="L82">        backButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="nc" id="L86">                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);</span>
+<span class="nc" id="L87">                startActivity(intent);  // go to LoginActivity</span>
+<span class="nc" id="L88">            }</span>
+        });
+
+        /* click listener on signup button pressed */
+<span class="fc" id="L92">        signupButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* grab strings from user inputs */
+<span class="fc" id="L97">                String username = usernameEditText.getText().toString();</span>
+<span class="fc" id="L98">                String password = passwordEditText.getText().toString();</span>
+<span class="fc" id="L99">                String email = emailEditText.getText().toString();</span>
+<span class="fc" id="L100">                String confirm = confirmEditText.getText().toString();</span>
+<span class="fc" id="L101">                boolean isTrainerSignup = trainerCheckBox.isChecked();</span>
+
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                if (password.equals(confirm)</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">                        &amp;&amp; meetsPwdStrength(passwordEditText.getText().toString())</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">                        &amp;&amp; isValidEmail(email)</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">                        &amp;&amp; isValidUsername(username)) {</span>
+
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">                    if (isTrainerSignup) {</span>
+                        // Get trainer-specific info
+<span class="nc" id="L110">                        String specialization = specializationEditText.getText().toString();</span>
+<span class="nc" id="L111">                        String bio = bioEditText.getText().toString();</span>
+
+                        // Validate trainer fields
+<span class="nc bnc" id="L114" title="All 4 branches missed.">                        if (specialization.isEmpty() || bio.isEmpty()) {</span>
+<span class="nc" id="L115">                            Toast.makeText(SignupActivity.this,</span>
+                                    &quot;Please fill in specialization and bio for trainer signup&quot;,
+<span class="nc" id="L117">                                    Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L118">                            return;</span>
+                        }
+
+                        // Create trainer account
+<span class="nc" id="L122">                        createTrainer(username, email, password, specialization, bio);</span>
+<span class="nc" id="L123">                    } else {</span>
+                        // Create regular user account (existing functionality)
+<span class="fc" id="L125">                        createUser(username, email, password);</span>
+                    }
+                } else {
+<span class="nc" id="L128">                    Toast.makeText(SignupActivity.this, &quot;Invalid Entries&quot;, Toast.LENGTH_LONG).show();</span>
+                }
+<span class="fc" id="L130">            }</span>
+        });
+<span class="fc" id="L132">    }</span>
+
+    /*
+    Username is only valid if it contains only alphabetical character, numbers, or underscore.
+    Username length must be between 4 and 12 and must start with a character.
+     */
+    private boolean isValidUsername(String user) {
+<span class="pc bpc" id="L139" title="1 of 4 branches missed.">        if( user.length() &gt;= 4 &amp;&amp; user.length() &lt;= 12 ) {</span>
+<span class="fc" id="L140">            return user.matches(&quot;^[A-Za-z][A-Za-z0-9_]*$&quot;);</span>
+        } else {
+<span class="fc" id="L142">            return false;</span>
+        }
+    }
+
+    // returns true if email string matches email regex
+    private boolean isValidEmail(String email) {
+<span class="fc" id="L148">        Pattern regex = Pattern.compile(&quot;^[^@]+@[^@]+\\.[^@]+$&quot;);</span>
+
+<span class="fc" id="L150">        return regex.matcher(email).find();</span>
+    }
+
+
+    // Checks that string matched password requirements.
+    // Current requirements:
+    // 1. At least 8 characters long.
+    // 2. Contains at least 1 digit.
+    // 3. contains at least 1 letter.
+    // 4. Contains at least 1 special character.
+    private static boolean meetsPwdStrength(String pwd) {
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        if( pwd.length() &gt;= 8 ) {</span>
+<span class="fc" id="L162">            Pattern letter  = Pattern.compile(&quot;[a-zA-Z]&quot;); // valid letter regex</span>
+<span class="fc" id="L163">            Pattern digit   = Pattern.compile(&quot;[0-9]&quot;);    // valid digit regex</span>
+<span class="fc" id="L164">            Pattern special = Pattern.compile(&quot;[!@#$%&amp;*()_+=|&lt;&gt;?{}\\[\\]~-]&quot;); // valid special char regex</span>
+
+            // set match conditions
+<span class="fc" id="L167">            Matcher hasLetter      = letter.matcher(pwd);</span>
+<span class="fc" id="L168">            Matcher hasDigit       = digit.matcher(pwd);</span>
+<span class="fc" id="L169">            Matcher hasSpecialChar = special.matcher(pwd);</span>
+
+            // return true only if all condition are met
+<span class="pc bpc" id="L172" title="1 of 6 branches missed.">            if( hasDigit.find() &amp;&amp; hasSpecialChar.find() &amp;&amp; hasLetter.find()) {</span>
+<span class="fc" id="L173">                return true;</span>
+            } else {
+<span class="fc" id="L175">                return false;</span>
+            }
+        } else {
+<span class="fc" id="L178">            return false;</span>
+        }
+    }
+
+    // returns TextWatcher object used for both password and confirmation entries
+    private TextWatcher getTextWatcher() {
+<span class="fc" id="L184">        return new TextWatcher() {</span>
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+<span class="fc" id="L188">            }</span>
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // string used to build error message
+<span class="fc" id="L193">                String msg = &quot;&quot;;</span>
+
+                // make error text invisible
+<span class="fc" id="L196">                entryErrorText.setVisibility(View.INVISIBLE);</span>
+
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">                if ( !emailEditText.getText().toString().equals(&quot;&quot;)) {</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">                    if( !isValidEmail(emailEditText.getText().toString())) {</span>
+<span class="fc" id="L200">                        msg += &quot;Email is invalid.\n&quot;;</span>
+<span class="fc" id="L201">                        entryErrorText.setVisibility(View.VISIBLE);</span>
+                    }
+                }
+
+<span class="fc bfc" id="L205" title="All 2 branches covered.">                if ( !usernameEditText.getText().toString().equals(&quot;&quot;)) {</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">                    if( !isValidUsername(usernameEditText.getText().toString())) {</span>
+<span class="fc" id="L207">                        msg += &quot;Username is invalid.\n&quot;;</span>
+<span class="fc" id="L208">                        entryErrorText.setVisibility(View.VISIBLE);</span>
+                    }
+                }
+
+                // password strength checked only when password entry is not empty
+<span class="fc bfc" id="L213" title="All 2 branches covered.">                if ( !passwordEditText.getText().toString().equals(&quot;&quot;) ) {</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">                    if( !meetsPwdStrength(passwordEditText.getText().toString())) {</span>
+<span class="fc" id="L215">                        msg += &quot;Password Strength not met.\n&quot;;</span>
+<span class="fc" id="L216">                        entryErrorText.setVisibility(View.VISIBLE);</span>
+                    }
+                }
+
+                // if both password entries are filled, check that they match
+<span class="fc bfc" id="L221" title="All 2 branches covered.">                if (( !confirmEditText.getText().toString().equals(&quot;&quot;)) ||</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">                        ( !passwordEditText.getText().toString().equals(&quot;&quot;))) {</span>
+
+<span class="fc bfc" id="L224" title="All 2 branches covered.">                    if( !confirmEditText.getText().toString().equals(passwordEditText.getText().toString())) {</span>
+<span class="fc" id="L225">                        msg += &quot;Password entries do not match.&quot;;</span>
+<span class="fc" id="L226">                        entryErrorText.setVisibility(View.VISIBLE);</span>
+                    }
+                }
+
+<span class="fc" id="L230">                entryErrorText.setText(msg);</span>
+<span class="fc" id="L231">            }</span>
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+<span class="fc" id="L236">            }</span>
+        };
+    }
+
+    // POST new user to server
+    private void createUser(String username, String email, String password) {
+        // POST endpoint
+<span class="fc" id="L243">        String url = &quot;http://coms-3090-035.class.las.iastate.edu:8080/users&quot;;</span>
+
+        // Creates user JSON object
+<span class="fc" id="L246">        JSONObject userJson = new JSONObject();</span>
+        try {
+<span class="fc" id="L248">            userJson.put(&quot;username&quot;, username);</span>
+<span class="fc" id="L249">            userJson.put(&quot;email&quot;, email);</span>
+<span class="fc" id="L250">            userJson.put(&quot;password&quot;, password);</span>
+<span class="nc" id="L251">        } catch (JSONException e) {</span>
+<span class="nc" id="L252">            e.printStackTrace();</span>
+<span class="fc" id="L253">        }</span>
+
+        // create JSON object POST request and adds to Volley request queue
+<span class="fc" id="L256">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="fc" id="L257">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // backend response when user is already created
+<span class="fc" id="L261">                        Toast.makeText(SignupActivity.this, response, Toast.LENGTH_SHORT).show();</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">                        if (!response.contains(&quot;Failed&quot;)) {</span>
+<span class="fc" id="L263">                            Intent intent = new Intent(SignupActivity.this, LoginActivity.class);</span>
+<span class="fc" id="L264">                            intent.putExtra(&quot;username&quot;, username);</span>
+<span class="fc" id="L265">                            intent.putExtra(&quot;password&quot;, password);</span>
+<span class="fc" id="L266">                            startActivity(intent);</span>
+                        }
+<span class="fc" id="L268">                    }</span>
+                },
+<span class="fc" id="L270">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L273">                        Log.e(&quot;CreateUser&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L274">                        Toast.makeText(SignupActivity.this, &quot;Request failed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L275">                    }</span>
+<span class="fc" id="L276">                }) {</span>
+            @Override
+            public byte[] getBody() {
+                // convert JSON user to string
+<span class="fc" id="L280">                return userJson.toString().getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+                // Set the content type as application/json
+<span class="fc" id="L286">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+        // Add the request to the request queue
+<span class="fc" id="L291">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L292">    }</span>
+
+    // POST new trainer to server
+    private void createTrainer(String username, String email, String password,
+                               String specialization, String bio) {
+        // POST endpoint for trainer registration
+<span class="nc" id="L298">        String url = &quot;http://coms-3090-035.class.las.iastate.edu:8080/register/trainer&quot;;</span>
+
+        // Creates trainer registration JSON object
+<span class="nc" id="L301">        JSONObject trainerJson = new JSONObject();</span>
+        try {
+            // User fields
+<span class="nc" id="L304">            trainerJson.put(&quot;username&quot;, username);</span>
+<span class="nc" id="L305">            trainerJson.put(&quot;email&quot;, email);</span>
+<span class="nc" id="L306">            trainerJson.put(&quot;password&quot;, password);</span>
+
+            // We don't have firstName and lastName in the current form,
+            // but they're required by the API, so add empty or default values
+<span class="nc" id="L310">            trainerJson.put(&quot;firstName&quot;, &quot;&quot;);</span>
+<span class="nc" id="L311">            trainerJson.put(&quot;lastName&quot;, &quot;&quot;);</span>
+<span class="nc" id="L312">            trainerJson.put(&quot;telephone&quot;, &quot;&quot;);</span>
+
+            // Trainer fields
+<span class="nc" id="L315">            trainerJson.put(&quot;specialization&quot;, specialization);</span>
+<span class="nc" id="L316">            trainerJson.put(&quot;bio&quot;, bio);</span>
+<span class="nc" id="L317">        } catch (JSONException e) {</span>
+<span class="nc" id="L318">            e.printStackTrace();</span>
+<span class="nc" id="L319">        }</span>
+
+        // Create JSON object POST request and add to Volley request queue
+<span class="nc" id="L322">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="nc" id="L323">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L326">                        Toast.makeText(SignupActivity.this, &quot;Trainer account created!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L327">                        Intent intent = new Intent(SignupActivity.this, LoginActivity.class);</span>
+<span class="nc" id="L328">                        intent.putExtra(&quot;username&quot;, username);</span>
+<span class="nc" id="L329">                        intent.putExtra(&quot;password&quot;, password);</span>
+<span class="nc" id="L330">                        startActivity(intent);</span>
+<span class="nc" id="L331">                    }</span>
+                },
+<span class="nc" id="L333">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L336" title="All 2 branches missed.">                        Log.e(&quot;CreateTrainer&quot;, &quot;Error: &quot; + (error.getMessage() != null ? error.getMessage() : &quot;Unknown error&quot;));</span>
+<span class="nc" id="L337">                        Toast.makeText(SignupActivity.this, &quot;Failed to create trainer account.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L338">                    }</span>
+<span class="nc" id="L339">                }) {</span>
+            @Override
+            public byte[] getBody() {
+                // Convert JSON trainer to string
+<span class="nc" id="L343">                return trainerJson.toString().getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+                // Set the content type as application/json
+<span class="nc" id="L349">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+        // Add the request to the request queue
+<span class="nc" id="L354">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L355">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

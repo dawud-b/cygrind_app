@@ -1,0 +1,376 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatSocket</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.chat</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatSocket (onetoone.chat)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatSocket</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    30%
+  </span>
+  <span class="absValue">
+    (3/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    9.3%
+  </span>
+  <span class="absValue">
+    (9/97)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.chat;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.*;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.CopyOnWriteArraySet;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import jakarta.websocket.OnClose;
+&nbsp;import jakarta.websocket.OnError;
+&nbsp;import jakarta.websocket.OnMessage;
+&nbsp;import jakarta.websocket.OnOpen;
+&nbsp;import jakarta.websocket.Session;
+&nbsp;import jakarta.websocket.server.PathParam;
+&nbsp;import jakarta.websocket.server.ServerEndpoint;
+&nbsp;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Controller;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;
+&nbsp;/**
+&nbsp; * WebSocket for chat feature. Uses sessionID to save different chats. ChatSession must be created before entering
+&nbsp; * a websocket chat room.
+&nbsp; *
+&nbsp; * @author Dawud Benedict
+&nbsp; */
+&nbsp;@Controller
+&nbsp;@ServerEndpoint(value = &quot;/chat/{chatSession_id}/{username}&quot;)
+<b class="fc">&nbsp;public class ChatSocket {</b>
+&nbsp;
+&nbsp;	private static MessageRepository msgRepo;
+&nbsp;	private static ChatSessionRepository chatSessionRepo;
+&nbsp;	private static UserRepository userRepository;;
+&nbsp;	private static ReactionRepository reactionRepo;
+&nbsp;
+&nbsp;	@Autowired
+&nbsp;	public void setRepos(MessageRepository messageRepo, ChatSessionRepository chatRepo, UserRepository userRepo, ReactionRepository reactRepo) {
+<b class="fc">&nbsp;		msgRepo = messageRepo;</b>
+<b class="fc">&nbsp;		chatSessionRepo = chatRepo;</b>
+<b class="fc">&nbsp;		userRepository = userRepo;</b>
+<b class="fc">&nbsp;		reactionRepo = reactRepo;</b>
+&nbsp;	}
+&nbsp;
+<b class="fc">&nbsp;	private static Map&lt;String, Set&lt;Session&gt;&gt; sessions = new ConcurrentHashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;	private static Map&lt;Session, String&gt; userMap = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;	private final Logger logger = LoggerFactory.getLogger(ChatSocket.class);</b>
+&nbsp;
+&nbsp;	// used to send string in Json object format
+<b class="fc">&nbsp;	private static final ObjectMapper objectMapper = new ObjectMapper();</b>
+&nbsp;
+&nbsp;	@OnOpen
+&nbsp;	public void onOpen(Session session, @PathParam(&quot;chatSession_id&quot;) String sessionId, @PathParam(&quot;username&quot;) String username)
+&nbsp;			throws IOException {
+&nbsp;
+<b class="nc">&nbsp;		logger.info(&quot;User: &quot; + username + &quot; entered into Open&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;		User currentUser = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;		if (currentUser == null) {</b>
+<b class="nc">&nbsp;			System.out.println(&quot;User: &quot; + username + &quot; not found&quot;);</b>
+&nbsp;			return;
+&nbsp;		}
+<b class="nc">&nbsp;		long userId = currentUser.getId();</b>
+&nbsp;
+&nbsp;		// Store the user session
+<b class="nc">&nbsp;		sessions.computeIfAbsent(sessionId, k -&gt; new CopyOnWriteArraySet&lt;&gt;()).add(session);</b>
+<b class="nc">&nbsp;		session.getUserProperties().put(&quot;userId&quot;, userId);</b>
+<b class="nc">&nbsp;		session.getUserProperties().put(&quot;sessionId&quot;, sessionId);</b>
+<b class="nc">&nbsp;		userMap.put(session, username);</b>
+&nbsp;
+&nbsp;		// Send chat history to this user
+<b class="nc">&nbsp;		List&lt;Message&gt; pastMessages = getChatHistory(sessionId);</b>
+<b class="nc">&nbsp;		for (Message message : pastMessages) {</b>
+<b class="nc">&nbsp;			String messageString = objectMapper.writeValueAsString(message);</b>
+<b class="nc">&nbsp;			sendToUserInSession(sessionId, username, messageString);</b>
+&nbsp;		}
+&nbsp;
+&nbsp;		// Broadcast to session that user is active
+<b class="nc">&nbsp;		String activeMsg = &quot;[Server] &quot; + userId + &quot; is active&quot;;</b>
+<b class="nc">&nbsp;		broadcastToSession(sessionId, activeMsg);</b>
+&nbsp;	}
+&nbsp;
+&nbsp;	@OnMessage
+&nbsp;	public void onMessage(Session session, String content, @PathParam(&quot;chatSession_id&quot;) String sessionId,
+&nbsp;						  @PathParam(&quot;username&quot;) String username) throws IOException {
+&nbsp;
+<b class="nc">&nbsp;		User sender = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;		if (sender == null) {</b>
+<b class="nc">&nbsp;			logger.error(&quot;User: &quot; + username + &quot; not found&quot;);</b>
+&nbsp;			return;
+&nbsp;		}
+&nbsp;
+<b class="nc">&nbsp;		ChatSession chatSession = chatSessionRepo.findBySessionId(sessionId);</b>
+<b class="nc">&nbsp;		if (chatSession == null) {</b>
+<b class="nc">&nbsp;			logger.error(&quot;ChatSession: &quot; + sessionId + &quot; not found&quot;);</b>
+&nbsp;			return;
+&nbsp;		}
+&nbsp;
+&nbsp;		// Typing indication. Send to other users.
+<b class="nc">&nbsp;		if (content.equals(&quot;[User is typing]&quot;)) {</b>
+<b class="nc">&nbsp;			String typingMsg = &quot;[Server] &quot; + username + &quot; is typing&quot;;</b>
+<b class="nc">&nbsp;			broadcastToSession(sessionId, typingMsg);</b>
+&nbsp;			return;
+&nbsp;		}
+&nbsp;
+&nbsp;		// Typing stopped. Send to other users.
+<b class="nc">&nbsp;		if (content.equals(&quot;[User stopped typing]&quot;)) {</b>
+<b class="nc">&nbsp;			String typingMsg = &quot;[Server] &quot; + username + &quot; stopped typing&quot;;</b>
+<b class="nc">&nbsp;			broadcastToSession(sessionId, typingMsg);</b>
+&nbsp;			return;
+&nbsp;		}
+&nbsp;
+&nbsp;		// Reactions. Expect message in format &quot;[Reaction]:messageId:reactionType&quot;. ReactionTypes in Reaction class.
+<b class="nc">&nbsp;		if (content.startsWith(&quot;[Reaction]:&quot;)) {</b>
+<b class="nc">&nbsp;			String[] parts = content.substring(&quot;[Reaction]:&quot;.length()).split(&quot;:&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;			if (parts.length == 2) {</b>
+<b class="nc">&nbsp;				long messageId = Long.parseLong(parts[0]);</b>
+<b class="nc">&nbsp;				String reactionString = parts[1];</b>
+&nbsp;				int reactionType;
+&nbsp;
+<b class="nc">&nbsp;				switch (reactionString) {</b>
+&nbsp;					case &quot;LIKED&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.LIKED;</b>
+&nbsp;						break;
+&nbsp;					case &quot;DISLIKED&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.DISLIKED;</b>
+&nbsp;						break;
+&nbsp;					case &quot;LOVED&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.LOVED;</b>
+&nbsp;						break;
+&nbsp;					case &quot;LAUGHING&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.LAUGHING;</b>
+&nbsp;						break;
+&nbsp;					case &quot;STRONG&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.STRONG;</b>
+&nbsp;						break;
+&nbsp;					case &quot;COOL&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.COOL;</b>
+&nbsp;						break;
+&nbsp;					case &quot;CRY&quot;:
+<b class="nc">&nbsp;						reactionType = Reaction.CRY;</b>
+&nbsp;						break;
+&nbsp;					default:
+<b class="nc">&nbsp;						reactionType = -1;</b>
+&nbsp;						break;
+&nbsp;				}
+&nbsp;
+&nbsp;				// invalid reaction. Do nothing
+<b class="nc">&nbsp;				if (reactionType == -1) {</b>
+&nbsp;					return;
+&nbsp;				}
+&nbsp;				// Create reaction object. Set user and reactionType
+<b class="nc">&nbsp;				Reaction reaction = new Reaction();</b>
+<b class="nc">&nbsp;				reaction.setReactionType(reactionType);</b>
+<b class="nc">&nbsp;				reaction.setUser(sender);</b>
+&nbsp;				// Map to the message
+<b class="nc">&nbsp;				Message message = msgRepo.findById(messageId);</b>
+<b class="nc">&nbsp;				if (message == null) {</b>
+&nbsp;					return;
+&nbsp;				}
+<b class="nc">&nbsp;				reaction.setMessage(message);</b>
+&nbsp;				// Save message and reaction
+<b class="nc">&nbsp;				reactionRepo.save(reaction);</b>
+<b class="nc">&nbsp;				message.addReaction(reaction);</b>
+<b class="nc">&nbsp;				msgRepo.save(message);</b>
+&nbsp;				// Return updated message
+<b class="nc">&nbsp;				String returnString = &quot;[Reaction]:&quot; + messageId + &quot;:&quot; + reaction.getReactionType();</b>
+<b class="nc">&nbsp;				broadcastToSession(sessionId, returnString);</b>
+&nbsp;				return;
+&nbsp;			}
+&nbsp;		}
+&nbsp;
+&nbsp;		// get current time
+<b class="nc">&nbsp;		LocalDateTime now = LocalDateTime.now();</b>
+<b class="nc">&nbsp;		Date sentTime = new GregorianCalendar(</b>
+<b class="nc">&nbsp;				now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth(),</b>
+<b class="nc">&nbsp;				now.getHour(), now.getMinute(), now.getSecond()).getTime();</b>
+&nbsp;		// save message with sender, time, and session information
+<b class="nc">&nbsp;		Message message = new Message(sender, content, sentTime, chatSession);</b>
+<b class="nc">&nbsp;		msgRepo.save(message);</b>
+&nbsp;		// save this message as the last message sent
+<b class="nc">&nbsp;		chatSession.setLastMessage(message);</b>
+<b class="nc">&nbsp;		chatSessionRepo.save(chatSession);</b>
+&nbsp;
+&nbsp;		// TODO: private chat within a session?
+&nbsp;
+<b class="nc">&nbsp;		String messageString = objectMapper.writeValueAsString(message);</b>
+<b class="nc">&nbsp;		broadcastToSession(sessionId, messageString);</b>
+&nbsp;	}
+&nbsp;
+&nbsp;	@OnClose
+&nbsp;	public void onClose(Session session, @PathParam(&quot;chatSession_id&quot;) String sessionId,
+&nbsp;						@PathParam(&quot;username&quot;) String username) throws IOException {
+&nbsp;
+<b class="nc">&nbsp;		Set&lt;Session&gt; sessionSet = sessions.get(sessionId);</b>
+<b class="nc">&nbsp;		if (sessionSet != null) {</b>
+<b class="nc">&nbsp;			sessionSet.remove(session);</b>
+<b class="nc">&nbsp;			if (sessionSet.isEmpty()) {</b>
+<b class="nc">&nbsp;				sessions.remove(sessionId);</b>
+&nbsp;			}
+&nbsp;		}
+&nbsp;
+<b class="nc">&nbsp;		userMap.remove(session);</b>
+&nbsp;
+<b class="nc">&nbsp;		String leaveMsg = &quot;[Server] &quot; + username + &quot; left the chat&quot;;</b>
+<b class="nc">&nbsp;		broadcastToSession(sessionId, leaveMsg);</b>
+&nbsp;	}
+&nbsp;
+&nbsp;	@OnError
+&nbsp;	public void onError(Session session, Throwable throwable) {
+<b class="nc">&nbsp;		logger.error(&quot;WebSocket error: &quot;, throwable);</b>
+<b class="nc">&nbsp;		throwable.printStackTrace();</b>
+&nbsp;	}
+&nbsp;
+&nbsp;	private void sendToUserInSession(String sessionId, String username, String message) {
+<b class="nc">&nbsp;		Set&lt;Session&gt; sessionSet = sessions.get(sessionId);</b>
+<b class="nc">&nbsp;		if (sessionSet != null) {</b>
+<b class="nc">&nbsp;			for (Session s : sessionSet) {</b>
+<b class="nc">&nbsp;				String connectedUsername = userMap.get(s);</b>
+<b class="nc">&nbsp;				if (username.equals(connectedUsername) &amp;&amp; s.isOpen()) {</b>
+&nbsp;					try {
+<b class="nc">&nbsp;						s.getBasicRemote().sendText(message);</b>
+&nbsp;						return;
+&nbsp;					} catch (IOException e) {
+<b class="nc">&nbsp;						e.printStackTrace();</b>
+&nbsp;					}
+&nbsp;				}
+&nbsp;			}
+&nbsp;		}
+&nbsp;	}
+&nbsp;
+&nbsp;	private List&lt;Message&gt; getChatHistory(String sessionId) {
+<b class="nc">&nbsp;		ChatSession chatSession = chatSessionRepo.findBySessionId(sessionId);</b>
+<b class="nc">&nbsp;		return msgRepo.findByChatSession(chatSession);</b>
+&nbsp;	}
+&nbsp;
+&nbsp;	private void broadcastToSession(String sessionId, String sendString) {
+<b class="nc">&nbsp;		Set&lt;Session&gt; sessionSet = sessions.get(sessionId);</b>
+<b class="nc">&nbsp;		if (sessionSet != null) {</b>
+<b class="nc">&nbsp;			for (Session s : sessionSet) {</b>
+<b class="nc">&nbsp;				if (s.isOpen()) {</b>
+&nbsp;					try {
+<b class="nc">&nbsp;						s.getBasicRemote().sendText(sendString);</b>
+&nbsp;					} catch (IOException e) {
+<b class="nc">&nbsp;						e.printStackTrace();</b>
+&nbsp;					}
+&nbsp;				}
+&nbsp;			}
+&nbsp;		}
+&nbsp;	}
+&nbsp;
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-21 21:45</div>
+</div>
+</body>
+</html>

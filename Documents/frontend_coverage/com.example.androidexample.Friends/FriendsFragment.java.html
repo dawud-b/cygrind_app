@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FriendsFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">FriendsFragment.java</span></div><h1>FriendsFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.Messaging.ChatActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.User;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * Fragment that displays the user's list of friends.
+ * &lt;p&gt;
+ * Supports refreshing the list via {@link SwipeRefreshLayout} and allows users
+ * to message or remove friends through buttons provided in each item of the {@link RecyclerView}.
+ */
+public class FriendsFragment extends Fragment {
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView recyclerView;
+    private FriendsAdapter adapter;
+    private List&lt;User&gt; friendList;
+
+    /**
+     * Required empty public constructor.
+     */
+<span class="fc" id="L53">    public FriendsFragment() {}</span>
+
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate any views.
+     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view for the fragment's UI.
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="fc" id="L66">        View rootView = inflater.inflate(R.layout.fragment_friends, container, false);</span>
+
+<span class="fc" id="L68">        friendList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L70">        swipeRefreshLayout = rootView.findViewById(R.id.friend_list_layout);</span>
+<span class="fc" id="L71">        recyclerView = rootView.findViewById(R.id.recyclerViewFriends);</span>
+<span class="fc" id="L72">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+        // Initialize the adapter and set it to the RecyclerView
+<span class="fc" id="L75">        adapter = new FriendsAdapter(getContext(), friendList, new FriendsAdapter.OnFriendActionListener() {</span>
+            @Override
+            public void onMessageClicked(User friend) {
+<span class="fc" id="L78">                goToChatActivity(friend);</span>
+<span class="fc" id="L79">            }</span>
+
+            @Override
+            public void onRemoveFriendClicked(User friend) {
+<span class="nc" id="L83">                removeFriend(friend);</span>
+<span class="nc" id="L84">            }</span>
+        });
+<span class="fc" id="L86">        recyclerView.setAdapter(adapter);</span>
+
+<span class="fc" id="L88">        fetchFriends(); // Load friend list initially</span>
+
+        // Refresh the friend list on swipe down
+<span class="fc" id="L91">        swipeRefreshLayout.setOnRefreshListener(() -&gt; fetchFriends());</span>
+
+<span class="fc" id="L93">        return rootView;</span>
+    }
+
+    /**
+     * Launches the {@link ChatActivity} by creating a chat session
+     * with the selected friend via a POST request.
+     *
+     * @param friend The selected friend to start a chat with.
+     */
+    private void goToChatActivity(User friend) {
+<span class="fc" id="L103">        String url = URLManager.postChatSessionURL();</span>
+<span class="fc" id="L104">        SharedPreferences prefs = getActivity().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L105">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="fc" id="L106">        Long id = prefs.getLong(&quot;id&quot;, -1);</span>
+
+<span class="fc" id="L108">        JSONArray usersArray = new JSONArray();</span>
+        try {
+<span class="fc" id="L110">            JSONObject currentUser = new JSONObject();</span>
+<span class="fc" id="L111">            currentUser.put(&quot;id&quot;, id);</span>
+<span class="fc" id="L112">            usersArray.put(currentUser);</span>
+
+<span class="fc" id="L114">            JSONObject userObject = new JSONObject();</span>
+<span class="fc" id="L115">            userObject.put(&quot;id&quot;, friend.getId());</span>
+<span class="fc" id="L116">            usersArray.put(userObject);</span>
+<span class="nc" id="L117">        } catch (JSONException e) {</span>
+<span class="nc" id="L118">            Log.e(&quot;FriendsFragment JSONException&quot;, &quot;Error building UserList for ChatSession POST request&quot;);</span>
+<span class="fc" id="L119">        }</span>
+
+<span class="fc" id="L121">        final String requestBody = usersArray.toString();</span>
+
+<span class="fc" id="L123">        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,</span>
+                response -&gt; {
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">                    if (!response.equals(&quot;One or more users are null!&quot;)) {</span>
+<span class="fc" id="L126">                        String serverUrl = URLManager.chatURL(response, username);</span>
+<span class="fc" id="L127">                        Intent intent = new Intent(getActivity(), ChatActivity.class);</span>
+<span class="fc" id="L128">                        intent.putExtra(&quot;session_id&quot;, response);</span>
+<span class="fc" id="L129">                        intent.putExtra(&quot;server_url&quot;, serverUrl);</span>
+<span class="fc" id="L130">                        intent.putExtra(&quot;group_name&quot;, friend.getUsername());</span>
+<span class="fc" id="L131">                        startActivity(intent);</span>
+                    }
+<span class="fc" id="L133">                },</span>
+<span class="pc" id="L134">                error -&gt; Log.e(&quot;Volley Error&quot;, &quot;Error: &quot; + error.getMessage())) {</span>
+            @Override
+            public byte[] getBody() {
+<span class="fc" id="L137">                return requestBody.getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="fc" id="L142">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="fc" id="L146">        VolleySingleton.getInstance(getActivity()).addToRequestQueue(stringRequest);</span>
+<span class="fc" id="L147">    }</span>
+
+    /**
+     * Fetches the list of friends from the backend and updates the RecyclerView.
+     */
+    private void fetchFriends() {
+<span class="fc" id="L153">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L154">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="fc" id="L155">        String url = URLManager.getFriendsURL(username);</span>
+
+<span class="fc" id="L157">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+                response -&gt; {
+<span class="fc" id="L159">                    friendList.clear();</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="fc" id="L162">                            friendList.add(new User(response.getJSONObject(i)));</span>
+<span class="nc" id="L163">                        } catch (JSONException e) {</span>
+<span class="nc" id="L164">                            Log.e(&quot;FriendList Parse Error&quot;, e.toString());</span>
+<span class="fc" id="L165">                        }</span>
+                    }
+<span class="fc" id="L167">                    adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L168">                    swipeRefreshLayout.setRefreshing(false);</span>
+<span class="fc" id="L169">                },</span>
+                error -&gt; {
+<span class="nc" id="L171">                    Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L172">                    Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L173">                });</span>
+
+<span class="fc" id="L175">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L176">    }</span>
+
+    /**
+     * Sends a DELETE request to the backend to remove the selected friend from the user's list.
+     *
+     * @param friend The friend to be removed.
+     */
+    public void removeFriend(User friend) {
+<span class="nc" id="L184">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L185">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L186">        String url = URLManager.removeFriendURL(username, friend.getUsername());</span>
+
+<span class="nc" id="L188">        StringRequest request = new StringRequest(Request.Method.DELETE, url,</span>
+                response -&gt; {
+<span class="nc" id="L190">                    Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L191">                    friendList.remove(friend);</span>
+<span class="nc" id="L192">                    adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L193">                },</span>
+                error -&gt; {
+<span class="nc" id="L195">                    Log.e(&quot;removeFriend&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L196">                    Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L197">                }) {</span>
+            @Override
+            public byte[] getBody() {
+<span class="nc" id="L200">                return null;</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L205">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L209">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L210">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

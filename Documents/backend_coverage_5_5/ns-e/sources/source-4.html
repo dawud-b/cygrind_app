@@ -1,0 +1,327 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PointsRedemptionController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.points</a>
+</div>
+
+<h1>Coverage Summary for Class: PointsRedemptionController (onetoone.points)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PointsRedemptionController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.3%
+  </span>
+  <span class="absValue">
+    (22/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (100/100)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.points;
+&nbsp;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/points/redeem&quot;)
+&nbsp;@Tag(name = &quot;Points Redemption Controller&quot;, description = &quot;REST APIs related to redeeming points for rewards&quot;)
+<b class="fc">&nbsp;public class PointsRedemptionController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private PremiumReactionRepository premiumReactionRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserPremiumReactionRepository userPremiumReactionRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private PointTransactionRepository pointTransactionRepository;
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get all premium reactions&quot;, description = &quot;Retrieve a list of all available premium reactions that users can purchase with points.&quot;)
+&nbsp;    @GetMapping(&quot;/reactions&quot;)
+&nbsp;    public List&lt;Map&lt;String, Object&gt;&gt; getAllPremiumReactions() {
+<b class="fc">&nbsp;        List&lt;PremiumReaction&gt; premiumReactions = premiumReactionRepository.findAll();</b>
+<b class="fc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        for (PremiumReaction reaction : premiumReactions) {</b>
+<b class="fc">&nbsp;            Map&lt;String, Object&gt; reactionMap = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;id&quot;, reaction.getId());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;name&quot;, reaction.getName());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;emoji&quot;, reaction.getEmojiCode());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;pointCost&quot;, reaction.getPointCost());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;description&quot;, reaction.getDescription());</b>
+&nbsp;
+<b class="fc">&nbsp;            result.add(reactionMap);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get user&#39;s premium reactions&quot;, description = &quot;Retrieve all premium reactions that a specific user has unlocked.&quot;)
+&nbsp;    @GetMapping(&quot;/reactions/{username}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; getUserPremiumReactions(@PathVariable String username) {
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        if (user == null) {</b>
+<b class="fc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="fc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        List&lt;UserPremiumReaction&gt; userReactions = userPremiumReactionRepository.findByUser(user);</b>
+<b class="fc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; unlockedReactions = new ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        for (UserPremiumReaction userReaction : userReactions) {</b>
+<b class="fc">&nbsp;            PremiumReaction reaction = userReaction.getPremiumReaction();</b>
+&nbsp;
+<b class="fc">&nbsp;            Map&lt;String, Object&gt; reactionMap = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;id&quot;, reaction.getId());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;name&quot;, reaction.getName());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;emoji&quot;, reaction.getEmojiCode());</b>
+<b class="fc">&nbsp;            reactionMap.put(&quot;purchaseDate&quot;, userReaction.getPurchaseDate());</b>
+&nbsp;
+<b class="fc">&nbsp;            unlockedReactions.add(reactionMap);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="fc">&nbsp;        response.put(&quot;username&quot;, username);</b>
+<b class="fc">&nbsp;        response.put(&quot;unlockedReactions&quot;, unlockedReactions);</b>
+&nbsp;
+<b class="fc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Purchase premium reaction&quot;, description = &quot;Allow a user to spend points to unlock a premium reaction.&quot;)
+&nbsp;    @PostMapping(&quot;/reactions/{username}/{reactionId}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; purchasePremiumReaction(
+&nbsp;            @PathVariable String username,
+&nbsp;            @PathVariable Long reactionId) {
+&nbsp;
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;        if (user == null) {</b>
+<b class="fc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="fc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        PremiumReaction reaction = premiumReactionRepository.findById(reactionId).orElse(null);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (reaction == null) {</b>
+<b class="fc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;message&quot;, &quot;Premium reaction not found&quot;);</b>
+<b class="fc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check if user already has this reaction
+<b class="fc">&nbsp;        UserPremiumReaction existingPurchase =</b>
+<b class="fc">&nbsp;                userPremiumReactionRepository.findByUserAndPremiumReaction(user, reaction);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (existingPurchase != null) {</b>
+<b class="fc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;message&quot;, &quot;You already own this reaction&quot;);</b>
+<b class="fc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check if user has enough points
+<b class="fc">&nbsp;        if (user.getTotalPoints() &lt; reaction.getPointCost()) {</b>
+<b class="fc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;message&quot;, &quot;Not enough points to purchase this reaction&quot;);</b>
+<b class="fc">&nbsp;            response.put(&quot;required&quot;, reaction.getPointCost());</b>
+<b class="fc">&nbsp;            response.put(&quot;available&quot;, user.getTotalPoints());</b>
+<b class="fc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Deduct points
+<b class="fc">&nbsp;        user.addPoints(-reaction.getPointCost());</b>
+<b class="fc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+&nbsp;        // Record the transaction
+<b class="fc">&nbsp;        PointTransaction transaction = new PointTransaction(</b>
+&nbsp;                user,
+<b class="fc">&nbsp;                -reaction.getPointCost(),</b>
+&nbsp;                &quot;redeem_reaction&quot;,
+<b class="fc">&nbsp;                &quot;Purchased premium reaction: &quot; + reaction.getName()</b>
+&nbsp;        );
+<b class="fc">&nbsp;        pointTransactionRepository.save(transaction);</b>
+&nbsp;
+&nbsp;        // Add reaction to user&#39;s unlocked reactions
+<b class="fc">&nbsp;        UserPremiumReaction userReaction = new UserPremiumReaction(user, reaction);</b>
+<b class="fc">&nbsp;        userPremiumReactionRepository.save(userReaction);</b>
+&nbsp;
+<b class="fc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="fc">&nbsp;        response.put(&quot;message&quot;, &quot;Successfully purchased &quot; + reaction.getName() + &quot; reaction&quot;);</b>
+<b class="fc">&nbsp;        response.put(&quot;reaction&quot;, reaction.getName());</b>
+<b class="fc">&nbsp;        response.put(&quot;emoji&quot;, reaction.getEmojiCode());</b>
+<b class="fc">&nbsp;        response.put(&quot;pointsSpent&quot;, reaction.getPointCost());</b>
+<b class="fc">&nbsp;        response.put(&quot;remainingPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="fc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Initialize premium reactions&quot;, description = &quot;Admin endpoint to set up the initial set of premium reactions in the system.&quot;)
+&nbsp;    @PostMapping(&quot;/reactions/init&quot;)
+&nbsp;    public Map&lt;String, Object&gt; initializePremiumReactions() {
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        List&lt;PremiumReaction&gt; initialReactions = new ArrayList&lt;&gt;();</b>
+&nbsp;
+&nbsp;        // Define premium reaction codes (starting from where standard reactions end)
+<b class="fc">&nbsp;        final int FIRE = 7;        // Standard reactions ended at 6 (CRY)</b>
+<b class="fc">&nbsp;        final int MIND_BLOWN = 8;</b>
+<b class="fc">&nbsp;        final int FLEXING = 9;</b>
+<b class="fc">&nbsp;        final int TROPHY = 10;</b>
+<b class="fc">&nbsp;        final int CROWN = 11;</b>
+<b class="fc">&nbsp;        final int DIAMOND = 12;</b>
+<b class="fc">&nbsp;        final int ROCKET = 13;</b>
+<b class="fc">&nbsp;        final int UNICORN = 14;</b>
+&nbsp;
+&nbsp;        // Only add if they don&#39;t exist yet
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Fire&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Fire&quot;, FIRE, 50, &quot;Show something is fire or lit&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Mind Blown&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Mind Blown&quot;, MIND_BLOWN, 75, &quot;When something blows your mind&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Flexing&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Flexing&quot;, FLEXING, 100, &quot;Show off those gains&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Trophy&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Trophy&quot;, TROPHY, 150, &quot;Award for outstanding achievement&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Crown&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Crown&quot;, CROWN, 200, &quot;For royalty status&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Diamond&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Diamond&quot;, DIAMOND, 250, &quot;Rare and precious&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Rocket&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Rocket&quot;, ROCKET, 300, &quot;To the moon!&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (premiumReactionRepository.findByName(&quot;Unicorn&quot;) == null) {</b>
+<b class="fc">&nbsp;            initialReactions.add(new PremiumReaction(&quot;Unicorn&quot;, UNICORN, 500, &quot;Magical and rare&quot;));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        premiumReactionRepository.saveAll(initialReactions);</b>
+&nbsp;
+<b class="fc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="fc">&nbsp;        response.put(&quot;message&quot;, initialReactions.size() + &quot; premium reactions initialized&quot;);</b>
+<b class="fc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-05 23:54</div>
+</div>
+</body>
+</html>

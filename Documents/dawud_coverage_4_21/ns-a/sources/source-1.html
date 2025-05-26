@@ -1,0 +1,188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatSession</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.chat</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatSession (onetoone.chat)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatSession</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.5%
+  </span>
+  <span class="absValue">
+    (5/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    36.8%
+  </span>
+  <span class="absValue">
+    (7/19)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ChatSession$HibernateInstantiator$5AN7ZvOd</td>
+  </tr>
+  <tr>
+    <td class="name">ChatSession$HibernateProxy$1s7OTj1O</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    45.5%
+  </span>
+  <span class="absValue">
+    (5/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    36.8%
+  </span>
+  <span class="absValue">
+    (7/19)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.chat;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import onetoone.WorkoutGroups.WorkoutGroup;
+&nbsp;import onetoone.users.User;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;/**
+&nbsp; * Provides the Users in a given chat session
+&nbsp; *
+&nbsp; * @author Dawud Benedict
+&nbsp; */
+&nbsp;@Entity
+&nbsp;public class ChatSession {
+&nbsp;
+&nbsp;    // Generated String Id based on the usernames of the users in the chat session
+&nbsp;    @Id
+&nbsp;    private String sessionId;
+&nbsp;
+&nbsp;    // Users in this chat session. Could be group chat could be 1 on 1.
+&nbsp;    // Table unnecessary since sessionId already just a bunch of User ids
+<b class="fc">&nbsp;    @ManyToMany(cascade = CascadeType.PERSIST)</b>
+&nbsp;    private List&lt;User&gt; users = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;    // The messages sent in this chat
+&nbsp;    @OneToMany(mappedBy = &quot;chatSession&quot;)
+&nbsp;    private List&lt;Message&gt; messages;
+&nbsp;
+&nbsp;    @OneToOne
+&nbsp;    private Message lastMessage;
+&nbsp;
+&nbsp;
+&nbsp;    // Constructor
+<b class="nc">&nbsp;    public ChatSession(List&lt;User&gt; users) {</b>
+<b class="nc">&nbsp;        this.users = users;</b>
+&nbsp;
+&nbsp;        // Create a sorted list of usernames to ensure order doesn&#39;t affect the ID
+<b class="nc">&nbsp;        this.sessionId = generateSessionId(users);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // TODO: Must make it so when a workoutGroup is created the chat is created.
+&nbsp;    //  Also, adding users to the group should add them to the chat session.
+&nbsp;    // Create a workoutGroup chat
+<b class="fc">&nbsp;    public ChatSession(WorkoutGroup workoutGroup) {</b>
+<b class="fc">&nbsp;        this.users = workoutGroup.getMembers();</b>
+<b class="fc">&nbsp;        this.sessionId = workoutGroup.getId() + &quot;:workoutGroup&quot;;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public ChatSession() {}</b>
+&nbsp;
+<b class="nc">&nbsp;    public String getId() {return sessionId;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public List&lt;User&gt; getUsers() {return users;}</b>
+<b class="nc">&nbsp;    public void setUsers(List&lt;User&gt; users) {this.users = users;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public Message getLastMessage() {return lastMessage;}</b>
+<b class="nc">&nbsp;    public void setLastMessage(Message lastMessage) {this.lastMessage = lastMessage;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public void addUser(User user) {this.users.add(user);}</b>
+<b class="fc">&nbsp;    public void removeUser(User user) {this.users.remove(user);}</b>
+&nbsp;
+&nbsp;    public static String generateSessionId(List&lt;User&gt; users) {
+<b class="nc">&nbsp;        return users.stream()</b>
+<b class="nc">&nbsp;                .map(user -&gt; String.valueOf(user.getId()))</b>
+<b class="nc">&nbsp;                .sorted()</b>
+<b class="nc">&nbsp;                .collect(Collectors.joining(&quot;:&quot;));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-21 21:45</div>
+</div>
+</body>
+</html>

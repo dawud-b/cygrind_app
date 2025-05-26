@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Profile</a> &gt; <span class="el_source">EditProfileActivity.java</span></div><h1>EditProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Profile;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.util.Patterns;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.LoginActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+
+import org.json.JSONObject;
+import org.json.JSONException;
+/**
+ * This activity allows users to edit their profile details, such as their name, age, weight, height, email,
+ * and phone number. It also provides options to change the user's password, delete the account, and navigate
+ * back to the profile view.
+ * &lt;p&gt;
+ * The activity fetches the user's existing data from the server, displays it in editable fields, and sends
+ * updated data to the server when the user saves their changes. It also includes functionality for account deletion.
+ */
+<span class="fc" id="L35">public class EditProfileActivity extends AppCompatActivity {</span>
+
+    private EditText editableNameText;  // Editable field for the user's name
+    private EditText editableAgeText;   // Editable field for the user's age
+    private EditText editableWeightText; // Editable field for the user's weight
+    private EditText editableHeightText; // Editable field for the user's height
+    private EditText editableEmailText;  // Editable field for the user's email
+    private EditText editablePhoneText;  // Editable field for the user's phone number
+    private Button saveButton;           // Button to save changes
+    private Button backButton;           // Button to go back to the profile
+    private Button changePasswordButton; // Button to change password
+    private Button deleteAccountButton;  // Button to delete account
+    private RequestQueue requestQueue;   // Volley request queue for network requests
+<span class="fc" id="L48">    private String originalEmail = &quot;&quot;;   // Stores the original email to check for updates</span>
+    private String username;             // The username of the currently logged-in user
+
+    /**
+     * Called when the activity is first created. It initializes the UI components, retrieves the username
+     * from shared preferences, and fetches the user's current profile data.
+     *
+     * @param savedInstanceState The saved instance state if the activity is being recreated.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L59">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L60">        setContentView(R.layout.activity_edit_profile);</span>
+
+        // Initialize UI elements
+<span class="fc" id="L63">        initializeViews();</span>
+
+        // Get username from SharedPreferences
+<span class="fc" id="L66">        SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L67">        this.username = sharedPreferences.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+        // Validate username
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (username.isEmpty()) {</span>
+<span class="nc" id="L71">            Toast.makeText(this, &quot;No user logged in&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L72">            finish();</span>
+<span class="nc" id="L73">            return;</span>
+        }
+
+<span class="fc" id="L76">        requestQueue = Volley.newRequestQueue(this);</span>
+
+        // Fetch user data from the server
+<span class="fc" id="L79">        fetchUserData();</span>
+
+        // Set up button listeners
+<span class="fc" id="L82">        setupButtonListeners();</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * Initializes the UI components (EditText fields and Buttons).
+     */
+    private void initializeViews() {
+<span class="fc" id="L89">        editableNameText = findViewById(R.id.name_editable);</span>
+<span class="fc" id="L90">        editableAgeText = findViewById(R.id.age_editable);</span>
+<span class="fc" id="L91">        editableWeightText = findViewById(R.id.weight_editable);</span>
+<span class="fc" id="L92">        editableHeightText = findViewById(R.id.height_editable);</span>
+<span class="fc" id="L93">        editableEmailText = findViewById(R.id.editTextEmailAddress);</span>
+<span class="fc" id="L94">        editablePhoneText = findViewById(R.id.editTextPhone);</span>
+<span class="fc" id="L95">        saveButton = findViewById(R.id.save_btn);</span>
+<span class="fc" id="L96">        backButton = findViewById(R.id.edit_back);</span>
+<span class="fc" id="L97">        changePasswordButton = findViewById(R.id.edit_password_btn);</span>
+<span class="fc" id="L98">        deleteAccountButton = findViewById(R.id.delete_acc_btn);</span>
+<span class="fc" id="L99">    }</span>
+
+    /**
+     * Sets up the button listeners for the save, back, change password, and delete account buttons.
+     */
+    private void setupButtonListeners() {
+<span class="fc" id="L105">        saveButton.setOnClickListener(v -&gt; sendUpdateRequest());</span>
+
+<span class="fc" id="L107">        backButton.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L108">            Intent intent = new Intent(EditProfileActivity.this, ProfileActivity.class);</span>
+<span class="fc" id="L109">            startActivity(intent);</span>
+<span class="fc" id="L110">        });</span>
+
+<span class="fc" id="L112">        changePasswordButton.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L113">            Intent intent = new Intent(EditProfileActivity.this, ChangePasswordActivity.class);</span>
+<span class="fc" id="L114">            startActivity(intent);</span>
+<span class="fc" id="L115">        });</span>
+
+<span class="fc" id="L117">        deleteAccountButton.setOnClickListener(v -&gt; deleteUserAccount());</span>
+<span class="fc" id="L118">    }</span>
+
+    /**
+     * Shows a confirmation dialog before deleting the user's account.
+     */
+    private void deleteUserAccount() {
+<span class="fc" id="L124">        new AlertDialog.Builder(this)</span>
+<span class="fc" id="L125">                .setTitle(&quot;Delete Account&quot;)</span>
+<span class="fc" id="L126">                .setMessage(&quot;Are you sure you want to delete your account? This action cannot be undone.&quot;)</span>
+<span class="fc" id="L127">                .setPositiveButton(&quot;Delete&quot;, (dialog, which) -&gt; sendDeleteRequest())</span>
+<span class="fc" id="L128">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="fc" id="L129">                .show();</span>
+<span class="fc" id="L130">    }</span>
+
+    /**
+     * Sends a request to delete the user's account.
+     */
+    private void sendDeleteRequest() {
+<span class="pc bpc" id="L136" title="2 of 4 branches missed.">        if (username == null || username.isEmpty()) {</span>
+<span class="nc" id="L137">            Toast.makeText(this, &quot;No user to delete&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L138">            return;</span>
+        }
+
+<span class="fc" id="L141">        String deleteUrl = URLManager.USERS_URL + &quot;/&quot; + username;</span>
+
+<span class="fc" id="L143">        StringRequest deleteRequest = new StringRequest(</span>
+                Request.Method.DELETE,
+                deleteUrl,
+                response -&gt; {
+<span class="fc" id="L147">                    Log.d(&quot;DeleteRequest&quot;, &quot;Delete Response: &quot; + response);</span>
+                    // Clear SharedPreferences
+<span class="fc" id="L149">                    SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L150">                    sharedPreferences.edit().clear().apply();</span>
+
+<span class="fc" id="L152">                    Toast.makeText(EditProfileActivity.this, &quot;Account Deleted Successfully&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L153">                    Intent intent = new Intent(EditProfileActivity.this, LoginActivity.class);</span>
+<span class="fc" id="L154">                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+<span class="fc" id="L155">                    startActivity(intent);</span>
+<span class="fc" id="L156">                    finish();</span>
+<span class="fc" id="L157">                },</span>
+                error -&gt; {
+<span class="nc" id="L159">                    Log.e(&quot;DeleteError&quot;, &quot;Error details:&quot;, error);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L161">                        Log.e(&quot;DeleteError&quot;, &quot;Status Code: &quot; + error.networkResponse.statusCode);</span>
+                        try {
+<span class="nc" id="L163">                            String errorBody = new String(error.networkResponse.data, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L164">                            Log.e(&quot;DeleteError&quot;, &quot;Error Response Body: &quot; + errorBody);</span>
+<span class="nc" id="L165">                        } catch (Exception e) {</span>
+<span class="nc" id="L166">                            Log.e(&quot;DeleteError&quot;, &quot;Error parsing error response&quot;, e);</span>
+<span class="nc" id="L167">                        }</span>
+                    }
+<span class="nc" id="L169">                    Toast.makeText(EditProfileActivity.this, &quot;Delete Failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L170">                }</span>
+        );
+
+<span class="fc" id="L173">        requestQueue.add(deleteRequest);</span>
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * Fetches the user's data from the server and populates the input fields.
+     */
+    private void fetchUserData() {
+<span class="fc" id="L180">        String url = URLManager.USERS_URL + &quot;/&quot; + username;</span>
+
+<span class="fc" id="L182">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+                    try {
+                        // Extract data from the response JSON object
+<span class="fc" id="L189">                        String firstName = response.optString(&quot;firstName&quot;, &quot;&quot;);</span>
+<span class="fc" id="L190">                        String lastName = response.optString(&quot;lastName&quot;, &quot;&quot;);</span>
+<span class="fc" id="L191">                        int age = response.optInt(&quot;age&quot;, 0);</span>
+<span class="fc" id="L192">                        int height = response.optInt(&quot;height&quot;, 0);</span>
+<span class="fc" id="L193">                        int weight = response.optInt(&quot;weight&quot;, 0);</span>
+<span class="fc" id="L194">                        String email = response.optString(&quot;email&quot;, &quot;&quot;);</span>
+<span class="fc" id="L195">                        String phone = response.optString(&quot;telephone&quot;, &quot;&quot;);</span>
+
+                        // Store the original email for later comparison
+<span class="fc" id="L198">                        originalEmail = email;</span>
+
+                        // Set the values in the editable fields
+<span class="fc" id="L201">                        editableNameText.setText(formatName(firstName, lastName));</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">                        editableAgeText.setText(age &gt; 0 ? age + &quot; years&quot; : &quot;&quot;);</span>
+<span class="fc" id="L203">                        editableHeightText.setText(formatHeight(height));</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">                        editableWeightText.setText(weight &gt; 0 ? weight + &quot; lbs&quot; : &quot;&quot;);</span>
+<span class="fc" id="L205">                        editableEmailText.setText(email);</span>
+<span class="fc" id="L206">                        editablePhoneText.setText(phone);</span>
+
+<span class="nc" id="L208">                    } catch (Exception e) {</span>
+<span class="nc" id="L209">                        Log.e(&quot;FetchUserData&quot;, &quot;Error parsing user data&quot;, e);</span>
+<span class="nc" id="L210">                        Toast.makeText(EditProfileActivity.this, &quot;Error parsing data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L211">                    }</span>
+<span class="fc" id="L212">                },</span>
+<span class="nc" id="L213">                error -&gt; handleNetworkError(error, &quot;Error fetching data&quot;)</span>
+        );
+
+<span class="fc" id="L216">        requestQueue.add(request);</span>
+<span class="fc" id="L217">    }</span>
+
+    /**
+     * Sends the updated profile data to the server.
+     */
+    private void sendUpdateRequest() {
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (!validateInputs()) {</span>
+<span class="nc" id="L224">            return;</span>
+        }
+
+<span class="fc" id="L227">        String putUrl = URLManager.USERS_URL + &quot;/&quot; + username;</span>
+
+<span class="fc" id="L229">        JSONObject jsonBody = new JSONObject();</span>
+        try {
+            // Name
+<span class="fc" id="L232">            String[] nameParts = parseNameInput();</span>
+<span class="fc" id="L233">            jsonBody.put(&quot;firstName&quot;, nameParts[0]);</span>
+<span class="fc" id="L234">            jsonBody.put(&quot;lastName&quot;, nameParts[1]);</span>
+
+            // Age
+<span class="fc" id="L237">            int age = parseAge();</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">            if (age &gt; 0) jsonBody.put(&quot;age&quot;, age);</span>
+
+            // Weight
+<span class="fc" id="L241">            int weight = parseWeight();</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">            if (weight &gt; 0) jsonBody.put(&quot;weight&quot;, weight);</span>
+
+            // Height
+<span class="fc" id="L245">            int height = parseHeight();</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">            if (height &gt; 0) jsonBody.put(&quot;height&quot;, height);</span>
+
+            // Email - only include if changed
+<span class="fc" id="L249">            String currentEmail = editableEmailText.getText().toString().trim();</span>
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">            if (!currentEmail.equals(originalEmail)) {</span>
+<span class="nc" id="L251">                jsonBody.put(&quot;email&quot;, currentEmail);</span>
+            }
+
+            // Phone
+<span class="fc" id="L255">            String phone = editablePhoneText.getText().toString().trim();</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">            if (!phone.isEmpty()) jsonBody.put(&quot;telephone&quot;, phone);</span>
+
+<span class="nc" id="L258">        } catch (JSONException e) {</span>
+<span class="nc" id="L259">            Log.e(&quot;UpdateRequest&quot;, &quot;Error creating JSON body&quot;, e);</span>
+<span class="nc" id="L260">            Toast.makeText(this, &quot;Error creating request&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L261">            return;</span>
+<span class="fc" id="L262">        }</span>
+
+        // Send the update request using PUT method
+<span class="fc" id="L265">        StringRequest putRequest = new StringRequest(</span>
+                Request.Method.PUT,
+                putUrl,
+                response -&gt; {
+<span class="fc" id="L269">                    Log.d(&quot;UpdateRequest&quot;, &quot;Update Response: &quot; + response);</span>
+<span class="fc" id="L270">                    Toast.makeText(EditProfileActivity.this, &quot;Profile Updated!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L271">                },</span>
+                error -&gt; {
+<span class="nc" id="L273">                    Log.e(&quot;UpdateError&quot;, &quot;Error details:&quot;, error);</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L275">                        Log.e(&quot;UpdateError&quot;, &quot;Status Code: &quot; + error.networkResponse.statusCode);</span>
+                        try {
+<span class="nc" id="L277">                            String errorBody = new String(error.networkResponse.data, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L278">                            Log.e(&quot;UpdateError&quot;, &quot;Error Response Body: &quot; + errorBody);</span>
+<span class="nc" id="L279">                        } catch (Exception e) {</span>
+<span class="nc" id="L280">                            Log.e(&quot;UpdateError&quot;, &quot;Error parsing error response&quot;, e);</span>
+<span class="nc" id="L281">                        }</span>
+                    }
+<span class="nc" id="L283">                    Toast.makeText(EditProfileActivity.this, &quot;Update Failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L284">                }</span>
+<span class="fc" id="L285">        ) {</span>
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+<span class="fc" id="L288">                return jsonBody.toString().getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="fc" id="L293">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="fc" id="L297">        requestQueue.add(putRequest);</span>
+<span class="fc" id="L298">    }</span>
+
+    /**
+     * Validates the user's input for email and phone number.
+     *
+     * @return true if the inputs are valid, false otherwise.
+     */
+    private boolean validateInputs() {
+        // Email validation
+<span class="fc" id="L307">        String email = editableEmailText.getText().toString().trim();</span>
+<span class="pc bpc" id="L308" title="2 of 4 branches missed.">        if (!email.isEmpty() &amp;&amp; !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {</span>
+<span class="nc" id="L309">            editableEmailText.setError(&quot;Invalid email address&quot;);</span>
+<span class="nc" id="L310">            return false;</span>
+        }
+
+        // Phone validation (basic)
+<span class="fc" id="L314">        String phone = editablePhoneText.getText().toString().trim();</span>
+<span class="pc bpc" id="L315" title="2 of 4 branches missed.">        if (!phone.isEmpty() &amp;&amp; !Patterns.PHONE.matcher(phone).matches()) {</span>
+<span class="nc" id="L316">            editablePhoneText.setError(&quot;Invalid phone number&quot;);</span>
+<span class="nc" id="L317">            return false;</span>
+        }
+
+<span class="fc" id="L320">        return true;</span>
+    }
+
+    /**
+     * Parses the name input into first and last name.
+     *
+     * @return a string array containing the first name and last name.
+     */
+    private String[] parseNameInput() {
+<span class="fc" id="L329">        String nameInput = editableNameText.getText().toString().trim();</span>
+<span class="fc" id="L330">        String[] parts = nameInput.split(&quot;\\s+&quot;, 2);</span>
+<span class="fc" id="L331">        return new String[]{</span>
+<span class="pc bpc" id="L332" title="1 of 2 branches missed.">                parts.length &gt; 0 ? parts[0] : &quot;&quot;,</span>
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">                parts.length &gt; 1 ? parts[1] : &quot;&quot;</span>
+        };
+    }
+
+    /**
+     * Parses the age input and returns it as an integer.
+     *
+     * @return the parsed age.
+     */
+    private int parseAge() {
+        try {
+<span class="fc" id="L344">            String ageText = editableAgeText.getText().toString()</span>
+<span class="fc" id="L345">                    .replace(&quot; years&quot;, &quot;&quot;)</span>
+<span class="fc" id="L346">                    .trim();</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">            return ageText.isEmpty() ? 0 : Integer.parseInt(ageText);</span>
+<span class="nc" id="L348">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L349">            return 0;</span>
+        }
+    }
+
+    /**
+     * Parses the weight input and returns it as an integer.
+     *
+     * @return the parsed weight.
+     */
+    private int parseWeight() {
+        try {
+<span class="fc" id="L360">            String weightText = editableWeightText.getText().toString()</span>
+<span class="fc" id="L361">                    .replace(&quot; lbs&quot;, &quot;&quot;)</span>
+<span class="fc" id="L362">                    .trim();</span>
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">            return weightText.isEmpty() ? 0 : Integer.parseInt(weightText);</span>
+<span class="nc" id="L364">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L365">            return 0;</span>
+        }
+    }
+
+    /**
+     * Parses the height input and returns it in inches.
+     *
+     * @return the parsed height in inches.
+     */
+    private int parseHeight() {
+        try {
+<span class="fc" id="L376">            String heightText = editableHeightText.getText().toString();</span>
+<span class="fc" id="L377">            String[] parts = heightText.split(&quot;ft|in&quot;);</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">            if (parts.length == 2) {</span>
+<span class="fc" id="L379">                int feet = Integer.parseInt(parts[0].trim());</span>
+<span class="fc" id="L380">                int inches = Integer.parseInt(parts[1].trim());</span>
+<span class="fc" id="L381">                return feet * 12 + inches;</span>
+            }
+<span class="nc" id="L383">            return 0;</span>
+<span class="nc" id="L384">        } catch (Exception e) {</span>
+<span class="nc" id="L385">            return 0;</span>
+        }
+    }
+
+    /**
+     * Handles network errors by displaying a Toast message.
+     *
+     * @param error The VolleyError received from the network request.
+     * @param defaultMessage The default message to display in case of an error.
+     */
+    private void handleNetworkError(VolleyError error, String defaultMessage) {
+<span class="nc" id="L396">        String errorMsg = defaultMessage;</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">        if (error.networkResponse != null) {</span>
+<span class="nc" id="L398">            errorMsg += &quot; (Status Code: &quot; + error.networkResponse.statusCode + &quot;)&quot;;</span>
+            try {
+<span class="nc" id="L400">                String responseBody = new String(error.networkResponse.data, &quot;utf-8&quot;);</span>
+<span class="nc" id="L401">                Log.e(&quot;NetworkError&quot;, &quot;Response Body: &quot; + responseBody);</span>
+<span class="nc" id="L402">            } catch (Exception e) {</span>
+<span class="nc" id="L403">                Log.e(&quot;NetworkError&quot;, &quot;Error parsing error response&quot;, e);</span>
+<span class="nc" id="L404">            }</span>
+        }
+<span class="nc" id="L406">        Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L407">        error.printStackTrace();</span>
+<span class="nc" id="L408">    }</span>
+
+    /**
+     * Formats the user's name by concatenating the first name and last name.
+     *
+     * @param firstName The user's first name.
+     * @param lastName The user's last name.
+     * @return The full formatted name.
+     */
+    private String formatName(String firstName, String lastName) {
+<span class="fc" id="L418">        return (firstName + &quot; &quot; + lastName).trim();</span>
+    }
+
+    /**
+     * Formats the height from inches to feet and inches.
+     *
+     * @param totalInches The height in inches.
+     * @return The formatted height as a string in feet and inches.
+     */
+    private String formatHeight(int totalInches) {
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">        if (totalInches &lt;= 0) return &quot;&quot;;</span>
+<span class="nc" id="L429">        int feet = totalInches / 12;</span>
+<span class="nc" id="L430">        int inches = totalInches % 12;</span>
+<span class="nc" id="L431">        return feet + &quot;ft &quot; + inches + &quot;in&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

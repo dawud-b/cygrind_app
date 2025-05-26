@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowedTrainersFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">FollowedTrainersFragment.java</span></div><h1>FollowedTrainersFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class FollowedTrainersFragment extends Fragment {
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView recyclerView;
+    private FollowedTrainersAdapter adapter;
+    private List&lt;Trainer&gt; trainerList;
+
+    private static final String TAG = &quot;FollowedTrainersFrag&quot;;
+
+<span class="nc" id="L41">    public FollowedTrainersFragment() {</span>
+        // Required empty public constructor
+<span class="nc" id="L43">    }</span>
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="nc" id="L48">        View rootView = inflater.inflate(R.layout.fragment_followed_trainers, container, false);</span>
+
+<span class="nc" id="L50">        trainerList = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L52">        swipeRefreshLayout = rootView.findViewById(R.id.friend_search_layout);</span>
+
+<span class="nc" id="L54">        recyclerView = rootView.findViewById(R.id.recyclerViewFollowedTrainers);</span>
+<span class="nc" id="L55">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+        // Initialize the adapter and set it to the RecyclerView
+<span class="nc" id="L58">        adapter = new FollowedTrainersAdapter(getContext(), trainerList, new FollowedTrainersAdapter.OnTrainerActionListener() {</span>
+            @Override
+            public void onViewProfileClicked(Trainer trainer) {
+<span class="nc" id="L61">                viewTrainerProfile(trainer);</span>
+<span class="nc" id="L62">            }</span>
+
+            @Override
+            public void onUnfollowClicked(Trainer trainer) {
+<span class="nc" id="L66">                unfollowTrainer(trainer);</span>
+<span class="nc" id="L67">            }</span>
+        });
+<span class="nc" id="L69">        recyclerView.setAdapter(adapter);</span>
+
+<span class="nc" id="L71">        fetchFollowedTrainers();</span>
+
+        // Set up SwipeRefreshLayout listener
+<span class="nc" id="L74">        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {</span>
+            @Override
+            public void onRefresh() {
+<span class="nc" id="L77">                fetchFollowedTrainers();</span>
+<span class="nc" id="L78">            }</span>
+        });
+
+<span class="nc" id="L81">        return rootView;</span>
+    }
+
+    private void fetchFollowedTrainers() {
+<span class="nc" id="L85">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L86">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if(username.isEmpty()) {</span>
+<span class="nc" id="L88">            Log.e(TAG, &quot;username not set correctly&quot;);</span>
+<span class="nc" id="L89">            return;</span>
+        }
+<span class="nc" id="L91">        String url = URLManager.getBaseUrl() + &quot;/users/&quot; + username + &quot;/followed-trainers&quot;;</span>
+
+<span class="nc" id="L93">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                com.android.volley.Request.Method.GET,
+                url,
+                null, // Pass null as the request body since it's a GET request
+<span class="nc" id="L97">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L100">                        Log.d(TAG, &quot;Response: &quot; + response.toString());</span>
+
+                        // Clear current list and populate from response
+<span class="nc" id="L103">                        trainerList.clear();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                        for(int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L106">                                trainerList.add(new Trainer(response.getJSONObject(i)));</span>
+<span class="nc" id="L107">                            } catch (JSONException e) {</span>
+<span class="nc" id="L108">                                Log.e(TAG, &quot;Failed parsing trainer JSON: &quot; + e.toString());</span>
+<span class="nc" id="L109">                            }</span>
+                        }
+
+<span class="nc" id="L112">                        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L113">                        swipeRefreshLayout.setRefreshing(false);</span>
+<span class="nc" id="L114">                    }</span>
+                },
+<span class="nc" id="L116">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L119">                        Log.e(TAG, &quot;Volley Error: &quot; + error.toString());</span>
+<span class="nc" id="L120">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L121">                        swipeRefreshLayout.setRefreshing(false);</span>
+<span class="nc" id="L122">                    }</span>
+<span class="nc" id="L123">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L126">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                // Add any required headers here
+<span class="nc" id="L128">                return headers;</span>
+            }
+        };
+
+        // Add the request to the queue
+<span class="nc" id="L133">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L134">    }</span>
+
+    private void unfollowTrainer(Trainer trainer) {
+<span class="nc" id="L137">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L138">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="nc" id="L140">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainer.getId() + &quot;/followers/&quot; + username;</span>
+
+<span class="nc" id="L142">        StringRequest request = new StringRequest(com.android.volley.Request.Method.DELETE, url,</span>
+<span class="nc" id="L143">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L146">                        Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L147">                        trainerList.remove(trainer);</span>
+<span class="nc" id="L148">                        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L149">                    }</span>
+                },
+<span class="nc" id="L151">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L154">                        Log.e(TAG, &quot;Error unfollowing trainer: &quot; + error.getMessage());</span>
+<span class="nc" id="L155">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L156">                    }</span>
+                });
+
+        // Add the request to the Volley request queue
+<span class="nc" id="L160">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L161">    }</span>
+
+    private void viewTrainerProfile(Trainer trainer) {
+        // Intent to view trainer profile
+<span class="nc" id="L165">        Intent intent = new Intent(getActivity(), TrainerProfileActivity.class);</span>
+<span class="nc" id="L166">        intent.putExtra(&quot;TRAINER_ID&quot;, trainer.getId());</span>
+<span class="nc" id="L167">        startActivity(intent);</span>
+<span class="nc" id="L168">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

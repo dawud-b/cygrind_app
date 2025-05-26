@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestsFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">RequestsFragment.java</span></div><h1>RequestsFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A {@link Fragment} subclass that displays and manages incoming friend requests.
+ * &lt;p&gt;
+ * Uses a {@link RecyclerView} to display requests with options to accept or decline.
+ * Integrates with a backend using Volley for network communication.
+ */
+public class RequestsFragment extends Fragment {
+
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView recyclerView;
+    private RequestAdapter adapter;
+<span class="fc" id="L41">    private List&lt;FriendRequest&gt; friendRequestList = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * Required empty public constructor.
+     */
+<span class="fc" id="L46">    public RequestsFragment() {}</span>
+
+    /**
+     * Inflates the fragment layout and sets up RecyclerView and network operations.
+     *
+     * @param inflater           LayoutInflater to inflate views.
+     * @param container          ViewGroup container of the fragment.
+     * @param savedInstanceState Previously saved instance state.
+     * @return The inflated root view of the fragment.
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="fc" id="L59">        fetchRequests();</span>
+<span class="fc" id="L60">        View rootView = inflater.inflate(R.layout.fragment_requests, container, false);</span>
+
+<span class="fc" id="L62">        recyclerView = rootView.findViewById(R.id.recyclerViewRequests);</span>
+<span class="fc" id="L63">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+<span class="fc" id="L64">        swipeRefreshLayout = rootView.findViewById(R.id.friend_requests_layout);</span>
+
+        // Initialize adapter with action listener for requests
+<span class="fc" id="L67">        adapter = new RequestAdapter(getContext(), friendRequestList, new RequestAdapter.OnRequestActionListener() {</span>
+            @Override
+            public void onAcceptClick(FriendRequest friendRequest) {
+<span class="fc" id="L70">                acceptRequest(friendRequest);</span>
+<span class="fc" id="L71">            }</span>
+
+            @Override
+            public void onDeclineClick(FriendRequest friendRequest) {
+<span class="nc" id="L75">                declineRequest(friendRequest);</span>
+<span class="nc" id="L76">            }</span>
+        });
+<span class="fc" id="L78">        recyclerView.setAdapter(adapter);</span>
+
+        // Refresh the list when the user swipes down
+<span class="pc" id="L81">        swipeRefreshLayout.setOnRefreshListener(() -&gt; fetchRequests());</span>
+
+<span class="fc" id="L83">        return rootView;</span>
+    }
+
+    /**
+     * Sends a POST request to accept a friend request.
+     *
+     * @param r The {@link FriendRequest} object representing the friend request.
+     */
+    private void acceptRequest(FriendRequest r) {
+<span class="fc" id="L92">        Long requestId = r.getId();</span>
+<span class="fc" id="L93">        String url = URLManager.getFriendAccept(requestId);</span>
+
+<span class="fc" id="L95">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+                response -&gt; {
+<span class="fc" id="L97">                    Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L98">                    friendRequestList.remove(r);</span>
+<span class="fc" id="L99">                    adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L100">                },</span>
+                error -&gt; {
+<span class="nc" id="L102">                    Log.e(&quot;acceptRequest&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L103">                    Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="pc" id="L104">                }) {</span>
+            @Override
+            public byte[] getBody() {
+<span class="fc" id="L107">                return null;</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L112">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+<span class="fc" id="L116">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L117">    }</span>
+
+    /**
+     * Sends a DELETE request to decline a friend request.
+     *
+     * @param r The {@link FriendRequest} object representing the friend request.
+     */
+    private void declineRequest(FriendRequest r) {
+<span class="nc" id="L125">        Long requestId = r.getId();</span>
+<span class="nc" id="L126">        String url = URLManager.getFriendAccept(requestId);</span>
+
+<span class="nc" id="L128">        StringRequest request = new StringRequest(Request.Method.DELETE, url,</span>
+                response -&gt; {
+<span class="nc" id="L130">                    Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L131">                    friendRequestList.remove(r);</span>
+<span class="nc" id="L132">                    adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L133">                },</span>
+                error -&gt; {
+<span class="nc" id="L135">                    Log.e(&quot;declineRequest&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L136">                    Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L137">                }) {</span>
+            @Override
+            public byte[] getBody() {
+<span class="nc" id="L140">                return null;</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L145">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L149">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L150">    }</span>
+
+    /**
+     * Fetches the list of incoming friend requests from the backend.
+     */
+    private void fetchRequests() {
+<span class="fc" id="L156">        SharedPreferences prefs = getActivity().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L157">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">        if (username.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L160">            Log.e(&quot;SharedPrefs Error&quot;, &quot;SharedPrefs username not set&quot;);</span>
+<span class="nc" id="L161">            return;</span>
+        }
+
+<span class="fc" id="L164">        String url = URLManager.getReceivedRequestsURL(username);</span>
+
+<span class="fc" id="L166">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+                response -&gt; {
+<span class="fc" id="L168">                    Log.d(&quot;Volley Response&quot;, response.toString());</span>
+<span class="fc" id="L169">                    friendRequestList.clear();</span>
+
+<span class="fc bfc" id="L171" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="fc" id="L173">                            friendRequestList.add(new FriendRequest(response.getJSONObject(i)));</span>
+<span class="nc" id="L174">                        } catch (JSONException e) {</span>
+<span class="nc" id="L175">                            Log.e(&quot;Request Parse Error&quot;, e.toString());</span>
+<span class="fc" id="L176">                        }</span>
+                    }
+
+<span class="fc" id="L179">                    adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L180">                    swipeRefreshLayout.setRefreshing(false);</span>
+<span class="fc" id="L181">                },</span>
+                error -&gt; {
+<span class="nc" id="L183">                    Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L184">                    Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="pc" id="L185">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="fc" id="L188">                return new HashMap&lt;&gt;();</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L193">                return new HashMap&lt;&gt;();</span>
+            }
+        };
+
+<span class="fc" id="L197">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L198">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HomeActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">HomeActivity.java</span></div><h1>HomeActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.androidexample.Leaderboard.EventActivity;
+import com.example.androidexample.Friends.FriendPageActivity;
+import com.example.androidexample.Groups.GroupPageActivity;
+import com.example.androidexample.Messaging.MessageInboxActivity;
+import com.example.androidexample.Profile.ProfileActivity;
+import com.example.androidexample.WorkoutTemplate.WorkoutTemplateActivity;
+import com.example.androidexample.Trainers.TrainerPageActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * The main landing screen for logged-in users. Displays various navigation options
+ * including profile, friends, workouts, trainers, messages, leaderboard, and group pages.
+ * Also manages user session data such as username and user ID via SharedPreferences.
+ */
+<span class="fc" id="L34">public class HomeActivity extends AppCompatActivity {</span>
+
+    // UI elements
+    private TextView usernameText;
+    private ImageButton logOutButton;
+    private ImageButton profileButton;
+    private ImageButton friendsButton;
+    private ImageButton calendarButton;
+    private ImageButton trainerButton;
+    private ImageButton messageButton;
+    private ImageButton workoutButton;
+    private Button leaderboardButton;
+    private ImageButton groupButton;
+
+    /**
+     * Initializes the activity, sets up all button click listeners,
+     * and extracts/stores user data passed from previous activity or preferences.
+     *
+     * @param savedInstanceState the saved state bundle for this activity
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L56">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L57">        setContentView(R.layout.activity_home_new);</span>
+
+        // Initialize UI components
+<span class="fc" id="L60">        usernameText = findViewById(R.id.home_username_txt);</span>
+<span class="fc" id="L61">        profileButton = findViewById(R.id.home_profile);</span>
+<span class="fc" id="L62">        logOutButton = findViewById(R.id.home_logout);</span>
+<span class="fc" id="L63">        workoutButton = findViewById(R.id.home_workout);</span>
+<span class="fc" id="L64">        friendsButton = findViewById(R.id.home_friends);</span>
+<span class="fc" id="L65">        calendarButton = findViewById(R.id.home_calendar);</span>
+<span class="fc" id="L66">        messageButton = findViewById(R.id.home_messages);</span>
+<span class="fc" id="L67">        groupButton = findViewById(R.id.home_groups);</span>
+<span class="fc" id="L68">        trainerButton = findViewById(R.id.home_trainer);</span>
+<span class="fc" id="L69">        leaderboardButton = findViewById(R.id.view_leaderboard_button);</span>
+
+        // Extract user data and save to SharedPreferences
+<span class="fc" id="L72">        Bundle extras = getIntent().getExtras();</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (extras != null) {</span>
+<span class="fc" id="L74">            String username = extras.getString(&quot;username&quot;);</span>
+<span class="fc" id="L75">            usernameText.setText(username);</span>
+<span class="fc" id="L76">            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L77">            SharedPreferences.Editor editor = sharedPreferences.edit();</span>
+<span class="fc" id="L78">            editor.putString(&quot;username&quot;, username);</span>
+<span class="fc" id="L79">            storeId(username);</span>
+<span class="fc" id="L80">            editor.apply();</span>
+<span class="fc" id="L81">        } else {</span>
+<span class="fc" id="L82">            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L83">            usernameText.setText(sharedPreferences.getString(&quot;username&quot;, &quot;&quot;));</span>
+        }
+
+        // Set up navigation listeners
+<span class="fc" id="L87">        logOutButton.setOnClickListener(v -&gt; startActivity(new Intent(this, LoginActivity.class)));</span>
+
+<span class="fc" id="L89">        profileButton.setOnClickListener(v -&gt; startActivity(new Intent(this, ProfileActivity.class)));</span>
+
+<span class="fc" id="L91">        workoutButton.setOnClickListener(v -&gt; startActivity(new Intent(this, WorkoutTemplateActivity.class)));</span>
+
+<span class="fc" id="L93">        friendsButton.setOnClickListener(v -&gt; startActivity(new Intent(this, FriendPageActivity.class)));</span>
+
+<span class="fc" id="L95">        trainerButton.setOnClickListener(v -&gt; startActivity(new Intent(this, TrainerPageActivity.class)));</span>
+
+<span class="fc" id="L97">        leaderboardButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L98">            String username = usernameText.getText().toString();</span>
+<span class="nc" id="L99">            Intent intent = new Intent(this, EventActivity.class);</span>
+<span class="nc" id="L100">            intent.putExtra(&quot;EVENT_ID&quot;, 1L);</span>
+<span class="nc" id="L101">            intent.putExtra(&quot;EVENT_TITLE&quot;, &quot;Active Event&quot;);</span>
+<span class="nc" id="L102">            intent.putExtra(&quot;USERNAME&quot;, username);</span>
+<span class="nc" id="L103">            startActivity(intent);</span>
+<span class="nc" id="L104">        });</span>
+
+<span class="fc" id="L106">        messageButton.setOnClickListener(v -&gt; startActivity(new Intent(this, MessageInboxActivity.class)));</span>
+
+<span class="pc" id="L108">        groupButton.setOnClickListener(v -&gt; startActivity(new Intent(this, GroupPageActivity.class)));</span>
+<span class="fc" id="L109">    }</span>
+
+    /**
+     * Sends a GET request to fetch the user ID for a given username and stores it in SharedPreferences.
+     *
+     * @param username the username for which to retrieve and store the ID
+     */
+    private void storeId(String username) {
+<span class="fc" id="L117">        String url = &quot;http://coms-3090-035.class.las.iastate.edu:8080/users/&quot; + username;</span>
+
+<span class="fc" id="L119">        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,</span>
+<span class="fc" id="L120">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+<span class="fc" id="L123">                        Log.d(&quot;VolleyResponse&quot;, &quot;User ID stored: &quot; + response.toString());</span>
+                        try {
+<span class="fc" id="L125">                            long userId = response.getLong(&quot;id&quot;);</span>
+<span class="fc" id="L126">                            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L127">                            SharedPreferences.Editor editor = sharedPreferences.edit();</span>
+<span class="fc" id="L128">                            editor.putLong(&quot;id&quot;, userId);</span>
+<span class="fc" id="L129">                            editor.apply();</span>
+<span class="nc" id="L130">                        } catch (JSONException e) {</span>
+<span class="nc" id="L131">                            e.printStackTrace();</span>
+<span class="fc" id="L132">                        }</span>
+<span class="fc" id="L133">                    }</span>
+                },
+<span class="fc" id="L135">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L138">                        Log.e(&quot;VolleyError&quot;, error.toString());</span>
+<span class="nc" id="L139">                    }</span>
+                });
+
+<span class="fc" id="L142">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonObjectRequest);</span>
+<span class="fc" id="L143">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

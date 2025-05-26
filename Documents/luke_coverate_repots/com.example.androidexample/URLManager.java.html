@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>URLManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">URLManager.java</span></div><h1>URLManager.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+<span class="nc" id="L3">public class URLManager {</span>
+    private static final String BASE_HTTP_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String BASE_WS_URL = &quot;ws://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    public static final String USERS_URL = BASE_HTTP_URL + &quot;/users&quot;;
+    public static final String EXERCISE_TEMPLATE_URL = BASE_HTTP_URL + &quot;/exerciseTemplate&quot;;
+
+    public static final String WORKOUT_TEMPLATE_URL = BASE_HTTP_URL + &quot;/templates&quot;;
+
+    public static final String FRIEND_REQUEST_URL = BASE_HTTP_URL + &quot;/friends/request&quot;;
+    public static final String WORKOUT_GROUP_URL = BASE_HTTP_URL + &quot;/workout-groups&quot;;
+    public static String getUserGroupURL(String username) {
+<span class="nc" id="L14">        return WORKOUT_GROUP_URL + &quot;/user/&quot; + username + &quot;/group&quot;;</span>
+    }
+    public static String getGroupMembersURL(Long groupId) {
+<span class="nc" id="L17">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/members&quot;;</span>
+    }
+    public static String getGroupJoinRequestsURL(Long groupId, String username) {
+<span class="nc" id="L20">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/join-requests&quot; + &quot;?leaderUsername=&quot; + username;</span>
+    }
+    public static String acceptGroupJoinRequestsURL(Long groupId, Long requestId, String username) {
+<span class="nc" id="L23">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/accept-request/&quot; + requestId + &quot;?leaderUsername=&quot; + username;</span>
+    }
+    public static String kickGroupMemberURL(Long groupId, String memberUsername, String leaderUsername) {
+<span class="nc" id="L26">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/remove-member&quot; + &quot;?memberUsername=&quot; + memberUsername + &quot;&amp;leaderUsername=&quot; + leaderUsername;</span>
+    }
+    public static String declineGroupJoinRequestsURL(Long groupId, Long requestId, String username) {
+<span class="nc" id="L29">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/accept-request/&quot; + requestId + &quot;?leaderUsername=&quot; + username;</span>
+    }
+    public static String leaveGroupURL(Long groupId, String username) {
+<span class="nc" id="L32">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/leave?username=&quot; + username;</span>
+    }
+
+    public static String chatURL(String sessionId, String username) {
+<span class="fc" id="L36">        return BASE_WS_URL + &quot;/chat/&quot; + sessionId + &quot;/&quot; + username;</span>
+    }
+    public static String removeFriendURL(String username, String friend_username) {
+<span class="nc" id="L39">        return USERS_URL + &quot;/&quot; + username + &quot;/friends/&quot; + friend_username;</span>
+    }
+    public static String getGroupJoinURL(Long id, String username) {
+<span class="nc" id="L42">        return WORKOUT_GROUP_URL + &quot;/&quot; + id + &quot;/request-join&quot;;</span>
+    }
+
+    public static String getFriendAccept(Long requestId) {
+<span class="fc" id="L46">        return FRIEND_REQUEST_URL + &quot;/accept/&quot; + requestId;</span>
+    }
+    public static String getSentRequestsURL(String username) {
+<span class="nc" id="L49">        return FRIEND_REQUEST_URL + &quot;s/&quot; + username + &quot;/sent&quot;;</span>
+    }
+    public static String postChatSessionURL() {
+<span class="fc" id="L52">        return BASE_HTTP_URL + &quot;/chatSession&quot;;</span>
+    }
+
+    public static String getFriendsURL(String username) {
+<span class="fc" id="L56">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/friends&quot;;</span>
+    }
+    public static String getReceivedRequestsURL(String username) {
+<span class="fc" id="L59">        return FRIEND_REQUEST_URL + &quot;s/&quot; + username + &quot;/received&quot;;</span>
+    }
+
+    public static String getExerciseTempFromWorkoutTempURL(Long id) {
+<span class="nc" id="L63">        return WORKOUT_TEMPLATE_URL + &quot;/&quot; + id + &quot;/exercises&quot;;</span>
+    }
+
+    public static String getWorkoutTempFromUserURL(String username) {
+<span class="fc" id="L67">        return BASE_HTTP_URL + &quot;/&quot; + username + &quot;/templates&quot;;</span>
+    }
+    public static String getUserChatSessionsURL(String username) {
+<span class="fc" id="L70">        return USERS_URL + &quot;/&quot; + username + &quot;/chatSessions&quot;;</span>
+    }
+
+
+    public static String getLoginPutReqURL(String username) {
+<span class="fc" id="L75">        return USERS_URL + &quot;/passcheck/&quot; + username;</span>
+    }
+
+    public static String getBaseUrl(){
+<span class="fc" id="L79">        return BASE_HTTP_URL;</span>
+    }
+    // Trainer related endpoints
+
+    // Get all active trainers
+    public static String getTrainersURL() {
+<span class="nc" id="L85">        return BASE_HTTP_URL + &quot;/trainers&quot;;</span>
+    }
+
+
+    // Get a specific trainer by ID
+    public static String getTrainerURL(long trainerId) {
+<span class="nc" id="L91">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId;</span>
+    }
+
+    // Get trainers followed by a user
+    public static String getFollowedTrainersURL(String username) {
+<span class="nc" id="L96">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/followed-trainers&quot;;</span>
+    }
+
+    // Follow a trainer
+    public static String getFollowTrainerURL(long trainerId, String username) {
+<span class="nc" id="L101">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId + &quot;/followers/&quot; + username;</span>
+    }
+
+    // Check if a user is a trainer
+    public static String getIsTrainerURL(String username) {
+<span class="nc" id="L106">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/is-trainer&quot;;</span>
+    }
+
+    // Get trainer's workout templates
+    public static String getTrainerTemplatesURL(long trainerId) {
+<span class="nc" id="L111">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId + &quot;/templates&quot;;</span>
+    }
+
+    public static final String EXERCISE_DATABASE_URL = BASE_HTTP_URL + &quot;/database/exercises&quot;;
+    //public static final String EXERCISE_DATABASE_URL = BASE_HTTP_URL + &quot;/database/exercises&quot;;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

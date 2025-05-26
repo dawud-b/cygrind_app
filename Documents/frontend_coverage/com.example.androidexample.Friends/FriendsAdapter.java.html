@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FriendsAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">FriendsAdapter.java</span></div><h1>FriendsAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+import com.example.androidexample.User;
+
+import java.util.List;
+
+/**
+ * RecyclerView Adapter for displaying a list of friends in a scrollable view.
+ * &lt;p&gt;
+ * Each item displays the friend's username along with action buttons for messaging
+ * and removing the friend.
+ * &lt;p&gt;
+ * Utilizes a custom listener interface {@link OnFriendActionListener}
+ * to handle user interaction callbacks from the adapter to the host activity or fragment.
+ */
+public class FriendsAdapter extends RecyclerView.Adapter&lt;FriendsAdapter.FriendViewHolder&gt; {
+
+    private Context context;
+    private List&lt;User&gt; friendList;
+    private OnFriendActionListener onFriendActionListener;
+
+    /**
+     * Constructs a FriendsAdapter.
+     *
+     * @param context               The context from the parent activity or fragment.
+     * @param friendList            List of friends to display.
+     * @param listener              Listener to handle friend-related actions (e.g., message, remove).
+     */
+<span class="fc" id="L38">    public FriendsAdapter(Context context, List&lt;User&gt; friendList, OnFriendActionListener listener) {</span>
+<span class="fc" id="L39">        this.context = context;</span>
+<span class="fc" id="L40">        this.friendList = friendList;</span>
+<span class="fc" id="L41">        this.onFriendActionListener = listener;</span>
+<span class="fc" id="L42">    }</span>
+
+    /**
+     * Creates a new ViewHolder to display a friend item.
+     *
+     * @param parent   The parent view that the ViewHolder is attached to.
+     * @param viewType The view type of the new View.
+     * @return A new FriendViewHolder containing the layout for a single friend item.
+     */
+    @Override
+    public FriendViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="fc" id="L53">        View view = LayoutInflater.from(context).inflate(R.layout.item_friend, parent, false);</span>
+<span class="fc" id="L54">        return new FriendViewHolder(view);</span>
+    }
+
+    /**
+     * Binds the data to the ViewHolder at the specified position.
+     *
+     * @param holder   The ViewHolder which should be updated.
+     * @param position The position of the friend item in the list.
+     */
+    @Override
+    public void onBindViewHolder(FriendViewHolder holder, int position) {
+<span class="fc" id="L65">        User friend = friendList.get(position);</span>
+<span class="fc" id="L66">        holder.friendNameTextView.setText(friend.getUsername());</span>
+
+<span class="fc" id="L68">        holder.messageButton.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">            if (onFriendActionListener != null) {</span>
+<span class="fc" id="L70">                onFriendActionListener.onMessageClicked(friend);</span>
+            }
+<span class="fc" id="L72">        });</span>
+
+<span class="fc" id="L74">        holder.removeFriend.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (onFriendActionListener != null) {</span>
+<span class="nc" id="L76">                onFriendActionListener.onRemoveFriendClicked(friend);</span>
+            }
+<span class="nc" id="L78">        });</span>
+<span class="fc" id="L79">    }</span>
+
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     *
+     * @return The number of friend items.
+     */
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L88">        return friendList.size();</span>
+    }
+
+    /**
+     * ViewHolder that describes a single friend item view and metadata about its place within the RecyclerView.
+     */
+    public static class FriendViewHolder extends RecyclerView.ViewHolder {
+        TextView friendNameTextView;
+        ImageButton messageButton;
+        ImageButton removeFriend;
+
+        /**
+         * Constructor that initializes the UI elements for the friend item.
+         *
+         * @param itemView The view of the friend item.
+         */
+        public FriendViewHolder(View itemView) {
+<span class="fc" id="L105">            super(itemView);</span>
+<span class="fc" id="L106">            friendNameTextView = itemView.findViewById(R.id.friendName);</span>
+<span class="fc" id="L107">            messageButton = itemView.findViewById(R.id.member_messageButton);</span>
+<span class="fc" id="L108">            removeFriend = itemView.findViewById(R.id.removeButton);</span>
+<span class="fc" id="L109">        }</span>
+    }
+
+    /**
+     * Interface for handling click actions on friend items.
+     * Implemented by the parent activity or fragment to define behavior.
+     */
+    public interface OnFriendActionListener {
+        /**
+         * Triggered when the message button is clicked.
+         *
+         * @param friend The selected friend to message.
+         */
+        void onMessageClicked(User friend);
+
+        /**
+         * Triggered when the remove friend button is clicked.
+         *
+         * @param friend The selected friend to remove.
+         */
+        void onRemoveFriendClicked(User friend);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

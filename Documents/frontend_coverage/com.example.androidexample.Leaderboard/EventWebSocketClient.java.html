@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventWebSocketClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">EventWebSocketClient.java</span></div><h1>EventWebSocketClient.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+/**
+ * A WebSocket client for handling communication with an event server.
+ * This client establishes a connection to a WebSocket server and allows for receiving and sending messages
+ * related to events. It uses a listener interface to notify about connection status, messages, and errors.
+ */
+public class EventWebSocketClient {
+
+    private static final String TAG = &quot;EventWebSocketClient&quot;;
+    private WebSocketClient webSocketClient;  // WebSocket client instance
+    private EventWebSocketListener listener;  // Listener for WebSocket events
+    private String serverUrl;  // Server URL for WebSocket connection
+    private String username;  // Username for the WebSocket connection
+<span class="nc" id="L24">    private boolean isConnected = false;  // Connection status flag</span>
+    private Handler mainHandler;  // Handler to manage UI thread interaction
+
+    /**
+     * Constructor to initialize the WebSocket client with the server URL, username, and listener.
+     *
+     * @param serverUrl The URL of the WebSocket server.
+     * @param username The username to be used for the WebSocket connection.
+     * @param listener The listener to handle WebSocket events (connection, message, error).
+     */
+<span class="nc" id="L34">    public EventWebSocketClient(String serverUrl, String username, EventWebSocketListener listener) {</span>
+<span class="nc" id="L35">        this.serverUrl = serverUrl;</span>
+<span class="nc" id="L36">        this.username = username;</span>
+<span class="nc" id="L37">        this.listener = listener;</span>
+<span class="nc" id="L38">        this.mainHandler = new Handler(Looper.getMainLooper());</span>
+<span class="nc" id="L39">    }</span>
+
+    /**
+     * Interface for handling WebSocket events like connection, disconnection, message reception, and errors.
+     */
+    public interface EventWebSocketListener {
+        /**
+         * Called when the WebSocket connection is established successfully.
+         */
+        void onConnected();
+
+        /**
+         * Called when the WebSocket connection is closed.
+         *
+         * @param code The closure code.
+         * @param reason The reason for the closure.
+         */
+        void onDisconnected(int code, String reason);
+
+        /**
+         * Called when an error occurs with the WebSocket connection.
+         *
+         * @param ex The exception that occurred.
+         */
+        void onError(Exception ex);
+
+        /**
+         * Called when a message is received from the WebSocket server.
+         *
+         * @param message The received message.
+         */
+        void onMessageReceived(String message);
+    }
+
+    /**
+     * Connects to the WebSocket server and establishes communication.
+     * It uses the server URL and username for the connection and initializes the WebSocket client.
+     * If the connection is successful, it triggers the `onConnected()` callback.
+     *
+     * @throws URISyntaxException If the server URL is not valid.
+     */
+    public void connect() {
+        try {
+<span class="nc" id="L82">            URI uri = new URI(serverUrl + &quot;/events/&quot; + username);  // Construct the WebSocket URI</span>
+<span class="nc" id="L83">            webSocketClient = new WebSocketClient(uri) {</span>
+
+                @Override
+                public void onOpen(ServerHandshake handshakedata) {
+<span class="nc" id="L87">                    Log.d(TAG, &quot;WebSocket connection opened&quot;);</span>
+<span class="nc" id="L88">                    isConnected = true;</span>
+<span class="nc" id="L89">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L91">                            listener.onConnected();</span>
+                        }
+<span class="nc" id="L93">                    });</span>
+<span class="nc" id="L94">                }</span>
+
+                @Override
+                public void onMessage(String message) {
+<span class="nc" id="L98">                    Log.d(TAG, &quot;Received message: &quot; + message);</span>
+<span class="nc" id="L99">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L101">                            listener.onMessageReceived(message);</span>
+                        }
+<span class="nc" id="L103">                    });</span>
+<span class="nc" id="L104">                }</span>
+
+                @Override
+                public void onClose(int code, String reason, boolean remote) {
+<span class="nc" id="L108">                    Log.d(TAG, &quot;WebSocket connection closed: &quot; + reason);</span>
+<span class="nc" id="L109">                    isConnected = false;</span>
+<span class="nc" id="L110">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L112">                            listener.onDisconnected(code, reason);</span>
+                        }
+<span class="nc" id="L114">                    });</span>
+<span class="nc" id="L115">                }</span>
+
+                @Override
+                public void onError(Exception ex) {
+<span class="nc" id="L119">                    Log.e(TAG, &quot;WebSocket error&quot;, ex);</span>
+<span class="nc" id="L120">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L122">                            listener.onError(ex);</span>
+                        }
+<span class="nc" id="L124">                    });</span>
+<span class="nc" id="L125">                }</span>
+            };
+
+<span class="nc" id="L128">            webSocketClient.connect();  // Connect to the WebSocket server</span>
+<span class="nc" id="L129">        } catch (URISyntaxException e) {</span>
+<span class="nc" id="L130">            Log.e(TAG, &quot;URI syntax error&quot;, e);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L132">                listener.onError(e);</span>
+            }
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">    }</span>
+
+    /**
+     * Disconnects from the WebSocket server.
+     * If the client is currently connected, it will close the connection.
+     */
+    public void disconnect() {
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        if (webSocketClient != null &amp;&amp; isConnected) {</span>
+<span class="nc" id="L143">            webSocketClient.close();</span>
+        }
+<span class="nc" id="L145">    }</span>
+
+    /**
+     * Sends a message to the WebSocket server.
+     * If the WebSocket client is not connected, an error is logged.
+     *
+     * @param message The message to send to the server.
+     */
+    public void sendMessage(String message) {
+<span class="nc bnc" id="L154" title="All 4 branches missed.">        if (webSocketClient != null &amp;&amp; isConnected) {</span>
+<span class="nc" id="L155">            webSocketClient.send(message);</span>
+        } else {
+<span class="nc" id="L157">            Log.e(TAG, &quot;Cannot send message - WebSocket is not connected&quot;);</span>
+        }
+<span class="nc" id="L159">    }</span>
+
+    /**
+     * Returns whether the WebSocket client is currently connected to the server.
+     *
+     * @return True if connected, false otherwise.
+     */
+    public boolean isConnected() {
+<span class="nc" id="L167">        return isConnected;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

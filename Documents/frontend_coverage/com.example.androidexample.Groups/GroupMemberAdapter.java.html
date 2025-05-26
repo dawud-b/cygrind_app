@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupMemberAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">GroupMemberAdapter.java</span></div><h1>GroupMemberAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.content.SharedPreferences;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+import com.example.androidexample.User;
+
+import java.util.List;
+
+/**
+ * Adapter class for displaying group members in a RecyclerView.
+ * This adapter manages a list of users and displays them with options to remove or send messages (depending on the role).
+ */
+public class GroupMemberAdapter extends RecyclerView.Adapter&lt;GroupMemberAdapter.UserViewHolder&gt; {
+
+    private List&lt;User&gt; userList;   // List of group members
+    private boolean isLeader;      // Flag to determine if the current user is the group leader
+    private onRemoveClickListener listener; // Listener for button clicks (remove or message)
+
+    /**
+     * Interface to handle click events for removing a user or sending a message.
+     */
+    public interface onRemoveClickListener {
+        /**
+         * Called when the remove button for a user is clicked.
+         *
+         * @param user The user to be removed from the group.
+         */
+        void onRemoveClick(User user);
+
+        /**
+         * Called when the message button for a user is clicked.
+         *
+         * @param user The user to whom a message will be sent.
+         */
+        void onMessageClick(User user);
+    }
+
+    /**
+     * Constructor to initialize the adapter with the list of users, leader status, and listener for click events.
+     *
+     * @param userList List of users to display in the RecyclerView.
+     * @param isLeader Boolean flag indicating if the current user is a group leader.
+     * @param listener Listener to handle remove and message click events.
+     */
+<span class="nc" id="L52">    public GroupMemberAdapter(List&lt;User&gt; userList, boolean isLeader, onRemoveClickListener listener) {</span>
+<span class="nc" id="L53">        this.userList = userList;</span>
+<span class="nc" id="L54">        this.isLeader = isLeader;</span>
+<span class="nc" id="L55">        this.listener = listener;</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Creates a new ViewHolder to represent a single item in the RecyclerView.
+     *
+     * @param parent The parent view that will contain the new ViewHolder.
+     * @param viewType The type of the view to create (unused in this case).
+     * @return A new ViewHolder that holds the item view for the group member.
+     */
+    @Override
+    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="nc" id="L67">        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_member_list, parent, false);</span>
+<span class="nc" id="L68">        return new UserViewHolder(itemView);</span>
+    }
+
+    /**
+     * Binds data to the view for the item at the specified position.
+     *
+     * @param holder The ViewHolder to update.
+     * @param position The position of the item in the data list.
+     */
+    @Override
+    public void onBindViewHolder(UserViewHolder holder, int position) {
+<span class="nc" id="L79">        User user = userList.get(position);</span>
+
+        // Set the username to the TextView
+<span class="nc" id="L82">        holder.nameTextView.setText(user.getUsername());</span>
+
+        // Show or hide the remove button based on whether the user is the group leader
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (isLeader) {</span>
+<span class="nc" id="L86">            holder.removeButton.setVisibility(View.VISIBLE);  // Show the remove button if the user is the leader</span>
+        } else {
+<span class="nc" id="L88">            holder.removeButton.setVisibility(View.GONE);     // Hide the remove button otherwise</span>
+        }
+
+        // Set click listener for remove button
+<span class="nc" id="L92">        holder.removeButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L94">                listener.onRemoveClick(user);  // Call the listener when remove button is clicked</span>
+            }
+<span class="nc" id="L96">        });</span>
+
+        // Set click listener for message button
+<span class="nc" id="L99">        holder.msgBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L101">                listener.onMessageClick(user);  // Call the listener when message button is clicked</span>
+            }
+<span class="nc" id="L103">        });</span>
+<span class="nc" id="L104">    }</span>
+
+    /**
+     * Returns the total number of items in the user list.
+     *
+     * @return The number of items in the user list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L113">        return userList.size();</span>
+    }
+
+    /**
+     * ViewHolder class that represents a single item (group member) in the RecyclerView.
+     */
+    public static class UserViewHolder extends RecyclerView.ViewHolder {
+        TextView nameTextView;    // TextView to display the username
+        ImageButton removeButton; // Button to remove the user from the group (visible if the user is the leader)
+        ImageButton msgBtn;      // Button to send a message to the user
+
+        /**
+         * Constructor for initializing the ViewHolder with the views from the item layout.
+         *
+         * @param itemView The view of the individual item in the RecyclerView.
+         */
+        public UserViewHolder(View itemView) {
+<span class="nc" id="L130">            super(itemView);</span>
+<span class="nc" id="L131">            nameTextView = itemView.findViewById(R.id.memberName);</span>
+<span class="nc" id="L132">            removeButton = itemView.findViewById(R.id.member_removeButton);</span>
+<span class="nc" id="L133">            msgBtn = itemView.findViewById(R.id.member_messageButton);</span>
+<span class="nc" id="L134">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,274 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FoodItem</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.nutrition</a>
+</div>
+
+<h1>Coverage Summary for Class: FoodItem (onetoone.nutrition)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FoodItem</td>
+<td class="coverageStat">
+  <span class="percent">
+    3.6%
+  </span>
+  <span class="absValue">
+    (1/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.9%
+  </span>
+  <span class="absValue">
+    (2/41)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FoodItem$HibernateInstantiator$3qLVI3cU</td>
+  </tr>
+  <tr>
+    <td class="name">FoodItem$HibernateProxy$GOCewbBh</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    3.6%
+  </span>
+  <span class="absValue">
+    (1/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.9%
+  </span>
+  <span class="absValue">
+    (2/41)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.nutrition;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import onetoone.users.User;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;@Entity
+&nbsp;public class FoodItem {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private long id;
+&nbsp;
+&nbsp;    private String fdcId;          // FDC ID from the API
+&nbsp;    private String name;           // Food name
+&nbsp;    private double servingSize;    // Serving size in grams
+&nbsp;    private String servingUnit;    // Unit (e.g., &quot;g&quot;, &quot;oz&quot;)
+&nbsp;    private double calories;       // Calories per serving
+&nbsp;    private double protein;        // Protein in grams
+&nbsp;    private double carbohydrates;  // Carbs in grams
+&nbsp;    private double fat;            // Fat in grams
+&nbsp;    private double fiber;          // Fiber in grams
+&nbsp;    private double sugar;          // Sugar in grams
+&nbsp;    private LocalDate consumptionDate; // Date when the food was consumed
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JsonIgnore
+&nbsp;    private User user;             // User who consumed this food
+&nbsp;
+<b class="fc">&nbsp;    public FoodItem() {</b>
+<b class="fc">&nbsp;        this.consumptionDate = LocalDate.now();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public FoodItem(String fdcId, String name, double servingSize, String servingUnit,
+&nbsp;                    double calories, double protein, double carbohydrates, double fat,
+<b class="nc">&nbsp;                    double fiber, double sugar, User user) {</b>
+<b class="nc">&nbsp;        this.fdcId = fdcId;</b>
+<b class="nc">&nbsp;        this.name = name;</b>
+<b class="nc">&nbsp;        this.servingSize = servingSize;</b>
+<b class="nc">&nbsp;        this.servingUnit = servingUnit;</b>
+<b class="nc">&nbsp;        this.calories = calories;</b>
+<b class="nc">&nbsp;        this.protein = protein;</b>
+<b class="nc">&nbsp;        this.carbohydrates = carbohydrates;</b>
+<b class="nc">&nbsp;        this.fat = fat;</b>
+<b class="nc">&nbsp;        this.fiber = fiber;</b>
+<b class="nc">&nbsp;        this.sugar = sugar;</b>
+<b class="nc">&nbsp;        this.user = user;</b>
+<b class="nc">&nbsp;        this.consumptionDate = LocalDate.now();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Getters and Setters
+&nbsp;    public long getId() {
+<b class="nc">&nbsp;        return id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setId(long id) {
+<b class="nc">&nbsp;        this.id = id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getFdcId() {
+<b class="nc">&nbsp;        return fdcId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setFdcId(String fdcId) {
+<b class="nc">&nbsp;        this.fdcId = fdcId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getName() {
+<b class="nc">&nbsp;        return name;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setName(String name) {
+<b class="nc">&nbsp;        this.name = name;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getServingSize() {
+<b class="nc">&nbsp;        return servingSize;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setServingSize(double servingSize) {
+<b class="nc">&nbsp;        this.servingSize = servingSize;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getServingUnit() {
+<b class="nc">&nbsp;        return servingUnit;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setServingUnit(String servingUnit) {
+<b class="nc">&nbsp;        this.servingUnit = servingUnit;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getCalories() {
+<b class="nc">&nbsp;        return calories;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCalories(double calories) {
+<b class="nc">&nbsp;        this.calories = calories;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getProtein() {
+<b class="nc">&nbsp;        return protein;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setProtein(double protein) {
+<b class="nc">&nbsp;        this.protein = protein;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getCarbohydrates() {
+<b class="nc">&nbsp;        return carbohydrates;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCarbohydrates(double carbohydrates) {
+<b class="nc">&nbsp;        this.carbohydrates = carbohydrates;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getFat() {
+<b class="nc">&nbsp;        return fat;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setFat(double fat) {
+<b class="nc">&nbsp;        this.fat = fat;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getFiber() {
+<b class="nc">&nbsp;        return fiber;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setFiber(double fiber) {
+<b class="nc">&nbsp;        this.fiber = fiber;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public double getSugar() {
+<b class="nc">&nbsp;        return sugar;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setSugar(double sugar) {
+<b class="nc">&nbsp;        this.sugar = sugar;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public User getUser() {
+<b class="nc">&nbsp;        return user;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUser(User user) {
+<b class="nc">&nbsp;        this.user = user;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDate getConsumptionDate() {
+<b class="nc">&nbsp;        return consumptionDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setConsumptionDate(LocalDate consumptionDate) {
+<b class="nc">&nbsp;        this.consumptionDate = consumptionDate;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:21</div>
+</div>
+</body>
+</html>

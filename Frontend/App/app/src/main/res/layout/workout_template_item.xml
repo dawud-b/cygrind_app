@@ -1,0 +1,43 @@
+<!-- item_workout.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical"
+    tools:context=".WorkoutTemplate.WorkoutTemplate">
+
+    <!-- Workout Title TextView -->
+    <TextView
+        android:id="@+id/workoutTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Workout Title"
+        android:textSize="18sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_marginEnd="16dp"/>
+
+    <!-- Edit Button -->
+    <Button
+        android:id="@+id/editButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/rounded_button"
+        android:text="Edit"
+        />
+
+    <!-- Delete Button -->
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/rounded_button"
+        android:text="Delete"
+        />
+</LinearLayout>

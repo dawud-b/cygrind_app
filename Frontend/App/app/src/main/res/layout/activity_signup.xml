@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:context=".HomeActivity"
+    android:id="@+id/signup_layout"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="9dp"
+        android:layout_marginBottom="79dp"
+        android:text="Create Account"
+        android:textColor="@color/cyred"
+        android:fontFamily="@font/android"
+        android:textSize="29dp"></TextView>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="199dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="29dp"
+                android:layout_marginTop="19dp"
+                android:layout_gravity="end"
+                android:text="Email: "
+                android:textSize="19sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="29dp"
+                android:layout_marginTop="19dp"
+                android:layout_gravity="end"
+                android:text="Username: "
+                android:textSize="19dp"></TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="29dp"
+                android:layout_marginTop="19dp"
+                android:layout_gravity="end"
+                android:text="Password: "
+                android:textSize="19dp"></TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="29dp"
+                android:layout_marginTop="19dp"
+                android:layout_gravity="end"
+                android:text="Confirm:"
+                android:textSize="19dp"></TextView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="199dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/signup_email_edt"
+                android:layout_width="wrap_content"
+                android:ems="9"
+                android:layout_height="42dp"
+                android:layout_marginTop="9dp"
+                android:inputType="textEmailAddress" />
+
+            <EditText
+                android:id="@+id/signup_username_edt"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginTop="6dp"
+                ></EditText>
+
+            <EditText
+                android:id="@+id/signup_password_edt"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginTop="6dp"
+                android:inputType="textPassword"></EditText>
+
+            <EditText
+                android:id="@+id/signup_confirm_edt"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginTop="6dp"
+                android:inputType="textPassword"></EditText>
+
+        </LinearLayout>
+
+    </LinearLayout>
+    <CheckBox
+        android:id="@+id/signup_trainer_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_gravity="center"
+        android:text="Sign up as a Trainer" />
+
+    <!-- Trainer Info Section (initially hidden) -->
+    <LinearLayout
+        android:id="@+id/trainer_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trainer Information"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/signup_specialization_edt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Specialization (e.g., Weight Training, Cardio)"
+            android:inputType="text"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/signup_bio_edt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Bio (short description of yourself)"
+            android:inputType="textMultiLine"
+            android:lines="3"
+            android:gravity="top"
+            android:padding="12dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/signup_entry_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Password Matching Text"
+            android:textSize="19sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="59dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/signup_back_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button"
+                android:text="Back" />
+
+            <Button
+                android:id="@+id/signup_signup_btn"
+                android:layout_width="149dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="9dp"
+                android:background="@drawable/rounded_button"
+                android:text="Signup"
+                android:textColor="#ffffff"
+                android:textSize="19sp"></Button>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

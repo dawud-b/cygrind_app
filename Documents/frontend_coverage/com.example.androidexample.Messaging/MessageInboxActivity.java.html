@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageInboxActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Messaging</a> &gt; <span class="el_source">MessageInboxActivity.java</span></div><h1>MessageInboxActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Messaging;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.example.androidexample.HomeActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.WebSocketService;
+
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+/**
+ * The MessageInboxActivity class represents an activity that displays a list of chat sessions (message threads) in a
+ * messaging application. It allows users to view their message threads, select a thread to enter a chat, and navigate
+ * back to the home screen. This activity communicates with the backend to fetch the list of chat sessions associated
+ * with the user and presents them in a RecyclerView.
+ * &lt;p&gt;
+ * It provides two main functionalities:
+ * 1. Viewing the list of message threads (chat sessions).
+ * 2. Navigating to the specific chat activity when a message thread is selected.
+ */
+<span class="fc" id="L42">public class MessageInboxActivity extends AppCompatActivity {</span>
+
+    private RecyclerView recyclerView;  // RecyclerView to display the list of chat sessions
+    private ChatSessionAdapter chatSessionAdapter;  // Adapter for the RecyclerView
+    private List&lt;ChatSession&gt; chatSessionList;  // List of chat sessions to be displayed
+    private Button backBtn;  // Button to navigate back to the home screen
+    private Button newBtn;  // Button to start a new chat (currently not used)
+
+    /**
+     * Called when the activity is created. This method initializes the UI elements, sets up the RecyclerView,
+     * fetches the chat sessions, and handles user interactions such as selecting a chat session or navigating back.
+     *
+     * @param savedInstanceState The saved instance state for the activity, if any.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L58">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L59">        setContentView(R.layout.activity_message_threads);</span>
+
+<span class="fc" id="L61">        recyclerView = findViewById(R.id.recyclerViewThreads);  // Find the RecyclerView</span>
+<span class="fc" id="L62">        backBtn = findViewById(R.id.buttonBack);  // Find the back button</span>
+
+<span class="fc" id="L64">        recyclerView.setLayoutManager(new LinearLayoutManager(this));  // Set the layout manager for the RecyclerView</span>
+
+        // Initialize the list of chat sessions
+<span class="fc" id="L67">        chatSessionList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L68">        getChatSessions();  // Fetch the chat sessions from the backend</span>
+
+        // Set the adapter to the RecyclerView
+<span class="fc" id="L71">        chatSessionAdapter = new ChatSessionAdapter(chatSessionList, new ChatSessionAdapter.OnMessageThreadClickListener() {</span>
+            /**
+             * Called when a message thread is clicked. It starts a new activity to display the chat for the selected thread.
+             *
+             * @param thread The chat session (message thread) that was clicked.
+             */
+            @Override
+            public void onMessageThreadClick(ChatSession thread) {
+<span class="fc" id="L79">                SharedPreferences prefs = getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L80">                String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="fc" id="L81">                String serverUrl = URLManager.chatURL(thread.getId(), username);  // Generate the server URL for the chat session</span>
+<span class="fc" id="L82">                Log.d(&quot;MessageInboxActivity&quot;, &quot;URL: &quot; + serverUrl);</span>
+
+                // Intent to navigate to the ChatActivity
+<span class="fc" id="L85">                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);</span>
+<span class="fc" id="L86">                intent.putExtra(&quot;session_id&quot;, thread.getId());  // Pass the chat session ID</span>
+<span class="fc" id="L87">                intent.putExtra(&quot;group_name&quot;, thread.getGroupName());  // Pass the group name</span>
+<span class="fc" id="L88">                intent.putExtra(&quot;server_url&quot;, serverUrl);  // Pass the server URL</span>
+<span class="fc" id="L89">                startActivity(intent);  // Start the chat activity</span>
+<span class="fc" id="L90">            }</span>
+        });
+
+<span class="fc" id="L93">        recyclerView.setAdapter(chatSessionAdapter);  // Set the adapter to the RecyclerView</span>
+
+        // Set up the back button to navigate back to the home screen
+<span class="fc" id="L96">        backBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View view) {
+<span class="nc" id="L99">                Intent intent = new Intent(MessageInboxActivity.this, HomeActivity.class);</span>
+<span class="nc" id="L100">                startActivity(intent);</span>
+<span class="nc" id="L101">            }</span>
+        });
+<span class="fc" id="L103">    }</span>
+
+    /**
+     * Fetches the list of chat sessions from the backend using an HTTP request. The response is parsed and added to
+     * the chatSessionList, and the adapter is notified to update the RecyclerView.
+     */
+    private void getChatSessions() {
+<span class="fc" id="L110">        SharedPreferences prefs = getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L111">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="fc" id="L112">        String url = URLManager.getUserChatSessionsURL(username);  // Get the URL to fetch chat sessions for the user</span>
+
+<span class="fc" id="L114">        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+<span class="fc" id="L118">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Handle the JSON array response
+                        // Log the response for debugging purposes
+<span class="fc" id="L123">                        System.out.println(&quot;Response: &quot; + response.toString());</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+                                // Parse each chat session from the response and add to the list
+<span class="fc" id="L127">                                chatSessionList.add(new ChatSession((JSONObject) response.get(i), username));</span>
+<span class="nc" id="L128">                            } catch (JSONException e) {</span>
+<span class="nc" id="L129">                                Log.e(&quot;MessageInboxActivity JSONException&quot;, &quot;Error parsing ChatSessions JSONArray&quot;);</span>
+<span class="fc" id="L130">                            }</span>
+                        }
+<span class="fc" id="L132">                        Log.d(&quot;MessageInboxActivity&quot;, &quot;MessageThreadList size: &quot; + chatSessionList.size());</span>
+<span class="fc" id="L133">                        chatSessionAdapter.notifyDataSetChanged();  // Notify the adapter that data has changed</span>
+<span class="fc" id="L134">                    }</span>
+                },
+<span class="fc" id="L136">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error response
+<span class="nc" id="L140">                        System.out.println(&quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L141">                        Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L142">                    }</span>
+                }
+        );
+
+        // Add the request to the Volley request queue for execution
+<span class="fc" id="L147">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrayRequest);</span>
+<span class="fc" id="L148">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

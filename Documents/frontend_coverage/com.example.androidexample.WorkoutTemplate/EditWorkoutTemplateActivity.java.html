@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditWorkoutTemplateActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.WorkoutTemplate</a> &gt; <span class="el_source">EditWorkoutTemplateActivity.java</span></div><h1>EditWorkoutTemplateActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.WorkoutTemplate;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.ExerciseSelection.ExerciseSelectActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Activity for editing a workout template, including modifying the title, description,
+ * and associated exercise templates.
+ *
+ * &lt;p&gt;This activity interacts with {@link EditTemplateDataHolder} to persist
+ * state during edits and supports updating templates via API requests.
+ *
+ * &lt;p&gt;It supports both trainer and non-trainer workflows and will attach trainer information
+ * to the update request if the current user is a trainer.
+ */
+<span class="nc" id="L48">public class EditWorkoutTemplateActivity extends AppCompatActivity implements WorkoutTemplateExerciseAdapter.OnExerciseListener{</span>
+
+    private static EditText editTitle, editDescription;
+    private RecyclerView exerciseListRecyclerView;
+    private WorkoutTemplateExerciseAdapter workoutTemplateExerciseAdapter;
+    private Button addExerciseButton, saveButton;
+
+    /**
+     * Initializes the activity, populates the form with existing data from {@link EditTemplateDataHolder},
+     * sets up listeners for updating the template, and configures RecyclerView with the adapter.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L61">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L62">        setContentView(R.layout.activity_edit_workout_template);</span>
+
+        // Initialize the exercise list and adapter
+<span class="nc" id="L65">        workoutTemplateExerciseAdapter = new WorkoutTemplateExerciseAdapter(EditTemplateDataHolder.exerciseList, this);</span>
+
+        // Initialize views
+<span class="nc" id="L68">        editTitle = findViewById(R.id.editTitle);</span>
+<span class="nc" id="L69">        editDescription = findViewById(R.id.editDescription);</span>
+<span class="nc" id="L70">        exerciseListRecyclerView = findViewById(R.id.templateList);</span>
+<span class="nc" id="L71">        addExerciseButton = findViewById(R.id.addExerciseButton);</span>
+<span class="nc" id="L72">        saveButton = findViewById(R.id.saveButton);</span>
+
+<span class="nc" id="L74">        exerciseListRecyclerView.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="nc" id="L75">        exerciseListRecyclerView.setAdapter(workoutTemplateExerciseAdapter);</span>
+
+        // configure data holder
+<span class="nc" id="L78">        Bundle extras = getIntent().getExtras();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if( extras != null ) {</span>
+            // opening new template
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if( extras.getBoolean(&quot;fetch exercises&quot;)) {</span>
+<span class="nc" id="L82">                fetchExerciseTemplates();</span>
+            }
+            // returning from exercise select
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            else if( extras.getBoolean(&quot;item added&quot;)) {</span>
+<span class="nc" id="L86">                workoutTemplateExerciseAdapter.notifyDataSetChanged();</span>
+            }
+        }
+
+        // sets title and description from data holder
+<span class="nc" id="L91">        loadWorkoutTemplateData();</span>
+
+        // opend exercise selection activity
+<span class="nc" id="L94">        addExerciseButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L95">            Intent intent = new Intent(EditWorkoutTemplateActivity.this, ExerciseSelectActivity.class);</span>
+<span class="nc" id="L96">            startActivity(intent);</span>
+<span class="nc" id="L97">        });</span>
+
+        // Save button listener
+<span class="nc" id="L100">        saveButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L101">            saveTemplate();</span>
+            /*try {
+                saveTemplate();
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            } this is never thrown so can remove i think */
+<span class="nc" id="L107">        });</span>
+
+        // save title to data holder when changed
+<span class="nc" id="L110">        editTitle.addTextChangedListener(new TextWatcher() {</span>
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+<span class="nc" id="L114">            }</span>
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+<span class="nc" id="L119">            }</span>
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // save title
+<span class="nc" id="L124">                EditTemplateDataHolder.title = editTitle.getText().toString();</span>
+<span class="nc" id="L125">            }</span>
+        });
+
+        // save description to data holder when changed
+<span class="nc" id="L129">        editDescription.addTextChangedListener(new TextWatcher() {</span>
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+<span class="nc" id="L133">            }</span>
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+<span class="nc" id="L138">            }</span>
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // save title
+<span class="nc" id="L143">                EditTemplateDataHolder.description = editDescription.getText().toString();</span>
+<span class="nc" id="L144">            }</span>
+        });
+<span class="nc" id="L146">    }</span>
+
+    private void loadWorkoutTemplateData() {
+        // load title and description data passed previous activity
+<span class="nc" id="L150">        editTitle.setText(EditTemplateDataHolder.title);</span>
+<span class="nc" id="L151">        editDescription.setText(EditTemplateDataHolder.description);</span>
+<span class="nc" id="L152">    }</span>
+
+
+    /**
+     * Saves the workout template by sending a PUT request to the server with updated data.
+     * Includes user and optionally trainer metadata in the request payload.
+     */
+    private void saveTemplate() {
+        try {
+            // Check if workoutTemplate is null
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (EditTemplateDataHolder.workoutTemplate == null) {</span>
+<span class="nc" id="L163">                Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error: workoutTemplate is null&quot;);</span>
+<span class="nc" id="L164">                Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Error: No template data available&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L165">                return;</span>
+            }
+
+            // Log the data we're about to send
+<span class="nc" id="L169">            Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Template ID: &quot; + EditTemplateDataHolder.workoutTemplate.getId());</span>
+<span class="nc" id="L170">            Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Template Title: &quot; + EditTemplateDataHolder.title);</span>
+<span class="nc" id="L171">            Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Template Description: &quot; + EditTemplateDataHolder.description);</span>
+
+<span class="nc" id="L173">            String url = URLManager.WORKOUT_TEMPLATE_URL + &quot;/&quot; + EditTemplateDataHolder.workoutTemplate.getId();</span>
+<span class="nc" id="L174">            final JSONObject jsonObject = new JSONObject();</span>
+
+            // Add required fields
+<span class="nc" id="L177">            jsonObject.put(&quot;description&quot;, EditTemplateDataHolder.description);</span>
+<span class="nc" id="L178">            jsonObject.put(&quot;templateName&quot;, EditTemplateDataHolder.title);</span>
+
+            // Include the user information in the PUT request
+<span class="nc" id="L181">            JSONObject userJson = new JSONObject();</span>
+<span class="nc" id="L182">            final SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="nc" id="L183">            long userId = sharedPreferences.getLong(&quot;id&quot;, -1);</span>
+<span class="nc" id="L184">            userJson.put(&quot;id&quot;, userId);</span>
+<span class="nc" id="L185">            jsonObject.put(&quot;user&quot;, userJson);</span>
+
+            // If workoutTemplate has a date field, include it
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (EditTemplateDataHolder.workoutTemplate.getDate() != null) {</span>
+<span class="nc" id="L189">                jsonObject.put(&quot;date&quot;, EditTemplateDataHolder.workoutTemplate.getDate());</span>
+            }
+
+            // Check if this user is a trainer
+<span class="nc" id="L193">            final String username = sharedPreferences.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+            // First check if the user is a trainer
+<span class="nc" id="L196">            String trainerCheckUrl = URLManager.getBaseUrl() + &quot;/users/&quot; + username + &quot;/is-trainer&quot;;</span>
+
+<span class="nc" id="L198">            StringRequest checkTrainerRequest = new StringRequest(</span>
+                    Request.Method.GET,
+                    trainerCheckUrl,
+<span class="nc" id="L201">                    new Response.Listener&lt;String&gt;() {</span>
+                        @Override
+                        public void onResponse(String response) {
+<span class="nc" id="L204">                            boolean isTrainer = Boolean.parseBoolean(response.trim());</span>
+<span class="nc" id="L205">                            Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Is trainer check response: &quot; + response + &quot;, parsed as: &quot; + isTrainer);</span>
+
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                            if (isTrainer) {</span>
+                                // User is a trainer, get trainer ID and update the template
+<span class="nc" id="L209">                                getTrainerIdAndUpdateTemplate(username, jsonObject, url);</span>
+                            } else {
+                                // User is not a trainer, proceed with normal update
+<span class="nc" id="L212">                                sendTemplateUpdateRequest(url, jsonObject);</span>
+                            }
+<span class="nc" id="L214">                        }</span>
+                    },
+<span class="nc" id="L216">                    new Response.ErrorListener() {</span>
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L219">                            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error checking trainer status: &quot; + error.toString());</span>
+                            // Proceed with normal update as fallback
+<span class="nc" id="L221">                            sendTemplateUpdateRequest(url, jsonObject);</span>
+<span class="nc" id="L222">                        }</span>
+                    });
+
+<span class="nc" id="L225">            VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(checkTrainerRequest);</span>
+
+<span class="nc" id="L227">        } catch (JSONException e) {</span>
+            // Log the specific JSON exception
+<span class="nc" id="L229">            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;JSONException in saveTemplate: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L230">            Toast.makeText(EditWorkoutTemplateActivity.this,</span>
+<span class="nc" id="L231">                    &quot;Error creating template data: &quot; + e.getMessage(),</span>
+<span class="nc" id="L232">                    Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L233">        } catch (Exception e) {</span>
+            // Catch any other exceptions
+<span class="nc" id="L235">            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Exception in saveTemplate: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L236">            Toast.makeText(EditWorkoutTemplateActivity.this,</span>
+<span class="nc" id="L237">                    &quot;Unexpected error: &quot; + e.getMessage(),</span>
+<span class="nc" id="L238">                    Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L239">        }</span>
+<span class="nc" id="L240">    }</span>
+
+    /**
+     * If the current user is a trainer, fetches the trainer ID and attaches it to the JSON update.
+     * Otherwise, continues with the update using user-only metadata.
+     *
+     * @param username   Username of the currently logged-in user.
+     * @param jsonObject JSON object containing the update data.
+     * @param url        Endpoint to which the PUT request is made.
+     */
+    private void getTrainerIdAndUpdateTemplate(final String username, final JSONObject jsonObject, final String url) {
+<span class="nc" id="L251">        String trainerUrl = URLManager.getBaseUrl() + &quot;/trainers&quot;;</span>
+
+<span class="nc" id="L253">        JsonArrayRequest trainerRequest = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                trainerUrl,
+                null,
+<span class="nc" id="L257">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        try {
+                            // Find trainer ID by matching username
+<span class="nc" id="L262">                            int trainerId = -1;</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L264">                                JSONObject trainerObj = response.getJSONObject(i);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                                if (trainerObj.has(&quot;user&quot;)) {</span>
+<span class="nc" id="L266">                                    JSONObject userObj = trainerObj.getJSONObject(&quot;user&quot;);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                                    if (username.equals(userObj.optString(&quot;username&quot;))) {</span>
+<span class="nc" id="L268">                                        trainerId = trainerObj.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L269">                                        Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Found trainer ID: &quot; + trainerId);</span>
+<span class="nc" id="L270">                                        break;</span>
+                                    }
+                                }
+                            }
+
+<span class="nc bnc" id="L275" title="All 2 branches missed.">                            if (trainerId != -1) {</span>
+                                try {
+                                    // Add trainer information to the JSON
+<span class="nc" id="L278">                                    JSONObject trainerJson = new JSONObject();</span>
+<span class="nc" id="L279">                                    trainerJson.put(&quot;id&quot;, trainerId);</span>
+<span class="nc" id="L280">                                    jsonObject.put(&quot;trainer&quot;, trainerJson);</span>
+<span class="nc" id="L281">                                    Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Added trainer info to JSON: &quot; + jsonObject.toString());</span>
+<span class="nc" id="L282">                                } catch (JSONException e) {</span>
+<span class="nc" id="L283">                                    Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error adding trainer to JSON: &quot; + e.getMessage());</span>
+<span class="nc" id="L284">                                }</span>
+                            } else {
+<span class="nc" id="L286">                                Log.w(&quot;EditWorkoutTemplate&quot;, &quot;Could not find trainer ID for username: &quot; + username);</span>
+                            }
+
+                            // Proceed with update regardless of whether we found trainer ID
+<span class="nc" id="L290">                            sendTemplateUpdateRequest(url, jsonObject);</span>
+
+<span class="nc" id="L292">                        } catch (JSONException e) {</span>
+<span class="nc" id="L293">                            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error parsing trainer response: &quot; + e.getMessage());</span>
+                            // Still try to update even if trainer info can't be added
+<span class="nc" id="L295">                            sendTemplateUpdateRequest(url, jsonObject);</span>
+<span class="nc" id="L296">                        }</span>
+<span class="nc" id="L297">                    }</span>
+                },
+<span class="nc" id="L299">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L302">                        Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error fetching trainers: &quot; + error.toString());</span>
+                        // Still try to update even if trainer info can't be added
+<span class="nc" id="L304">                        sendTemplateUpdateRequest(url, jsonObject);</span>
+<span class="nc" id="L305">                    }</span>
+                });
+
+<span class="nc" id="L308">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(trainerRequest);</span>
+<span class="nc" id="L309">    }</span>
+
+    /**
+     * Sends the final template update request to the server via Volley.
+     *
+     * @param url        The endpoint URL.
+     * @param jsonObject The JSON payload for the update.
+     */
+    private void sendTemplateUpdateRequest(String url, JSONObject jsonObject) {
+        // Log the final JSON we're sending
+<span class="nc" id="L319">        Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Sending template update with data: &quot; + jsonObject.toString());</span>
+
+        // Remove trainer field if present, since backend doesn't handle it in PUT request
+        try {
+<span class="nc bnc" id="L323" title="All 2 branches missed.">            if (jsonObject.has(&quot;trainer&quot;)) {</span>
+<span class="nc" id="L324">                jsonObject.remove(&quot;trainer&quot;);</span>
+<span class="nc" id="L325">                Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Removed trainer field from request to match backend expectations&quot;);</span>
+            }
+<span class="nc" id="L327">        } catch (Exception e) {</span>
+<span class="nc" id="L328">            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error modifying request JSON: &quot; + e.getMessage());</span>
+<span class="nc" id="L329">        }</span>
+
+        // Create the request with a StringRequest to handle any response format
+<span class="nc" id="L332">        StringRequest putRequest = new StringRequest(</span>
+                Request.Method.PUT,
+                url,
+<span class="nc" id="L335">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L338">                        Log.d(&quot;EditWorkoutTemplate&quot;, &quot;Template saved successfully. Response: &quot; +</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                                (response.isEmpty() ? &quot;[empty response]&quot; : response));</span>
+<span class="nc" id="L340">                        Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Template Saved&quot;, Toast.LENGTH_LONG).show();</span>
+
+                        // Navigate back to workout template list
+<span class="nc" id="L343">                        Intent intent = new Intent(EditWorkoutTemplateActivity.this, WorkoutTemplateActivity.class);</span>
+<span class="nc" id="L344">                        startActivity(intent);</span>
+<span class="nc" id="L345">                    }</span>
+                },
+<span class="nc" id="L347">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Log detailed error information
+<span class="nc" id="L351">                        Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error saving template: &quot; + error.toString());</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L353">                            Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error code: &quot; + error.networkResponse.statusCode);</span>
+                            try {
+<span class="nc" id="L355">                                String responseData = new String(error.networkResponse.data, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L356">                                Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Error data: &quot; + responseData);</span>
+<span class="nc" id="L357">                            } catch (Exception e) {</span>
+<span class="nc" id="L358">                                Log.e(&quot;EditWorkoutTemplate&quot;, &quot;Could not parse error data&quot;);</span>
+<span class="nc" id="L359">                            }</span>
+                        }
+
+<span class="nc" id="L362">                        Toast.makeText(EditWorkoutTemplateActivity.this,</span>
+                                &quot;Error saving template: &quot; +
+<span class="nc bnc" id="L364" title="All 2 branches missed.">                                        (error.getMessage() != null ? error.getMessage() : &quot;Unknown error&quot;),</span>
+<span class="nc" id="L365">                                Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L366">                    }</span>
+<span class="nc" id="L367">                }) {</span>
+            @Override
+            public byte[] getBody() {
+<span class="nc" id="L370">                return jsonObject.toString().getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L375">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+
+            @Override
+            public int getMethod() {
+<span class="nc" id="L380">                return Method.PUT;</span>
+            }
+        };
+
+<span class="nc" id="L384">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(putRequest);</span>
+<span class="nc" id="L385">    }</span>
+
+    //TODO
+    // implement activity of popup that allows users to select from exercises in database
+    private void openAddExerciseDialog() {
+        // dummy exercise for now
+<span class="nc" id="L391">        Intent intent = new Intent(EditWorkoutTemplateActivity.this, ExerciseSelectActivity.class);</span>
+<span class="nc" id="L392">        startActivity(intent);</span>
+<span class="nc" id="L393">    }</span>
+
+    /**
+     * Deletes an exercise template from the server and updates the UI accordingly.
+     *
+     * @param position Position of the exercise in the list.
+     */
+    @Override
+    public void onDeleteClick(int position) {
+<span class="nc" id="L402">        String url = URLManager.EXERCISE_TEMPLATE_URL + &quot;/&quot; + EditTemplateDataHolder.exerciseList.get(position).getId();</span>
+<span class="nc" id="L403">        StringRequest stringRequest = new StringRequest(Request.Method.DELETE, url,</span>
+<span class="nc" id="L404">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the server's response
+<span class="nc" id="L408">                        Log.d(&quot;Volley Response&quot;, response);</span>
+                        // remove workout template from the list
+<span class="nc" id="L410">                        EditTemplateDataHolder.exerciseList.remove(position);</span>
+<span class="nc" id="L411">                        workoutTemplateExerciseAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L412">                        Toast.makeText(EditWorkoutTemplateActivity.this,&quot;Exercise removed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L413">                    }</span>
+                },
+<span class="nc" id="L415">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error
+<span class="nc" id="L419">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L420">                    }</span>
+                });
+<span class="nc" id="L422">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L423">    }</span>
+
+
+    /**
+     * Allows the user to edit sets, reps, and weight for an exercise in the template via a popup dialog.
+     *
+     * @param position Position of the exercise in the list.
+     */
+    @Override
+    public void onEditClick(int position) {
+<span class="nc" id="L433">        View dialogView = getLayoutInflater().inflate(R.layout.dialog_input, null);</span>
+
+<span class="nc" id="L435">        final EditText editWeight = dialogView.findViewById(R.id.editWeight);</span>
+<span class="nc" id="L436">        final EditText editSets = dialogView.findViewById(R.id.editSets);</span>
+<span class="nc" id="L437">        final EditText editReps = dialogView.findViewById(R.id.editReps);</span>
+
+        // Create the AlertDialog using a Builder
+<span class="nc" id="L440">        AlertDialog.Builder builder = new AlertDialog.Builder(EditWorkoutTemplateActivity.this);</span>
+<span class="nc" id="L441">        builder.setTitle(&quot;Enter Workout Details&quot;)</span>
+<span class="nc" id="L442">                .setView(dialogView)</span>
+<span class="nc" id="L443">                .setPositiveButton(&quot;OK&quot;, new DialogInterface.OnClickListener() {</span>
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Get the input data
+<span class="nc" id="L447">                        String weight = editWeight.getText().toString();</span>
+<span class="nc" id="L448">                        String sets = editSets.getText().toString();</span>
+<span class="nc" id="L449">                        String reps = editReps.getText().toString();</span>
+
+                        // Handle input (you can add validation here)
+<span class="nc bnc" id="L452" title="All 6 branches missed.">                        if (!weight.isEmpty() &amp;&amp; !sets.isEmpty() &amp;&amp; !reps.isEmpty()) {</span>
+<span class="nc" id="L453">                            Toast.makeText(EditWorkoutTemplateActivity.this,</span>
+                                    &quot;Weight: &quot; + weight + &quot;lbs, Sets: &quot; + sets + &quot;, Reps: &quot; + reps,
+<span class="nc" id="L455">                                    Toast.LENGTH_SHORT).show();</span>
+                            // Show the entered values or do something with them
+                            try {
+<span class="nc" id="L458">                                int weightInt = Integer.parseInt(weight);</span>
+<span class="nc" id="L459">                                int repsInt = Integer.parseInt(reps);</span>
+<span class="nc" id="L460">                                int setsInt = Integer.parseInt(sets);</span>
+
+<span class="nc" id="L462">                                putExerciseTemplate(EditTemplateDataHolder.exerciseList.get(position), weightInt, repsInt, setsInt);</span>
+<span class="nc" id="L463">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L464">                                Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Entries must be a number.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L465">                            }</span>
+                        } else {
+                            // If any field is empty, show an error
+<span class="nc" id="L468">                            Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Please fill in all fields.&quot;, Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L470">                    }</span>
+                })
+<span class="nc" id="L472">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L473">                .create()</span>
+<span class="nc" id="L474">                .show();</span>
+<span class="nc" id="L475">    }</span>
+
+    /**
+     * Sends a PUT request to update a specific exercise template with new sets, reps, and weight values.
+     *
+     * @param tempEx The exercise template to be updated.
+     * @param weight New weight value.
+     * @param reps   New reps value.
+     * @param sets   New sets value.
+     */
+    public void putExerciseTemplate(TemplateExercise tempEx, int weight, int reps, int sets) {
+        try {
+<span class="nc" id="L487">            String url = URLManager.EXERCISE_TEMPLATE_URL + &quot;/&quot; + tempEx.getId();</span>
+<span class="nc" id="L488">            JSONObject jsonObject = new JSONObject();</span>
+<span class="nc" id="L489">            jsonObject.put(&quot;weight&quot;, weight);</span>
+<span class="nc" id="L490">            jsonObject.put(&quot;repCount&quot;, reps);</span>
+<span class="nc" id="L491">            jsonObject.put(&quot;setCount&quot;, sets);</span>
+
+<span class="nc" id="L493">            JsonObjectRequest putRequest = new JsonObjectRequest(Request.Method.PUT, url, jsonObject,</span>
+<span class="nc" id="L494">                    new Response.Listener&lt;JSONObject&gt;() {</span>
+                        @Override
+                        public void onResponse(JSONObject response) {
+<span class="nc" id="L497">                            Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Exercise Updated&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L498">                            tempEx.setWeight(weight);</span>
+<span class="nc" id="L499">                            tempEx.setReps(reps);</span>
+<span class="nc" id="L500">                            tempEx.setSets(sets);</span>
+<span class="nc" id="L501">                            workoutTemplateExerciseAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L502">                        }</span>
+                    },
+<span class="nc" id="L504">                    new Response.ErrorListener() {</span>
+                        @Override
+                        public void onErrorResponse(com.android.volley.VolleyError error) {
+                            // Handle errors
+<span class="nc" id="L508">                            Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Connection Error&quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L509">                        }</span>
+                    });
+<span class="nc" id="L511">            VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(putRequest);</span>
+<span class="nc" id="L512">        } catch (JSONException e) {</span>
+<span class="nc" id="L513">            Log.e(&quot;JSONException&quot;, e.toString());</span>
+<span class="nc" id="L514">        }</span>
+
+<span class="nc" id="L516">    }</span>
+
+    public void fetchExerciseTemplates() {
+
+<span class="nc" id="L520">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+<span class="nc" id="L522">                URLManager.getExerciseTempFromWorkoutTempURL(EditTemplateDataHolder.workoutTemplate.getId()),</span>
+                null, // Pass null as the request body since it's a GET request
+<span class="nc" id="L524">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L527">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+
+                        try {
+<span class="nc bnc" id="L530" title="All 2 branches missed.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L531">                                EditTemplateDataHolder.exerciseList.add(new TemplateExercise((JSONObject) response.get(i)));</span>
+                            }
+<span class="nc" id="L533">                        } catch (JSONException e) {</span>
+<span class="nc" id="L534">                            Log.e(&quot;Exercise Template Parse Error&quot;, e.toString());</span>
+<span class="nc" id="L535">                        }</span>
+<span class="nc" id="L536">                        Log.d(&quot;Exercise Repo&quot;,EditTemplateDataHolder.exerciseList.toString());</span>
+<span class="nc" id="L537">                        workoutTemplateExerciseAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L538">                    }</span>
+                },
+<span class="nc" id="L540">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L543">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L544">                        Toast.makeText(EditWorkoutTemplateActivity.this, &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L545">                    }</span>
+<span class="nc" id="L546">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L549">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L552">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L557">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L560">                return params;</span>
+            }
+        };
+
+        // Add the request to the queue
+<span class="nc" id="L565">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L566">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

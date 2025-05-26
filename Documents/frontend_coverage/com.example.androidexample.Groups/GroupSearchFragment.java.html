@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupSearchFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">GroupSearchFragment.java</span></div><h1>GroupSearchFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A fragment that allows users to search for and join workout groups, or create new ones.
+ * This fragment displays a list of available workout groups and provides functionalities
+ * to send join requests or create a new group.
+ */
+public class GroupSearchFragment extends Fragment {
+
+    private RecyclerView recyclerView;  // RecyclerView to display the list of workout groups
+    private WorkoutGroupAdapter adapter;  // Adapter to bind data to the RecyclerView
+    private List&lt;WorkoutGroup&gt; groupList;  // List of available workout groups
+    private Button createBtn;  // Button to initiate the group creation process
+    private View rootView;  // The root view of the fragment
+
+    /**
+     * Default constructor for the fragment.
+     */
+<span class="nc" id="L54">    public GroupSearchFragment() {}</span>
+
+    /**
+     * Called when the fragment's view is created. This method initializes the view components,
+     * sets up the RecyclerView, and handles user interactions such as creating a new group or
+     * sending a join request.
+     *
+     * @param inflater The LayoutInflater object used to inflate the view
+     * @param container The parent ViewGroup that the fragment's UI will be attached to
+     * @param savedInstanceState A bundle containing any saved instance state of the fragment
+     * @return The inflated view for the fragment
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="nc" id="L69">        rootView = inflater.inflate(R.layout.fragment_group_search, container, false);</span>
+
+        // Initialize group list
+<span class="nc" id="L72">        groupList = new ArrayList&lt;&gt;();</span>
+
+        // Initialize UI components
+<span class="nc" id="L75">        createBtn = rootView.findViewById(R.id.group_search_create_button);</span>
+<span class="nc" id="L76">        recyclerView = rootView.findViewById(R.id.group_search_view);</span>
+
+        // Set the layout manager for the RecyclerView
+<span class="nc" id="L79">        recyclerView.setLayoutManager(new LinearLayoutManager(rootView.getContext()));</span>
+
+        // Initialize the adapter for RecyclerView
+<span class="nc" id="L82">        adapter = new WorkoutGroupAdapter(groupList, new WorkoutGroupAdapter.OnJoinRequestClickListener() {</span>
+            @Override
+            public void onJoinRequestClick(WorkoutGroup group) {
+<span class="nc" id="L85">                sendJoinRequest(group);</span>
+<span class="nc" id="L86">            }</span>
+        });
+
+        // Set the OnClickListener for the &quot;Create Group&quot; button
+<span class="nc" id="L90">        createBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View view) {
+<span class="nc" id="L93">                createGroup(rootView.getContext());</span>
+<span class="nc" id="L94">            }</span>
+        });
+
+        // Set the adapter for the RecyclerView
+<span class="nc" id="L98">        recyclerView.setAdapter(adapter);</span>
+
+        // Fetch workout groups from the server
+<span class="nc" id="L101">        fetchWorkoutGroups();</span>
+
+<span class="nc" id="L103">        return rootView;</span>
+    }
+
+    /**
+     * Sends a join request for a selected workout group by sending a POST request to the server.
+     *
+     * @param group The workout group to join
+     */
+    private void sendJoinRequest(WorkoutGroup group) {
+<span class="nc" id="L112">        SharedPreferences prefs = rootView.getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L113">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="nc" id="L115">        String url = URLManager.getGroupJoinURL(group.getId(), username);</span>
+
+        // Create a POST request to send the join request
+<span class="nc" id="L118">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="nc" id="L119">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the response from the server
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                        if (response.equals(&quot;User is already in a group&quot;)) {</span>
+<span class="nc" id="L124">                            Toast.makeText(rootView.getContext(), &quot;You are already a member of a group.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                        } else if (response.equals(&quot;Join request submitted&quot;)) {</span>
+<span class="nc" id="L126">                            Toast.makeText(rootView.getContext(), &quot;Join request successfully submitted.&quot;, Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L128">                    }</span>
+                },
+<span class="nc" id="L130">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error responses such as network issues
+<span class="nc bnc" id="L134" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+                            try {
+<span class="nc" id="L136">                                String errorMessage = new String(error.networkResponse.data);</span>
+<span class="nc" id="L137">                                getActivity().runOnUiThread(new Runnable() {</span>
+                                    public void run() {
+<span class="nc" id="L139">                                        Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L140">                                    }</span>
+                                });
+<span class="nc" id="L142">                            } catch (Exception e) {</span>
+<span class="nc" id="L143">                                e.printStackTrace();</span>
+<span class="nc" id="L144">                            }</span>
+                        }
+<span class="nc" id="L146">                    }</span>
+<span class="nc" id="L147">                }) {</span>
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Add the necessary parameters to the POST request
+<span class="nc" id="L152">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L153">                params.put(&quot;username&quot;, username);  // Add username to the request parameters</span>
+<span class="nc" id="L154">                return params;</span>
+            }
+        };
+
+        // Add the request to the Volley request queue
+<span class="nc" id="L159">        VolleySingleton.getInstance(rootView.getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L160">    }</span>
+
+    /**
+     * Fetches the list of workout groups available for the user to join.
+     * This method sends a GET request to the server and updates the RecyclerView with the
+     * retrieved data.
+     */
+    private void fetchWorkoutGroups() {
+<span class="nc" id="L168">        String url = URLManager.WORKOUT_GROUP_URL;</span>
+
+<span class="nc" id="L170">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+<span class="nc" id="L171">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L174">                        groupList.clear();</span>
+                        try {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L177">                                JSONObject groupJson = response.getJSONObject(i);</span>
+<span class="nc" id="L178">                                WorkoutGroup group = new WorkoutGroup(groupJson);</span>
+<span class="nc" id="L179">                                groupList.add(group);</span>
+                            }
+<span class="nc" id="L181">                            adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L182">                        } catch (JSONException e) {</span>
+<span class="nc" id="L183">                            e.printStackTrace();</span>
+<span class="nc" id="L184">                            Log.e(&quot;JSONException&quot;, e.toString());</span>
+<span class="nc" id="L185">                        }</span>
+<span class="nc" id="L186">                    }</span>
+<span class="nc" id="L187">                }, new Response.ErrorListener() {</span>
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // Handle error responses
+<span class="nc" id="L191">                Log.e(&quot;VolleyError&quot;, error.toString());</span>
+<span class="nc" id="L192">            }</span>
+        });
+
+        // Add the request to the Volley request queue
+<span class="nc" id="L196">        VolleySingleton.getInstance(rootView.getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L197">    }</span>
+
+    /**
+     * Displays a dialog that allows the user to create a new workout group. The dialog includes
+     * input fields for group name, description, and type.
+     *
+     * @param context The context in which the dialog will be shown
+     */
+    private void createGroup(Context context) {
+<span class="nc" id="L206">        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());</span>
+<span class="nc" id="L207">        builder.setTitle(&quot;Create New Group&quot;);</span>
+
+        // Inflate the custom dialog layout
+<span class="nc" id="L210">        LayoutInflater inflater = LayoutInflater.from(context);</span>
+<span class="nc" id="L211">        View dialogView = inflater.inflate(R.layout.dialog_create_group, null);</span>
+<span class="nc" id="L212">        builder.setView(dialogView);</span>
+
+        // Find input fields in the dialog layout
+<span class="nc" id="L215">        final EditText groupNameInput = dialogView.findViewById(R.id.groupNameInput);</span>
+<span class="nc" id="L216">        final EditText descriptionInput = dialogView.findViewById(R.id.descriptionInput);</span>
+<span class="nc" id="L217">        final EditText groupTypeInput = dialogView.findViewById(R.id.groupTypeInput);</span>
+
+        // Set up the positive button to handle group creation
+<span class="nc" id="L220">        builder.setPositiveButton(&quot;Create&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L221">            String groupName = groupNameInput.getText().toString();</span>
+<span class="nc" id="L222">            String description = descriptionInput.getText().toString();</span>
+<span class="nc" id="L223">            String groupType = groupTypeInput.getText().toString();</span>
+
+            // Validate the input fields
+<span class="nc bnc" id="L226" title="All 6 branches missed.">            if (groupName.isEmpty() || description.isEmpty() || groupType.isEmpty()) {</span>
+<span class="nc" id="L227">                Toast.makeText(context, &quot;All fields are required!&quot;, Toast.LENGTH_SHORT).show();</span>
+            } else {
+                // If valid, call createGroup method to create the group
+<span class="nc" id="L230">                createGroup(groupName, description, groupType);</span>
+            }
+<span class="nc" id="L232">        });</span>
+
+        // Set up the negative button (Cancel)
+<span class="nc" id="L235">        builder.setNegativeButton(&quot;Cancel&quot;, (dialog, which) -&gt; dialog.cancel());</span>
+
+        // Show the dialog
+<span class="nc" id="L238">        builder.create().show();</span>
+<span class="nc" id="L239">    }</span>
+
+    /**
+     * Creates a new workout group by sending the group details to the server via a POST request.
+     *
+     * @param groupName The name of the new group
+     * @param description A brief description of the group
+     * @param groupType The type/category of the group
+     */
+    private void createGroup(String groupName, String description, String groupType) {
+        // Create a JSON object with the group details
+<span class="nc" id="L250">        JSONObject groupDetails = new JSONObject();</span>
+        try {
+<span class="nc" id="L252">            groupDetails.put(&quot;groupName&quot;, groupName);</span>
+<span class="nc" id="L253">            groupDetails.put(&quot;description&quot;, description);</span>
+<span class="nc" id="L254">            groupDetails.put(&quot;groupType&quot;, groupType);</span>
+<span class="nc" id="L255">        } catch (Exception e) {</span>
+<span class="nc" id="L256">            e.printStackTrace();</span>
+<span class="nc" id="L257">        }</span>
+
+<span class="nc" id="L259">        SharedPreferences prefs = rootView.getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L260">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="nc" id="L262">        String url = URLManager.WORKOUT_GROUP_URL + &quot;/create&quot; + &quot;?username=&quot; + username;</span>
+
+        // Create a JsonObjectRequest to send the group creation details
+<span class="nc" id="L265">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, groupDetails,</span>
+<span class="nc" id="L266">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle successful group creation
+<span class="nc" id="L270">                        WorkoutGroup group = new WorkoutGroup(response);</span>
+<span class="nc" id="L271">                        groupList.add(group);</span>
+<span class="nc" id="L272">                        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L273">                        Toast.makeText(getActivity(), &quot;Group Created&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L274">                    }</span>
+                },
+<span class="nc" id="L276">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error responses
+<span class="nc bnc" id="L280" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+                            try {
+<span class="nc" id="L282">                                String errorMessage = new String(error.networkResponse.data);</span>
+<span class="nc" id="L283">                                Log.e(&quot;Volley Error&quot;, &quot;Error message: &quot; + errorMessage);</span>
+<span class="nc" id="L284">                                getActivity().runOnUiThread(new Runnable() {</span>
+                                    public void run() {
+<span class="nc" id="L286">                                        Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L287">                                    }</span>
+                                });
+<span class="nc" id="L289">                            } catch (Exception e) {</span>
+<span class="nc" id="L290">                                e.printStackTrace();</span>
+<span class="nc" id="L291">                            }</span>
+                        }
+<span class="nc" id="L293">                    }</span>
+<span class="nc" id="L294">                }) {</span>
+
+            @Override
+            public Map&lt;String, String&gt; getParams() {
+                // Add parameters to the request
+<span class="nc" id="L299">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L300">                params.put(&quot;username&quot;, username);</span>
+<span class="nc" id="L301">                params.put(&quot;groupDetails&quot;, groupDetails.toString());</span>
+<span class="nc" id="L302">                return params;</span>
+            }
+        };
+
+        // Add the request to the Volley request queue
+<span class="nc" id="L307">        VolleySingleton.getInstance(getActivity()).addToRequestQueue(request);</span>
+<span class="nc" id="L308">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

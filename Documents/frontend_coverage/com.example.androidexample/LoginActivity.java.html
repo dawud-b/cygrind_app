@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">LoginActivity.java</span></div><h1>LoginActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.security.NetworkSecurityPolicy;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+/**
+ * The LoginActivity handles the user authentication process by allowing users to input their
+ * credentials and either login or navigate to the signup screen.
+ * It uses Volley to send network requests and handles login validation and success.
+ */
+<span class="fc" id="L29">public class LoginActivity extends AppCompatActivity {</span>
+
+    // UI elements
+    private EditText usernameEditText;  // Username input field
+    private EditText passwordEditText;  // Password input field
+    private Button loginButton;         // Login button
+    private Button signupButton;        // Sign up button
+
+    /**
+     * Initializes the LoginActivity UI and sets up click listeners for the login and signup buttons.
+     * Also initializes user input fields with data passed from previous activities if available.
+     *
+     * @param savedInstanceState the saved instance state of the activity
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L45">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L46">        setContentView(R.layout.activity_login);</span>
+
+        // Initialize UI elements
+<span class="fc" id="L49">        usernameEditText = findViewById(R.id.login_username_edt);</span>
+<span class="fc" id="L50">        passwordEditText = findViewById(R.id.login_password_edt);</span>
+<span class="fc" id="L51">        loginButton = findViewById(R.id.login_login_btn);</span>
+<span class="fc" id="L52">        signupButton = findViewById(R.id.login_signup_btn);</span>
+
+        // Extract data passed into this activity (if any)
+<span class="fc" id="L55">        Bundle extras = getIntent().getExtras();</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (extras != null) {</span>
+<span class="fc" id="L57">            usernameEditText.setText(extras.getString(&quot;username&quot;));</span>
+<span class="fc" id="L58">            passwordEditText.setText(extras.getString(&quot;password&quot;));</span>
+        }
+
+        // Login button click listener
+<span class="fc" id="L62">        loginButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L65">                String username = usernameEditText.getText().toString();</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">                if( username.equals(&quot;test&quot;) ) {</span>
+                    // Test login for demo purposes
+<span class="nc" id="L68">                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);</span>
+<span class="nc" id="L69">                    startActivity(intent);</span>
+<span class="nc" id="L70">                } else {</span>
+                    // Send login credentials for validation
+<span class="fc" id="L72">                    String password = passwordEditText.getText().toString();</span>
+<span class="fc" id="L73">                    sendPutRequest(username, password);</span>
+                }
+<span class="fc" id="L75">            }</span>
+        });
+
+        // Signup button click listener
+<span class="fc" id="L79">        signupButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // Navigate to signup screen
+<span class="fc" id="L83">                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);</span>
+<span class="fc" id="L84">                startActivity(intent);</span>
+<span class="fc" id="L85">            }</span>
+        });
+<span class="fc" id="L87">    }</span>
+
+    /**
+     * Sends a PUT request with the provided username and password to the backend server to authenticate the user.
+     * Upon a successful response, navigates to the HomeActivity.
+     *
+     * @param username the username entered by the user
+     * @param password the password entered by the user
+     */
+    private void sendPutRequest(final String username, final String password) {
+        // Backend URL for login PUT request
+<span class="fc" id="L98">        String url = URLManager.getLoginPutReqURL(username);</span>
+
+        // Create PUT request with username and password
+<span class="fc" id="L101">        StringRequest request = new StringRequest(Request.Method.PUT, url,</span>
+<span class="fc" id="L102">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="fc" id="L105">                        Log.e(&quot;LoginResponse&quot;, response);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">                        if( response.equals(&quot;success&quot;) ) {</span>
+                            // On successful login, navigate to HomeActivity
+<span class="fc" id="L108">                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);</span>
+<span class="fc" id="L109">                            intent.putExtra(&quot;username&quot;, username);</span>
+<span class="fc" id="L110">                            startActivity(intent);</span>
+                        }
+                        // Show response in toast
+<span class="fc" id="L113">                        Toast.makeText(LoginActivity.this, &quot;Response: &quot; + response, Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L114">                    }</span>
+                },
+<span class="fc" id="L116">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L119">                        Log.e(&quot;LoginResponseError&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L121">                            Log.e(&quot;Status&quot;, &quot;Status Code: &quot; + error.networkResponse.statusCode);</span>
+<span class="nc" id="L122">                            Log.e(&quot;Body&quot;, &quot;Response Body: &quot; + new String(error.networkResponse.data));</span>
+                        }
+                        // Show error in toast
+<span class="nc" id="L125">                        Toast.makeText(LoginActivity.this, &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L126">                    }</span>
+<span class="fc" id="L127">                }) {</span>
+            @Override
+            public byte[] getBody() {
+                // Convert password string to byte array
+<span class="fc" id="L131">                return password.getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+                // Set content type as plain text
+<span class="fc" id="L137">                return &quot;text/plain&quot;;</span>
+            }
+        };
+
+        // Add request to Volley request queue
+<span class="fc" id="L142">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L143">    }</span>
+
+    /**
+     * Sends a POST request to validate the login credentials using a mock server.
+     * On successful login, navigates to the HomeActivity, else displays a toast with an error message.
+     *
+     * @param username the username entered by the user
+     * @param password the password entered by the user
+     */
+    private void sendLoginRequest(String username, String password) {
+        // Mock POST endpoint for login
+<span class="nc" id="L154">        String url = &quot;https://7052c66e-8818-4f49-ace9-3f1e9f0c35c2.mock.pstmn.io/login&quot;;</span>
+
+        // Create a JSON object with login credentials
+<span class="nc" id="L157">        JSONObject loginJson = new JSONObject();</span>
+        try {
+<span class="nc" id="L159">            loginJson.put(&quot;username&quot;, username);</span>
+<span class="nc" id="L160">            loginJson.put(&quot;password&quot;, password);</span>
+<span class="nc" id="L161">        } catch (JSONException e) {</span>
+<span class="nc" id="L162">            e.printStackTrace();</span>
+<span class="nc" id="L163">        }</span>
+
+        // Create a JSON object POST request and add it to the Volley queue
+<span class="nc" id="L166">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, loginJson,</span>
+<span class="nc" id="L167">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+<span class="nc" id="L171">                            String message = response.getString(&quot;message&quot;);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                            if( message.equals(&quot;Login Successful&quot;)) {</span>
+                                // On successful login, navigate to HomeActivity
+<span class="nc" id="L174">                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);</span>
+<span class="nc" id="L175">                                intent.putExtra(&quot;username&quot;, username);</span>
+<span class="nc" id="L176">                                startActivity(intent);</span>
+<span class="nc" id="L177">                            } else {</span>
+                                // Show error message if login fails
+<span class="nc" id="L179">                                Toast.makeText(LoginActivity.this, &quot;Username or password incorrect&quot;, Toast.LENGTH_LONG).show();</span>
+                            }
+<span class="nc" id="L181">                        } catch (JSONException e) {</span>
+<span class="nc" id="L182">                            e.printStackTrace();</span>
+<span class="nc" id="L183">                        }</span>
+<span class="nc" id="L184">                    }</span>
+                },
+<span class="nc" id="L186">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L189">                        Log.e(&quot;CreateUser&quot;, &quot;Error: &quot; + error.getMessage());</span>
+                        // Show a failure message on error
+<span class="nc" id="L191">                        Toast.makeText(LoginActivity.this, &quot;Request failed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L192">                    }</span>
+                });
+
+        // Add request to Volley request queue
+<span class="nc" id="L196">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L197">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

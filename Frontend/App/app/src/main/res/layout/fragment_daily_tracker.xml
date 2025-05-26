@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Date Selection -->
+    <TextView
+        android:id="@+id/daily_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Today, May 6"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Nutrition Summary Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/summary_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/daily_date">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Daily Summary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Calories -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Calories:"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/daily_calories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/goal_calories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/ 2000"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Protein -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Protein:" />
+
+                <TextView
+                    android:id="@+id/daily_protein"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 g" />
+
+                <TextView
+                    android:id="@+id/goal_protein"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/ 150 g"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Carbs -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Carbohydrates:" />
+
+                <TextView
+                    android:id="@+id/daily_carbs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 g" />
+
+                <TextView
+                    android:id="@+id/goal_carbs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/ 200 g"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Fat -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Fat:" />
+
+                <TextView
+                    android:id="@+id/daily_fat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 g" />
+
+                <TextView
+                    android:id="@+id/goal_fat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/ 70 g"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Food Items Title -->
+    <TextView
+        android:id="@+id/food_items_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Food Items"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/summary_card" />
+
+    <!-- Instructions Text -->
+    <TextView
+        android:id="@+id/swipe_instructions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Swipe left or right to remove items"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/food_items_title" />
+
+    <!-- Food Items List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/daily_foods_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/swipe_instructions"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@layout/item_food" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

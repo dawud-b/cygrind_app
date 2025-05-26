@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Messaging</a> &gt; <span class="el_source">MessageAdapter.java</span></div><h1>MessageAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Messaging;
+import android.os.Handler;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+public class MessageAdapter extends RecyclerView.Adapter&lt;RecyclerView.ViewHolder&gt; {
+
+    private List&lt;Message&gt; messages;
+    private static final int VIEW_TYPE_CURRENT_USER = 1;
+    private static final int VIEW_TYPE_OTHER_USER = 2;
+    private OnReactionClickListener reactionClickListener;
+
+    public interface OnReactionClickListener {
+        void onReactionClicked(Long messageId, String reactionType);
+    }
+
+<span class="fc" id="L29">    public MessageAdapter(List&lt;Message&gt; messages, OnReactionClickListener listener) {</span>
+<span class="fc" id="L30">        this.messages = messages;</span>
+<span class="fc" id="L31">        this.reactionClickListener = listener;</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    public int getItemViewType(int position) {
+<span class="fc" id="L36">        Message message = messages.get(position);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (message.isCurrentUser) {</span>
+<span class="fc" id="L38">            return VIEW_TYPE_CURRENT_USER;</span>
+        } else {
+<span class="fc" id="L40">            return VIEW_TYPE_OTHER_USER;</span>
+        }
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view;
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (viewType == VIEW_TYPE_CURRENT_USER) {</span>
+<span class="fc" id="L48">            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_message_current_user, parent, false);</span>
+<span class="fc" id="L49">            return new CurrentUserViewHolder(view);</span>
+        } else {
+<span class="fc" id="L51">            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_message_other_user, parent, false);</span>
+<span class="fc" id="L52">            return new OtherUserViewHolder(view);</span>
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+<span class="fc" id="L58">        Message message = messages.get(position);</span>
+
+        // set view reactions
+<span class="fc" id="L61">        List&lt;Reaction&gt; reactions = message.getReactions();</span>
+
+<span class="fc" id="L63">        SimpleDateFormat sdf = new SimpleDateFormat(&quot;HH:mm&quot;);</span>
+<span class="fc" id="L64">        String time = sdf.format(message.getSent());</span>
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (holder instanceof CurrentUserViewHolder) {</span>
+<span class="fc" id="L67">            ((CurrentUserViewHolder) holder).messageText.setText(message.getContent());</span>
+<span class="fc" id="L68">            ((CurrentUserViewHolder) holder).timestampText.setText(time);</span>
+<span class="fc" id="L69">            ((CurrentUserViewHolder) holder).usernameText.setText(message.getSender().getUsername());</span>
+
+            // set reaction views
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            if( reactions != null ) {</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">                for(Reaction reaction : reactions) {</span>
+<span class="nc bnc" id="L74" title="All 6 branches missed.">                    switch( reaction.getReactionType() ) {</span>
+                        case Reaction.COOL:
+<span class="nc" id="L76">                            ((CurrentUserViewHolder) holder).reactionViewCool.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L77">                            break;</span>
+                        case Reaction.LIKED:
+<span class="nc" id="L79">                            ((CurrentUserViewHolder) holder).reactionViewThumbsUp.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L80">                            break;</span>
+                        case Reaction.STRONG:
+<span class="nc" id="L82">                            ((CurrentUserViewHolder) holder).reactionViewStrong.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L83">                            break;</span>
+                        case Reaction.LOVED:
+<span class="nc" id="L85">                            ((CurrentUserViewHolder) holder).reactionViewLove.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L86">                            break;</span>
+                        case Reaction.DISLIKED:
+<span class="nc" id="L88">                            ((CurrentUserViewHolder) holder).reactionViewDisliked.setVisibility(View.VISIBLE);</span>
+                            break;
+                    }
+<span class="pc" id="L91">                }</span>
+            }
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        } else if (holder instanceof OtherUserViewHolder) {</span>
+
+
+<span class="fc" id="L96">            ((OtherUserViewHolder) holder).messageText.setText(message.getContent());</span>
+<span class="fc" id="L97">            ((OtherUserViewHolder) holder).timestampText.setText(time);</span>
+<span class="fc" id="L98">            ((OtherUserViewHolder) holder).usernameText.setText(message.getSender().getUsername());</span>
+
+            // set reaction views
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            if( reactions != null ) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                for(Reaction reaction : reactions) {</span>
+<span class="nc bnc" id="L103" title="All 6 branches missed.">                    switch( reaction.getReactionType() ) {</span>
+                        case Reaction.COOL:
+<span class="nc" id="L105">                            ((OtherUserViewHolder) holder).reactionViewCool.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L106">                            break;</span>
+                        case Reaction.LIKED:
+<span class="nc" id="L108">                            ((OtherUserViewHolder) holder).reactionViewThumbsUp.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L109">                            break;</span>
+                        case Reaction.STRONG:
+<span class="nc" id="L111">                            ((OtherUserViewHolder) holder).reactionViewStrong.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L112">                            break;</span>
+                        case Reaction.LOVED:
+<span class="nc" id="L114">                            ((OtherUserViewHolder) holder).reactionViewLove.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L115">                            break;</span>
+                        case Reaction.DISLIKED:
+<span class="nc" id="L117">                            ((OtherUserViewHolder) holder).reactionViewDisliked.setVisibility(View.VISIBLE);</span>
+                            break;
+                    }
+<span class="nc" id="L120">                }</span>
+            }
+
+<span class="fc" id="L123">            ((OtherUserViewHolder) holder).reactionContainer.setVisibility(View.GONE);</span>
+            // Long click listener to show reaction buttons
+<span class="fc" id="L125">            holder.itemView.setOnLongClickListener(v -&gt; {</span>
+                // Show reaction buttons when long pressed
+<span class="nc" id="L127">                ((OtherUserViewHolder) holder).reactionContainer.setVisibility(View.VISIBLE);</span>
+
+                // Hide the reaction buttons after 3 seconds
+<span class="nc" id="L130">                new Handler().postDelayed(() -&gt; ((OtherUserViewHolder) holder).reactionContainer.setVisibility(View.GONE), 3000);</span>
+
+<span class="nc" id="L132">                return true;  // Return true to indicate the event is handled</span>
+            });
+
+            // Reaction button click listeners
+<span class="fc" id="L136">            ((OtherUserViewHolder) holder).reactionThumbsUp.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                if( reactionClickListener != null ) {</span>
+<span class="nc" id="L138">                    reactionClickListener.onReactionClicked(message.getId(), &quot;LIKED&quot;);</span>
+                }
+<span class="nc" id="L140">            });</span>
+
+<span class="fc" id="L142">            ((OtherUserViewHolder) holder).reactionStrong.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                if( reactionClickListener != null ) {</span>
+<span class="nc" id="L144">                    reactionClickListener.onReactionClicked(message.getId(), &quot;STRONG&quot;);</span>
+                }
+<span class="nc" id="L146">            });</span>
+
+<span class="fc" id="L148">            ((OtherUserViewHolder) holder).reactionCool.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                if( reactionClickListener != null ) {</span>
+<span class="nc" id="L150">                    reactionClickListener.onReactionClicked(message.getId(), &quot;COOL&quot;);</span>
+                }
+<span class="nc" id="L152">            });</span>
+
+<span class="fc" id="L154">            ((OtherUserViewHolder) holder).reactionLove.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if( reactionClickListener != null ) {</span>
+<span class="nc" id="L156">                    reactionClickListener.onReactionClicked(message.getId(), &quot;LOVED&quot;);</span>
+                }
+<span class="nc" id="L158">            });</span>
+
+<span class="fc" id="L160">            ((OtherUserViewHolder) holder).reactionDisliked.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if( reactionClickListener != null ) {</span>
+<span class="nc" id="L162">                    reactionClickListener.onReactionClicked(message.getId(), &quot;DISLIKED&quot;);</span>
+                }
+<span class="nc" id="L164">            });</span>
+        }
+<span class="fc" id="L166">    }</span>
+
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L171">        return messages.size();</span>
+    }
+
+    public static class CurrentUserViewHolder extends RecyclerView.ViewHolder {
+        TextView messageText, usernameText, timestampText;
+
+        ImageButton reactionViewLove, reactionViewThumbsUp, reactionViewStrong, reactionViewCool, reactionViewDisliked;
+
+        public CurrentUserViewHolder(View itemView) {
+<span class="fc" id="L180">            super(itemView);</span>
+<span class="fc" id="L181">            messageText = itemView.findViewById(R.id.message_content);</span>
+<span class="fc" id="L182">            usernameText = itemView.findViewById(R.id.message_username);</span>
+<span class="fc" id="L183">            timestampText = itemView.findViewById(R.id.message_timestamp);</span>
+
+            // set reaction viewing images
+<span class="fc" id="L186">            reactionViewThumbsUp = itemView.findViewById(R.id.reactionViewThumbsUp);</span>
+<span class="fc" id="L187">            reactionViewLove = itemView.findViewById(R.id.reactionViewLove);</span>
+<span class="fc" id="L188">            reactionViewStrong = itemView.findViewById(R.id.reactionViewStrong);</span>
+<span class="fc" id="L189">            reactionViewCool = itemView.findViewById(R.id.reactionViewCool);</span>
+<span class="fc" id="L190">            reactionViewDisliked = itemView.findViewById(R.id.reactionViewDisliked);</span>
+<span class="fc" id="L191">        }</span>
+    }
+
+    public static class OtherUserViewHolder extends RecyclerView.ViewHolder {
+        TextView messageText, usernameText, timestampText;
+        LinearLayout reactionContainer;
+        ImageButton reactionLove, reactionThumbsUp, reactionStrong, reactionCool, reactionDisliked;
+
+        ImageButton reactionViewLove, reactionViewThumbsUp, reactionViewStrong, reactionViewCool, reactionViewDisliked;
+
+        public OtherUserViewHolder(View itemView) {
+<span class="fc" id="L202">            super(itemView);</span>
+<span class="fc" id="L203">            messageText = itemView.findViewById(R.id.message_content);</span>
+<span class="fc" id="L204">            usernameText = itemView.findViewById(R.id.message_username);</span>
+<span class="fc" id="L205">            timestampText = itemView.findViewById(R.id.message_timestamp);</span>
+<span class="fc" id="L206">            reactionContainer = itemView.findViewById(R.id.reactionContainer);</span>
+<span class="fc" id="L207">            reactionThumbsUp = itemView.findViewById(R.id.reactionThumbsUp);</span>
+<span class="fc" id="L208">            reactionLove = itemView.findViewById(R.id.reactionLove);</span>
+<span class="fc" id="L209">            reactionStrong = itemView.findViewById(R.id.reactionStrong);</span>
+<span class="fc" id="L210">            reactionCool = itemView.findViewById(R.id.reactionCool);</span>
+<span class="fc" id="L211">            reactionDisliked = itemView.findViewById(R.id.reactionDisliked);</span>
+
+            // set reaction viewing images
+<span class="fc" id="L214">            reactionViewThumbsUp = itemView.findViewById(R.id.reactionViewThumbsUp);</span>
+<span class="fc" id="L215">            reactionViewLove = itemView.findViewById(R.id.reactionViewLove);</span>
+<span class="fc" id="L216">            reactionViewStrong = itemView.findViewById(R.id.reactionViewStrong);</span>
+<span class="fc" id="L217">            reactionViewCool = itemView.findViewById(R.id.reactionViewCool);</span>
+<span class="fc" id="L218">            reactionViewDisliked = itemView.findViewById(R.id.reactionViewDisliked);</span>
+<span class="fc" id="L219">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

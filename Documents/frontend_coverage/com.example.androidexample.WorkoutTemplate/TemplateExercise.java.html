@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TemplateExercise.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.WorkoutTemplate</a> &gt; <span class="el_source">TemplateExercise.java</span></div><h1>TemplateExercise.java</h1><pre class="source lang-java linenums">package com.example.androidexample.WorkoutTemplate;
+
+import android.util.Log;
+
+import com.example.androidexample.Exercise;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * Represents a single exercise template within a workout template.
+ * This class holds details like weight, reps, sets, and associated exercise and workout template objects.
+ * It also supports serialization to and from JSON for use with remote APIs.
+ */
+public class TemplateExercise {
+
+    private long id;
+    private int weight;
+    private int repCount;
+    private int setCount;
+    private int duration; // Duration in seconds (optional or reserved for future use)
+    private Exercise exercise;
+    private WorkoutTemplate template;
+
+    /**
+     * Constructs a new {@code TemplateExercise} with basic details.
+     *
+     * @param ex    The {@link Exercise} associated with this template.
+     * @param weight The weight to be used.
+     * @param reps   The number of repetitions.
+     * @param sets   The number of sets.
+     */
+<span class="nc" id="L33">    public TemplateExercise(Exercise ex, int weight, int reps, int sets) {</span>
+<span class="nc" id="L34">        this.exercise = ex;</span>
+<span class="nc" id="L35">        this.weight = weight;</span>
+<span class="nc" id="L36">        this.repCount = reps;</span>
+<span class="nc" id="L37">        this.setCount = sets;</span>
+<span class="nc" id="L38">    }</span>
+
+    /**
+     * Constructs a {@code TemplateExercise} from a JSON object, typically received from a backend.
+     *
+     * @param obj The JSON representation of a template exercise.
+     * @throws JSONException if parsing fails.
+     */
+<span class="nc" id="L46">    public TemplateExercise(JSONObject obj) throws JSONException {</span>
+        try {
+<span class="nc" id="L48">            this.id = obj.getLong(&quot;id&quot;);</span>
+<span class="nc" id="L49">            this.weight = obj.getInt(&quot;weight&quot;);</span>
+<span class="nc" id="L50">            this.repCount = obj.getInt(&quot;repCount&quot;);</span>
+<span class="nc" id="L51">            this.setCount = obj.getInt(&quot;setCount&quot;);</span>
+<span class="nc" id="L52">            this.exercise = new Exercise(obj.getJSONObject(&quot;exercise&quot;));</span>
+<span class="nc" id="L53">            this.template = new WorkoutTemplate(obj.getJSONObject(&quot;workoutTemplate&quot;));</span>
+<span class="nc" id="L54">        } catch (JSONException e) {</span>
+<span class="nc" id="L55">            Log.e(&quot;JSONException&quot;, e.toString());</span>
+<span class="nc" id="L56">        }</span>
+<span class="nc" id="L57">    }</span>
+
+    /**
+     * Converts this {@code TemplateExercise} into a JSON object for API communication.
+     *
+     * @return A {@link JSONObject} representing this exercise.
+     * @throws JSONException if an error occurs during conversion.
+     */
+    public JSONObject toJSON() throws JSONException {
+<span class="nc" id="L66">        JSONObject exerciseTemplateObj = new JSONObject();</span>
+<span class="nc" id="L67">        exerciseTemplateObj.put(&quot;weight&quot;, this.getWeight());</span>
+<span class="nc" id="L68">        exerciseTemplateObj.put(&quot;repCount&quot;, this.getRepCount());</span>
+<span class="nc" id="L69">        exerciseTemplateObj.put(&quot;setCount&quot;, this.getSetCount());</span>
+
+<span class="nc" id="L71">        JSONObject workoutTemplateObj = new JSONObject();</span>
+<span class="nc" id="L72">        workoutTemplateObj.put(&quot;id&quot;, EditTemplateDataHolder.workoutTemplate.getId());</span>
+<span class="nc" id="L73">        exerciseTemplateObj.put(&quot;workoutTemplate&quot;, workoutTemplateObj);</span>
+
+<span class="nc" id="L75">        JSONObject exerciseObj = new JSONObject();</span>
+<span class="nc" id="L76">        exerciseObj.put(&quot;id&quot;, this.getExercise().getId());</span>
+<span class="nc" id="L77">        exerciseTemplateObj.put(&quot;exercise&quot;, exerciseObj);</span>
+
+<span class="nc" id="L79">        return exerciseTemplateObj;</span>
+    }
+
+    /** @return the unique identifier of this template exercise */
+    public long getId() {
+<span class="nc" id="L84">        return id;</span>
+    }
+
+    /** @param id the identifier to set */
+    public void setId(long id) {
+<span class="nc" id="L89">        this.id = id;</span>
+<span class="nc" id="L90">    }</span>
+
+    /** @return the weight associated with this exercise */
+    public int getWeight() {
+<span class="nc" id="L94">        return weight;</span>
+    }
+
+    /** @param weight the weight to set */
+    public void setWeight(int weight) {
+<span class="nc" id="L99">        this.weight = weight;</span>
+<span class="nc" id="L100">    }</span>
+
+    /** @param reps the repetition count to set */
+    public void setReps(int reps) {
+<span class="nc" id="L104">        this.repCount = reps;</span>
+<span class="nc" id="L105">    }</span>
+
+    /** @param sets the set count to set */
+    public void setSets(int sets) {
+<span class="nc" id="L109">        this.setCount = sets;</span>
+<span class="nc" id="L110">    }</span>
+
+    /** @return the number of repetitions */
+    public int getRepCount() {
+<span class="nc" id="L114">        return repCount;</span>
+    }
+
+    /** @return the number of sets */
+    public int getSetCount() {
+<span class="nc" id="L119">        return setCount;</span>
+    }
+
+    /** @return the duration of this exercise in seconds */
+    public int getDuration() {
+<span class="nc" id="L124">        return duration;</span>
+    }
+
+    /** @return the {@link Exercise} object linked to this template */
+    public Exercise getExercise() {
+<span class="nc" id="L129">        return exercise;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

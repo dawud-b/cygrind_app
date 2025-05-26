@@ -1,0 +1,35 @@
+<!-- dialog_input.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter Weight, Sets, and Reps"
+        android:textSize="18sp"
+        android:paddingBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/editWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Weight (lbs)"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/editSets"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Sets"
+        android:inputType="number"/>
+
+    <EditText
+        android:id="@+id/editReps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Reps"
+        android:inputType="number"/>
+</LinearLayout>

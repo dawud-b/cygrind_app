@@ -1,0 +1,1103 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EventsServer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Events</a>
+</div>
+
+<h1>Coverage Summary for Class: EventsServer (onetoone.Events)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EventsServer</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    19%
+  </span>
+  <span class="absValue">
+    (4/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/180)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    2.2%
+  </span>
+  <span class="absValue">
+    (7/317)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Events;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Hashtable;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;import jakarta.websocket.OnClose;
+&nbsp;import jakarta.websocket.OnError;
+&nbsp;import jakarta.websocket.OnMessage;
+&nbsp;import jakarta.websocket.OnOpen;
+&nbsp;import jakarta.websocket.Session;
+&nbsp;import jakarta.websocket.server.PathParam;
+&nbsp;import jakarta.websocket.server.ServerEndpoint;
+&nbsp;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import onetoone.users.WeightClass;
+&nbsp;
+&nbsp;/**
+&nbsp; * WebSocket endpoint for the Events system.
+&nbsp; * Handles real-time updates for workout events and leaderboards.
+&nbsp; *
+&nbsp; * Example URL: ws://localhost:8080/events/{username}
+&nbsp; */
+&nbsp;@ServerEndpoint(&quot;/events/{username}&quot;)
+&nbsp;@Component
+<b class="fc">&nbsp;public class EventsServer {</b>
+&nbsp;
+&nbsp;    // Store all socket sessions and their corresponding username
+<b class="fc">&nbsp;    private static Map&lt;Session, String&gt; sessionUsernameMap = new Hashtable&lt;&gt;();</b>
+<b class="fc">&nbsp;    private static Map&lt;String, Session&gt; usernameSessionMap = new Hashtable&lt;&gt;();</b>
+&nbsp;
+&nbsp;    // Keep track of admin users for permission checks
+<b class="fc">&nbsp;    private static Map&lt;String, Boolean&gt; isAdminMap = new Hashtable&lt;&gt;();</b>
+&nbsp;
+&nbsp;    // Keep a reference to EventService and UserRepository
+&nbsp;    private static EventService eventService;
+&nbsp;    private static UserRepository userRepository;
+&nbsp;
+&nbsp;    // Server-side logger
+<b class="fc">&nbsp;    private final Logger logger = LoggerFactory.getLogger(EventsServer.class);</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setEventService(EventService service) {
+<b class="fc">&nbsp;        eventService = service;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setUserRepository(UserRepository repository) {
+<b class="fc">&nbsp;        userRepository = repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * This method is called when a new WebSocket connection is established.
+&nbsp;     */
+&nbsp;    @OnOpen
+&nbsp;    public void onOpen(Session session, @PathParam(&quot;username&quot;) String username) {
+&nbsp;        try {
+<b class="nc">&nbsp;            logger.info(&quot;[onOpen] &quot; + username);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (username == null || username.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                sendTextSafely(session, &quot;Error: Username cannot be empty&quot;);</b>
+<b class="nc">&nbsp;                closeSafely(session);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Check if user exists
+<b class="nc">&nbsp;            User user = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                user = userRepository.findByUsername(username);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;[onOpen] Error fetching user: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendTextSafely(session, &quot;Error: Failed to verify user&quot;);</b>
+<b class="nc">&nbsp;                closeSafely(session);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (user == null) {</b>
+<b class="nc">&nbsp;                sendTextSafely(session, &quot;Error: Invalid username&quot;);</b>
+<b class="nc">&nbsp;                closeSafely(session);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Map current session with username
+<b class="nc">&nbsp;            sessionUsernameMap.put(session, username);</b>
+&nbsp;
+&nbsp;            // Map current username with session
+<b class="nc">&nbsp;            usernameSessionMap.put(username, session);</b>
+&nbsp;
+&nbsp;            // Store if user is admin
+<b class="nc">&nbsp;            isAdminMap.put(username, &quot;Admin&quot;.equals(user.getUserRole()));</b>
+&nbsp;
+&nbsp;            // Send welcome message to the user
+<b class="nc">&nbsp;            sendMessageToUser(username, &quot;Welcome to the Events system, &quot; + username);</b>
+&nbsp;
+&nbsp;            // Send help information
+<b class="nc">&nbsp;            sendMessageToUser(username, &quot;Type /help to see available commands&quot;);</b>
+&nbsp;
+&nbsp;            // Send list of active events
+<b class="nc">&nbsp;            sendActiveEvents(username);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[onOpen Exception] &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;            sendTextSafely(session, &quot;Error occurred during connection. Please try again.&quot;);</b>
+<b class="nc">&nbsp;            closeSafely(session);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles incoming WebSocket messages from a client.
+&nbsp;     */
+&nbsp;    @OnMessage
+&nbsp;    public void onMessage(Session session, String message) {
+&nbsp;        try {
+&nbsp;            // Get the username by session
+<b class="nc">&nbsp;            String username = sessionUsernameMap.get(session);</b>
+<b class="nc">&nbsp;            if (username == null) {</b>
+<b class="nc">&nbsp;                logger.warn(&quot;[onMessage] No username found for session&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Validate message
+<b class="nc">&nbsp;            if (message == null || message.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Please enter a command. Type /help for available commands.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Server side log
+<b class="nc">&nbsp;            logger.info(&quot;[onMessage] &quot; + username + &quot;: &quot; + message);</b>
+&nbsp;
+&nbsp;            // Handle commands
+<b class="nc">&nbsp;            message = message.trim();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (message.equals(&quot;/help&quot;)) {</b>
+<b class="nc">&nbsp;                handleHelpCommand(username);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.equals(&quot;/events&quot;)) {</b>
+<b class="nc">&nbsp;                sendActiveEvents(username);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/create &quot;)) {</b>
+<b class="nc">&nbsp;                handleCreateEventCommand(username, message.substring(8));</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/delete &quot;)) {</b>
+<b class="nc">&nbsp;                handleDeleteEventCommand(username, message.substring(8));</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/activate &quot;)) {</b>
+<b class="nc">&nbsp;                handleActivateEventCommand(username, message.substring(10), true);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/deactivate &quot;)) {</b>
+<b class="nc">&nbsp;                handleActivateEventCommand(username, message.substring(12), false);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/leaderboard &quot;)) {</b>
+<b class="nc">&nbsp;                handleLeaderboardCommand(username, message.substring(12));</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (message.startsWith(&quot;/score &quot;)) {</b>
+<b class="nc">&nbsp;                handleSubmitScoreCommand(username, message.substring(7));</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // If no command recognized, send help info
+<b class="nc">&nbsp;            sendMessageToUser(username, &quot;Unknown command &#39;&quot; + message + &quot;&#39;. Type /help for available commands.&quot;);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[onMessage Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                String username = sessionUsernameMap.get(session);</b>
+<b class="nc">&nbsp;                if (username != null) {</b>
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;An error occurred processing your command. Please try again.&quot;);</b>
+&nbsp;                }
+&nbsp;            } catch (Exception ex) {
+<b class="nc">&nbsp;                logger.error(&quot;[Error recovery exception] &quot; + ex.getMessage(), ex);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles the closure of a WebSocket connection.
+&nbsp;     */
+&nbsp;    @OnClose
+&nbsp;    public void onClose(Session session) {
+&nbsp;        try {
+&nbsp;            // Get the username from session-username mapping
+<b class="nc">&nbsp;            String username = sessionUsernameMap.get(session);</b>
+&nbsp;
+&nbsp;            // Server side log
+<b class="nc">&nbsp;            logger.info(&quot;[onClose] &quot; + username);</b>
+&nbsp;
+&nbsp;            // Remove user from memory mappings
+<b class="nc">&nbsp;            sessionUsernameMap.remove(session);</b>
+<b class="nc">&nbsp;            if (username != null) {</b>
+<b class="nc">&nbsp;                usernameSessionMap.remove(username);</b>
+<b class="nc">&nbsp;                isAdminMap.remove(username);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[onClose Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles WebSocket errors that occur during the connection.
+&nbsp;     */
+&nbsp;    @OnError
+&nbsp;    public void onError(Session session, Throwable throwable) {
+&nbsp;        try {
+&nbsp;            // Get the username from session-username mapping
+<b class="nc">&nbsp;            String username = sessionUsernameMap.get(session);</b>
+&nbsp;
+&nbsp;            // Error handling
+<b class="nc">&nbsp;            logger.error(&quot;[onError] &quot; + (username != null ? username : &quot;unknown user&quot;) + &quot;: &quot; + throwable.getMessage(), throwable);</b>
+&nbsp;
+&nbsp;            // Try to notify user of the error if possible
+<b class="nc">&nbsp;            if (username != null &amp;&amp; session.isOpen()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;An error occurred with your connection. You may need to reconnect.&quot;);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;[Error notification exception] &quot; + e.getMessage(), e);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[onError Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /*
+&nbsp;     * Command handlers
+&nbsp;     */
+&nbsp;
+&nbsp;    private void handleHelpCommand(String username) {
+&nbsp;        try {
+<b class="nc">&nbsp;            StringBuilder helpMsg = new StringBuilder(&quot;Available Commands:\n&quot;);</b>
+<b class="nc">&nbsp;            helpMsg.append(&quot;- /events - List all active events\n&quot;);</b>
+<b class="nc">&nbsp;            helpMsg.append(&quot;- /leaderboard [eventId] - View leaderboard for an event\n&quot;);</b>
+<b class="nc">&nbsp;            helpMsg.append(&quot;- /score [eventId] [score] - Submit your score for an event\n&quot;);</b>
+&nbsp;
+&nbsp;            // Add admin-only commands if user is admin
+<b class="nc">&nbsp;            if (isAdminMap.getOrDefault(username, false)) {</b>
+<b class="nc">&nbsp;                helpMsg.append(&quot;\nAdmin Commands:\n&quot;);</b>
+<b class="nc">&nbsp;                helpMsg.append(&quot;- /create [title]|[description]|[exerciseType] - Create a new event\n&quot;);</b>
+<b class="nc">&nbsp;                helpMsg.append(&quot;- /delete [eventId] - Delete an event\n&quot;);</b>
+<b class="nc">&nbsp;                helpMsg.append(&quot;- /activate [eventId] - Activate an event\n&quot;);</b>
+<b class="nc">&nbsp;                helpMsg.append(&quot;- /deactivate [eventId] - Deactivate an event\n&quot;);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            sendMessageToUser(username, helpMsg.toString());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[handleHelpCommand Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error displaying help. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;[Help Command Message Exception] &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendActiveEvents(String username) {
+&nbsp;        try {
+<b class="nc">&nbsp;            if (eventService == null) {</b>
+<b class="nc">&nbsp;                logger.error(&quot;[sendActiveEvents] EventService is null&quot;);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Service unavailable&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            StringBuilder eventsMsg = new StringBuilder(&quot;Active Events:\n&quot;);</b>
+&nbsp;
+&nbsp;            // Get all active events
+<b class="nc">&nbsp;            List&lt;Event&gt; events = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                events = eventService.getActiveEvents();</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;[sendActiveEvents] Error fetching events: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error fetching active events. Please try again.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (events == null || events.isEmpty()) {</b>
+<b class="nc">&nbsp;                eventsMsg.append(&quot;No active events found.&quot;);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, eventsMsg.toString());</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            for (Event event : events) {</b>
+<b class="nc">&nbsp;                if (event != null) {</b>
+<b class="nc">&nbsp;                    eventsMsg.append(&quot;- ID: &quot;).append(event.getId())</b>
+<b class="nc">&nbsp;                            .append(&quot; | &quot;).append(event.getTitle() != null ? event.getTitle() : &quot;Untitled&quot;)</b>
+<b class="nc">&nbsp;                            .append(&quot; | &quot;).append(event.getExerciseType() != null ? event.getExerciseType() : &quot;No type&quot;)</b>
+<b class="nc">&nbsp;                            .append(&quot;\n&quot;);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            sendMessageToUser(username, eventsMsg.toString());</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[sendActiveEvents Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error retrieving active events. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;[Active Events Message Exception] &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleCreateEventCommand(String username, String eventData) {
+&nbsp;        try {
+&nbsp;            // Check if user is admin
+<b class="nc">&nbsp;            if (!isAdminMap.getOrDefault(username, false)) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: You do not have permission to create events.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Validate input
+<b class="nc">&nbsp;            if (eventData == null || eventData.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Missing event data. Use: /create title|description|exerciseType&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Parse event data (format: title|description|exerciseType)
+<b class="nc">&nbsp;            String[] parts = eventData.split(&quot;\\|&quot;);</b>
+<b class="nc">&nbsp;            if (parts.length != 3) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Invalid format. Use: /create title|description|exerciseType&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String title = parts[0].trim();</b>
+<b class="nc">&nbsp;            String description = parts[1].trim();</b>
+<b class="nc">&nbsp;            String exerciseType = parts[2].trim();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (title.isEmpty() || exerciseType.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Title and exercise type cannot be empty.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Create event with default dates (now to 7 days later)
+<b class="nc">&nbsp;            LocalDateTime now = LocalDateTime.now();</b>
+<b class="nc">&nbsp;            LocalDateTime endDate = now.plusDays(7);</b>
+&nbsp;
+<b class="nc">&nbsp;            Event event = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                event = eventService.createEvent(title, description, exerciseType, username, now, endDate);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;[handleCreateEventCommand] Error creating event: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to create event due to a server error.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (event != null) {</b>
+&nbsp;                // Notify all users about the new event
+&nbsp;                try {
+<b class="nc">&nbsp;                    broadcast(&quot;New event created: &quot; + event.getTitle() + &quot; (ID: &quot; + event.getId() + &quot;)&quot;);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;[handleCreateEventCommand] Error broadcasting: &quot; + e.getMessage(), e);</b>
+&nbsp;                    // Continue anyway - event was created
+&nbsp;                }
+&nbsp;
+&nbsp;                // Send confirmation to admin
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Event created successfully with ID: &quot; + event.getId());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to create event.&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[handleCreateEventCommand Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error creating event. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;[Create Event Message Exception] &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleDeleteEventCommand(String username, String eventIdStr) {
+&nbsp;        try {
+&nbsp;            // Check if user is admin
+<b class="nc">&nbsp;            if (!isAdminMap.getOrDefault(username, false)) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: You do not have permission to delete events.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Validate input
+<b class="nc">&nbsp;            if (eventIdStr == null || eventIdStr.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Missing event ID. Use: /delete eventId&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            try {
+<b class="nc">&nbsp;                long eventId = Long.parseLong(eventIdStr.trim());</b>
+&nbsp;
+&nbsp;                // Get event details before deletion for notification
+<b class="nc">&nbsp;                Event event = null;</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    event = eventService.getEventById(eventId);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;[handleDeleteEventCommand] Error fetching event: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Failed to fetch event information.&quot;);</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                if (event == null) {</b>
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Event not found with ID: &quot; + eventId);</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                String eventTitle = event.getTitle();</b>
+&nbsp;
+&nbsp;                // Delete the event
+<b class="nc">&nbsp;                boolean success = false;</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    success = eventService.deleteEvent(eventId, username);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;[handleDeleteEventCommand] Error deleting event: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Failed to delete event due to a server error.&quot;);</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                if (success) {</b>
+&nbsp;                    // Notify all users
+&nbsp;                    try {
+<b class="nc">&nbsp;                        broadcast(&quot;Event deleted: &quot; + eventTitle + &quot; (ID: &quot; + eventId + &quot;)&quot;);</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        logger.error(&quot;[handleDeleteEventCommand] Error broadcasting: &quot; + e.getMessage(), e);</b>
+&nbsp;                        // Continue anyway - event was deleted
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // Send confirmation to admin
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Event deleted successfully: &quot; + eventId);</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Failed to delete event.&quot;);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;            } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Invalid event ID format. Please use a number.&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[handleDeleteEventCommand Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error deleting event. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;[Delete Event Message Exception] &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleActivateEventCommand(String username, String eventIdStr, boolean activate) {
+&nbsp;        try {
+&nbsp;            // Check if user is admin
+<b class="nc">&nbsp;            if (!isAdminMap.getOrDefault(username, false)) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: You do not have permission to modify events.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Validate input
+<b class="nc">&nbsp;            if (eventIdStr == null || eventIdStr.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                String cmd = activate ? &quot;/activate&quot; : &quot;/deactivate&quot;;</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Missing event ID. Use: &quot; + cmd + &quot; eventId&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            try {
+<b class="nc">&nbsp;                long eventId = Long.parseLong(eventIdStr.trim());</b>
+&nbsp;
+<b class="nc">&nbsp;                Event event = null;</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    event = eventService.toggleEventStatus(eventId, activate, username);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;[handleActivateEventCommand] Error toggling event status: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Failed to update event status due to a server error.&quot;);</b>
+&nbsp;                    return;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                if (event != null) {</b>
+&nbsp;                    // Notify all users
+&nbsp;                    try {
+<b class="nc">&nbsp;                        broadcast(&quot;Event &quot; + (activate ? &quot;activated&quot; : &quot;deactivated&quot;) + &quot;: &quot;</b>
+<b class="nc">&nbsp;                                + event.getTitle() + &quot; (ID: &quot; + eventId + &quot;)&quot;);</b>
+&nbsp;                    } catch (Exception e) {
+<b class="nc">&nbsp;                        logger.error(&quot;[handleActivateEventCommand] Error broadcasting: &quot; + e.getMessage(), e);</b>
+&nbsp;                        // Continue anyway - event status was updated
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // Send confirmation to admin
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Event &quot; + (activate ? &quot;activated&quot; : &quot;deactivated&quot;)</b>
+&nbsp;                            + &quot; successfully: &quot; + eventId);
+&nbsp;                } else {
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Error: Failed to update event status.&quot;);</b>
+&nbsp;                }
+&nbsp;
+&nbsp;            } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Invalid event ID format. Please use a number.&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[handleActivateEventCommand Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error changing event status. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;[Activate Event Message Exception] &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void handleLeaderboardCommand(String username, String eventIdStr) {
+&nbsp;        try {
+<b class="nc">&nbsp;            logger.info(&quot;Processing leaderboard request from user: &quot; + username + &quot;, eventId: &quot; + eventIdStr);</b>
+&nbsp;
+&nbsp;            // Validate input
+<b class="nc">&nbsp;            if (eventIdStr == null || eventIdStr.trim().isEmpty()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Missing event ID. Use: /leaderboard eventId&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Parse event ID
+&nbsp;            long eventId;
+&nbsp;            try {
+<b class="nc">&nbsp;                eventId = Long.parseLong(eventIdStr.trim());</b>
+&nbsp;            } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Event ID must be a number. Example: /leaderboard 1&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Find event
+<b class="nc">&nbsp;            Event event = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                event = eventService.getEventById(eventId);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;Error fetching event: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to fetch event information.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (event == null) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Event not found with ID: &quot; + eventId);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Get leaderboard data
+<b class="nc">&nbsp;            Map&lt;String, Map&lt;String, Object&gt;&gt; leaderboard = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                leaderboard = eventService.getLeaderboard(eventId);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;Error fetching leaderboard: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to retrieve leaderboard data.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Format leaderboard data for display
+<b class="nc">&nbsp;            StringBuilder leaderboardMsg = new StringBuilder(&quot;Leaderboard for &quot; + event.getTitle() + &quot;:\n&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (leaderboard == null || leaderboard.isEmpty()) {</b>
+<b class="nc">&nbsp;                leaderboardMsg.append(&quot;No participants yet.&quot;);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, leaderboardMsg.toString());</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            try {
+&nbsp;                // Display leaderboard by weight class
+<b class="nc">&nbsp;                for (Map.Entry&lt;String, Map&lt;String, Object&gt;&gt; entry : leaderboard.entrySet()) {</b>
+<b class="nc">&nbsp;                    String weightClassName = entry.getKey();</b>
+<b class="nc">&nbsp;                    Map&lt;String, Object&gt; weightClassData = entry.getValue();</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (weightClassName == null || weightClassData == null) {</b>
+&nbsp;                        continue;
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // Add extra line break before each weight class for better separation
+<b class="nc">&nbsp;                    leaderboardMsg.append(&quot;\n\n&quot;).append(weightClassName).append(&quot; Weight Class:\n&quot;);</b>
+&nbsp;
+&nbsp;                    @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                    java.util.List&lt;Map&lt;String, Object&gt;&gt; participants =</b>
+<b class="nc">&nbsp;                            (java.util.List&lt;Map&lt;String, Object&gt;&gt;) weightClassData.get(&quot;participants&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (participants == null || participants.isEmpty()) {</b>
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;  No participants in this weight class.\n&quot;);</b>
+&nbsp;                        continue;
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // List participants by rank
+<b class="nc">&nbsp;                    for (int i = 0; i &lt; participants.size(); i++) {</b>
+<b class="nc">&nbsp;                        Map&lt;String, Object&gt; participant = participants.get(i);</b>
+<b class="nc">&nbsp;                        if (participant == null) {</b>
+&nbsp;                            continue;
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;  &quot;).append(i+1).append(&quot;. &quot;);</b>
+&nbsp;
+&nbsp;                        // Safely get participant data with null checks
+<b class="nc">&nbsp;                        Object firstName = participant.get(&quot;firstName&quot;);</b>
+<b class="nc">&nbsp;                        Object lastName = participant.get(&quot;lastName&quot;);</b>
+<b class="nc">&nbsp;                        Object participantUsername = participant.get(&quot;username&quot;);</b>
+<b class="nc">&nbsp;                        Object score = participant.get(&quot;score&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                        if (firstName != null) {</b>
+<b class="nc">&nbsp;                            leaderboardMsg.append(firstName).append(&quot; &quot;);</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        if (lastName != null) {</b>
+<b class="nc">&nbsp;                            leaderboardMsg.append(lastName).append(&quot; &quot;);</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;(&quot;);</b>
+<b class="nc">&nbsp;                        if (participantUsername != null) {</b>
+<b class="nc">&nbsp;                            leaderboardMsg.append(participantUsername);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            leaderboardMsg.append(&quot;unknown&quot;);</b>
+&nbsp;                        }
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;) - &quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                        if (score != null) {</b>
+<b class="nc">&nbsp;                            leaderboardMsg.append(score).append(&quot; pts&quot;);</b>
+&nbsp;                        } else {
+<b class="nc">&nbsp;                            leaderboardMsg.append(&quot;0 pts&quot;);</b>
+&nbsp;                        }
+&nbsp;
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;\n&quot;);</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                // Send the formatted leaderboard
+<b class="nc">&nbsp;                sendMessageToUser(username, leaderboardMsg.toString());</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;Error formatting leaderboard: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to format leaderboard data.&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error in handleLeaderboardCommand: &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error retrieving leaderboard. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;Failed to send error message: &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;//    private void handleSubmitScoreCommand(String username, String data) {
+&nbsp;//        try {
+&nbsp;//            logger.info(&quot;Processing score submission from user: &quot; + username + &quot;, data: &quot; + data);
+&nbsp;//
+&nbsp;//            // Parse data (format: eventId score)
+&nbsp;//            String[] parts = data.trim().split(&quot;\\s+&quot;);
+&nbsp;//            if (parts.length != 2) {
+&nbsp;//                sendMessageToUser(username, &quot;Error: Invalid format. Use: /score eventId score&quot;);
+&nbsp;//                return;
+&nbsp;//            }
+&nbsp;//
+&nbsp;//            long eventId;
+&nbsp;//            int score;
+&nbsp;//
+&nbsp;//            // Parse numbers with better error handling
+&nbsp;//            try {
+&nbsp;//                eventId = Long.parseLong(parts[0].trim());
+&nbsp;//            } catch (NumberFormatException e) {
+&nbsp;//                sendMessageToUser(username, &quot;Error: Event ID must be a number. Example: /score 1 200&quot;);
+&nbsp;//                return;
+&nbsp;//            }
+&nbsp;//
+&nbsp;//            try {
+&nbsp;//                score = Integer.parseInt(parts[1].trim());
+&nbsp;//            } catch (NumberFormatException e) {
+&nbsp;//                sendMessageToUser(username, &quot;Error: Score must be a number. Example: /score 1 200&quot;);
+&nbsp;//                return;
+&nbsp;//            }
+&nbsp;//
+&nbsp;//            // Find event
+&nbsp;//            Event event = null;
+&nbsp;//            try {
+&nbsp;//                event = eventService.getEventById(eventId);
+&nbsp;//            } catch (Exception e) {
+&nbsp;//                logger.error(&quot;Error fetching event: &quot; + e.getMessage(), e);
+&nbsp;//                sendMessageToUser(username, &quot;Error: Failed to fetch event information.&quot;);
+&nbsp;//                return;
+&nbsp;//            }
+&nbsp;//
+&nbsp;//            if (event == null) {
+&nbsp;//                sendMessageToUser(username, &quot;Error: Event not found with ID: &quot; + eventId);
+&nbsp;//                return;
+&nbsp;//            }
+&nbsp;//
+&nbsp;//            // DEBUG: Print event status
+&nbsp;//            logger.info(&quot;Event &quot; + eventId + &quot; status is: &quot; + event.isActive());
+&nbsp;//
+&nbsp;//            // TEMPORARY FIX: Force submit score regardless of active status
+&nbsp;//            // Submit score directly
+&nbsp;//            try {
+&nbsp;//                // Get user
+&nbsp;//                User user = userRepository.findByUsername(username);
+&nbsp;//                if (user == null) {
+&nbsp;//                    sendMessageToUser(username, &quot;Error: User not found.&quot;);
+&nbsp;//                    return;
+&nbsp;//                }
+&nbsp;//
+&nbsp;//                // Update score in event
+&nbsp;//                event.updateParticipantScore(user, score);
+&nbsp;//
+&nbsp;//                // Save event
+&nbsp;//                Event savedEvent = eventService.getEventRepository().save(event);
+&nbsp;//
+&nbsp;//                if (savedEvent != null) {
+&nbsp;//                    // Get user&#39;s weight class
+&nbsp;//                    WeightClass weightClass = WeightClass.getWeightClassForWeight(user.getWeight());
+&nbsp;//
+&nbsp;//                    // Confirm to the user
+&nbsp;//                    sendMessageToUser(username, &quot;Score submitted successfully! (Status override applied)&quot;);
+&nbsp;//
+&nbsp;//                    // Broadcast to all users
+&nbsp;//                    broadcast(username + &quot; submitted a score of &quot; + score + &quot; for event &#39;&quot; +
+&nbsp;//                            event.getTitle() + &quot;&#39; in the &quot; + weightClass.getName() + &quot; weight class!&quot;);
+&nbsp;//
+&nbsp;//                    // Update leaderboard
+&nbsp;//                    broadcastLeaderboard(eventId);
+&nbsp;//                } else {
+&nbsp;//                    sendMessageToUser(username, &quot;Error: Failed to save event after updating score.&quot;);
+&nbsp;//                }
+&nbsp;//            } catch (Exception e) {
+&nbsp;//                logger.error(&quot;Error in direct score submission: &quot; + e.getMessage(), e);
+&nbsp;//                sendMessageToUser(username, &quot;Error in direct score submission: &quot; + e.getMessage());
+&nbsp;//            }
+&nbsp;//        } catch (Exception e) {
+&nbsp;//            logger.error(&quot;Unexpected error in handleSubmitScoreCommand: &quot; + e.getMessage(), e);
+&nbsp;//            try {
+&nbsp;//                sendMessageToUser(username, &quot;Error submitting score. Please try again.&quot;);
+&nbsp;//            } catch (IOException ioException) {
+&nbsp;//                logger.error(&quot;Failed to send error message: &quot; + ioException.getMessage());
+&nbsp;//            }
+&nbsp;//        }
+&nbsp;//    }
+&nbsp;
+&nbsp;    private void handleSubmitScoreCommand(String username, String data) {
+&nbsp;        try {
+<b class="nc">&nbsp;            logger.info(&quot;Processing score submission from user: &quot; + username + &quot;, data: &quot; + data);</b>
+&nbsp;
+&nbsp;            // Parse data (format: eventId score)
+<b class="nc">&nbsp;            String[] parts = data.trim().split(&quot;\\s+&quot;);</b>
+<b class="nc">&nbsp;            if (parts.length != 2) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Invalid format. Use: /score eventId score&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            long eventId;
+&nbsp;            int score;
+&nbsp;
+&nbsp;            // Parse numbers with better error handling
+&nbsp;            try {
+<b class="nc">&nbsp;                eventId = Long.parseLong(parts[0].trim());</b>
+&nbsp;            } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Event ID must be a number. Example: /score 1 200&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            try {
+<b class="nc">&nbsp;                score = Integer.parseInt(parts[1].trim());</b>
+&nbsp;            } catch (NumberFormatException e) {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Score must be a number. Example: /score 1 200&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Find event
+<b class="nc">&nbsp;            Event event = null;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                event = eventService.getEventById(eventId);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;Error fetching event: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to fetch event information.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (event == null) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Event not found with ID: &quot; + eventId);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Check if event is active - IMPORTANT: This check was previously bypassed
+<b class="nc">&nbsp;            if (!event.isActive()) {</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: This event is not active. Scores cannot be submitted.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+&nbsp;            // Submit score through the proper service method
+<b class="nc">&nbsp;            boolean success = false;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                success = eventService.submitScore(eventId, username, score);</b>
+&nbsp;            } catch (Exception e) {
+<b class="nc">&nbsp;                logger.error(&quot;Error submitting score: &quot; + e.getMessage(), e);</b>
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to submit score due to a server error.&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (success) {</b>
+&nbsp;                try {
+&nbsp;                    // Find user to get weight class
+<b class="nc">&nbsp;                    User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;                    WeightClass weightClass = WeightClass.getWeightClassForWeight(user.getWeight());</b>
+&nbsp;
+&nbsp;                    // Confirm to the user
+<b class="nc">&nbsp;                    sendMessageToUser(username, &quot;Score submitted successfully!&quot;);</b>
+&nbsp;
+&nbsp;                    // Broadcast to others
+<b class="nc">&nbsp;                    broadcast(username + &quot; submitted a score of &quot; + score + &quot; for event &#39;&quot; +</b>
+<b class="nc">&nbsp;                            event.getTitle() + &quot;&#39; in the &quot; + weightClass.getName() + &quot; weight class!&quot;);</b>
+&nbsp;
+&nbsp;                    // Update leaderboard
+<b class="nc">&nbsp;                    broadcastLeaderboard(eventId);</b>
+&nbsp;                } catch (Exception e) {
+<b class="nc">&nbsp;                    logger.error(&quot;Error sending confirmation: &quot; + e.getMessage(), e);</b>
+&nbsp;                }
+&nbsp;            } else {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error: Failed to submit score.&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error in handleSubmitScoreCommand: &quot; + e.getMessage(), e);</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                sendMessageToUser(username, &quot;Error submitting score. Please try again.&quot;);</b>
+&nbsp;            } catch (IOException ioException) {
+<b class="nc">&nbsp;                logger.error(&quot;Failed to send error message: &quot; + ioException.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;    /*
+&nbsp;     * Messaging methods
+&nbsp;     */
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Safely send a text message to a session.
+&nbsp;     */
+&nbsp;    private void sendTextSafely(Session session, String message) {
+<b class="nc">&nbsp;        if (session == null || !session.isOpen()) {</b>
+<b class="nc">&nbsp;            logger.warn(&quot;Cannot send message: session is null or closed&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            session.getBasicRemote().sendText(message);</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            logger.error(&quot;Failed to send message: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Safely close a session.
+&nbsp;     */
+&nbsp;    private void closeSafely(Session session) {
+<b class="nc">&nbsp;        if (session == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+&nbsp;            session.close();
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            logger.error(&quot;Failed to close session: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sends a message to a specific user.
+&nbsp;     */
+&nbsp;    private void sendMessageToUser(String username, String message) throws IOException {
+<b class="nc">&nbsp;        if (username == null || message == null) {</b>
+<b class="nc">&nbsp;            logger.warn(&quot;Cannot send message: username or message is null&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            String timestamp = DateTimeFormatter.ofPattern(&quot;HH:mm:ss&quot;).format(LocalDateTime.now());</b>
+<b class="nc">&nbsp;            String formattedMessage = &quot;[&quot; + timestamp + &quot;] &quot; + message;</b>
+&nbsp;
+<b class="nc">&nbsp;            Session session = usernameSessionMap.get(username);</b>
+<b class="nc">&nbsp;            if (session != null &amp;&amp; session.isOpen()) {</b>
+<b class="nc">&nbsp;                session.getBasicRemote().sendText(formattedMessage);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                logger.warn(&quot;Cannot send message to user &quot; + username + &quot;: session is null or closed&quot;);</b>
+&nbsp;            }
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            logger.error(&quot;[sendMessageToUser Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            throw e; // Rethrow to allow caller to handle
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Broadcasts a message to all connected users.
+&nbsp;     */
+&nbsp;    private void broadcast(String message) {
+<b class="nc">&nbsp;        if (message == null) {</b>
+<b class="nc">&nbsp;            logger.warn(&quot;Cannot broadcast: message is null&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        String timestamp = DateTimeFormatter.ofPattern(&quot;HH:mm:ss&quot;).format(LocalDateTime.now());</b>
+<b class="nc">&nbsp;        String formattedMessage = &quot;[&quot; + timestamp + &quot;] &quot; + message;</b>
+&nbsp;
+&nbsp;        // Create a copy to avoid ConcurrentModificationException
+<b class="nc">&nbsp;        Map&lt;Session, String&gt; sessionsCopy = new HashMap&lt;&gt;(sessionUsernameMap);</b>
+&nbsp;
+<b class="nc">&nbsp;        sessionsCopy.forEach((session, username) -&gt; {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                if (session != null &amp;&amp; session.isOpen()) {</b>
+<b class="nc">&nbsp;                    session.getBasicRemote().sendText(formattedMessage);</b>
+&nbsp;                }
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                logger.error(&quot;[Broadcast Exception] for user &quot; + username + &quot;: &quot; + e.getMessage());</b>
+&nbsp;                // Don&#39;t remove session here, let onError handle it
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Broadcasts the updated leaderboard for an event to all users.
+&nbsp;     */
+&nbsp;    private void broadcastLeaderboard(long eventId) {
+&nbsp;        try {
+&nbsp;            // Get the event data
+<b class="nc">&nbsp;            Event event = eventService.getEventById(eventId);</b>
+<b class="nc">&nbsp;            if (event == null) return;</b>
+&nbsp;
+&nbsp;            // Get leaderboard data
+<b class="nc">&nbsp;            Map&lt;String, Map&lt;String, Object&gt;&gt; leaderboard = eventService.getLeaderboard(eventId);</b>
+<b class="nc">&nbsp;            if (leaderboard == null || leaderboard.isEmpty()) return;</b>
+&nbsp;
+&nbsp;            // Format leaderboard data for display
+<b class="nc">&nbsp;            StringBuilder leaderboardMsg = new StringBuilder(&quot;Updated Leaderboard for &quot; + event.getTitle() + &quot;:\n&quot;);</b>
+&nbsp;
+&nbsp;            // Format and send the leaderboard message (simplified version for broadcast)
+<b class="nc">&nbsp;            boolean hasEntries = false;</b>
+&nbsp;
+<b class="nc">&nbsp;            for (Map.Entry&lt;String, Map&lt;String, Object&gt;&gt; entry : leaderboard.entrySet()) {</b>
+<b class="nc">&nbsp;                String weightClassName = entry.getKey();</b>
+<b class="nc">&nbsp;                if (weightClassName == null) continue;</b>
+&nbsp;
+<b class="nc">&nbsp;                Map&lt;String, Object&gt; weightClassData = entry.getValue();</b>
+<b class="nc">&nbsp;                if (weightClassData == null) continue;</b>
+&nbsp;
+&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc">&nbsp;                java.util.List&lt;Map&lt;String, Object&gt;&gt; participants =</b>
+<b class="nc">&nbsp;                        (java.util.List&lt;Map&lt;String, Object&gt;&gt;) weightClassData.get(&quot;participants&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                if (participants == null || participants.isEmpty()) {</b>
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+&nbsp;                // Only show top 3 for each weight class in broadcast
+<b class="nc">&nbsp;                leaderboardMsg.append(&quot;\r\n&quot;).append(weightClassName).append(&quot; Top 3:\n&quot;);</b>
+<b class="nc">&nbsp;                hasEntries = true;</b>
+&nbsp;
+<b class="nc">&nbsp;                int count = 0;</b>
+<b class="nc">&nbsp;                for (Map&lt;String, Object&gt; participant : participants) {</b>
+<b class="nc">&nbsp;                    if (participant == null) continue;</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (count &gt;= 3) break;  // Only show top 3</b>
+&nbsp;
+<b class="nc">&nbsp;                    Object username = participant.get(&quot;username&quot;);</b>
+<b class="nc">&nbsp;                    Object score = participant.get(&quot;score&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;                    if (username != null &amp;&amp; score != null) {</b>
+<b class="nc">&nbsp;                        leaderboardMsg.append(&quot;  &quot;).append(count + 1).append(&quot;. &quot;)</b>
+<b class="nc">&nbsp;                                .append(username).append(&quot; - &quot;)</b>
+<b class="nc">&nbsp;                                .append(score).append(&quot; pts\n&quot;);</b>
+<b class="nc">&nbsp;                        count++;</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            // Only broadcast if there are entries to show
+<b class="nc">&nbsp;            if (hasEntries) {</b>
+&nbsp;                // Broadcast to all users
+<b class="nc">&nbsp;                broadcast(leaderboardMsg.toString());</b>
+&nbsp;            }
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            logger.error(&quot;[broadcastLeaderboard Exception] &quot; + e.getMessage(), e);</b>
+&nbsp;            // Continue without broadcasting if there&#39;s an error
+&nbsp;        }
+&nbsp;    }
+&nbsp;    }
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:06</div>
+</div>
+</body>
+</html>

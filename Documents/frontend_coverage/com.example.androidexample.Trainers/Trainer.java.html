@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Trainer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">Trainer.java</span></div><h1>Trainer.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+/**
+ * Model class representing a trainer's information on the client side.
+ * &lt;p&gt;
+ * This class contains details such as the trainer's ID, specialization, bio, activity status, and personal information like username, first name, and last name.
+ * The data is typically populated by parsing a JSON object received from an API response.
+ */
+public class Trainer {
+
+    private long id;                // Trainer's unique ID
+    private String specialization;  // Trainer's area of expertise (e.g., fitness, yoga)
+    private String bio;             // Trainer's biography
+    private boolean isActive;       // Status indicating if the trainer is active
+    private String username;        // Username of the trainer
+    private String firstName;       // Trainer's first name
+    private String lastName;        // Trainer's last name
+
+    /**
+     * Constructor to initialize the Trainer object from a JSON response.
+     *
+     * @param trainerJson The JSON object containing the trainer data.
+     * @throws JSONException If the JSON object cannot be parsed correctly.
+     */
+<span class="fc" id="L27">    public Trainer(JSONObject trainerJson) throws JSONException {</span>
+<span class="fc" id="L28">        this.id = trainerJson.getLong(&quot;id&quot;);</span>
+<span class="fc" id="L29">        this.specialization = trainerJson.optString(&quot;specialization&quot;, &quot;&quot;);</span>
+<span class="fc" id="L30">        this.bio = trainerJson.optString(&quot;bio&quot;, &quot;&quot;);</span>
+<span class="fc" id="L31">        this.isActive = trainerJson.optBoolean(&quot;isActive&quot;, true);</span>
+
+        // Extract user information if available
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (trainerJson.has(&quot;user&quot;)) {</span>
+<span class="fc" id="L35">            JSONObject userJson = trainerJson.getJSONObject(&quot;user&quot;);</span>
+<span class="fc" id="L36">            this.username = userJson.getString(&quot;username&quot;);</span>
+<span class="fc" id="L37">            this.firstName = userJson.optString(&quot;firstName&quot;, &quot;&quot;);</span>
+<span class="fc" id="L38">            this.lastName = userJson.optString(&quot;lastName&quot;, &quot;&quot;);</span>
+        }
+<span class="fc" id="L40">    }</span>
+
+    /**
+     * Gets the trainer's ID.
+     *
+     * @return The trainer's ID.
+     */
+    public long getId() {
+<span class="fc" id="L48">        return id;</span>
+    }
+
+    /**
+     * Gets the trainer's specialization.
+     *
+     * @return The trainer's specialization.
+     */
+    public String getSpecialization() {
+<span class="fc" id="L57">        return specialization;</span>
+    }
+
+    /**
+     * Gets the trainer's biography.
+     *
+     * @return The trainer's bio.
+     */
+    public String getBio() {
+<span class="fc" id="L66">        return bio;</span>
+    }
+
+    /**
+     * Checks if the trainer is currently active.
+     *
+     * @return {@code true} if the trainer is active, {@code false} otherwise.
+     */
+    public boolean isActive() {
+<span class="nc" id="L75">        return isActive;</span>
+    }
+
+    /**
+     * Gets the trainer's username.
+     *
+     * @return The trainer's username.
+     */
+    public String getUsername() {
+<span class="nc" id="L84">        return username;</span>
+    }
+
+    /**
+     * Gets the trainer's first name.
+     *
+     * @return The trainer's first name.
+     */
+    public String getFirstName() {
+<span class="nc" id="L93">        return firstName;</span>
+    }
+
+    /**
+     * Gets the trainer's last name.
+     *
+     * @return The trainer's last name.
+     */
+    public String getLastName() {
+<span class="nc" id="L102">        return lastName;</span>
+    }
+
+    /**
+     * Helper method to get the trainer's display name, which is either the full name
+     * (first and last name) or the username if the names are not provided.
+     *
+     * @return The trainer's display name.
+     */
+    public String getDisplayName() {
+<span class="pc bpc" id="L112" title="2 of 4 branches missed.">        if (firstName.isEmpty() &amp;&amp; lastName.isEmpty()) {</span>
+<span class="fc" id="L113">            return username;</span>
+        } else {
+<span class="nc" id="L115">            return firstName + &quot; &quot; + lastName;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

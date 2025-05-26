@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="8dp">
+
+    <!-- Rank Circle -->
+    <TextView
+        android:id="@+id/user_rank"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:text="1"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- User Info -->
+    <TextView
+        android:id="@+id/user_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:text="John Doe"
+        android:textSize="16sp" />
+
+    <!-- Score with Progress Bar -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/user_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="250 pts"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/cyred" />
+
+        <ProgressBar
+            android:id="@+id/score_progress"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="80dp"
+            android:layout_height="4dp"
+            android:progress="75" />
+    </LinearLayout>
+</LinearLayout>

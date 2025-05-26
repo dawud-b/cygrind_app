@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="?android:attr/selectableItemBackground" >
+
+    <!-- Profile picture -->
+    <ImageView
+        android:id="@+id/imageViewProfilePic"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/profile_placeholder" />
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/item_convo_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/imageViewProfilePic"
+        android:layout_marginStart="12dp"
+        android:text="Username"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_alignTop="@id/imageViewProfilePic" />
+
+    <!-- Last message -->
+    <TextView
+        android:id="@+id/textViewLastMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/imageViewProfilePic"
+        android:layout_marginStart="12dp"
+        android:layout_below="@id/item_convo_name"
+        android:text="Last message"
+        android:textSize="14sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- Last message time -->
+    <TextView
+        android:id="@+id/textViewLastMessageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:text="10:30 AM"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray" />
+
+</RelativeLayout>

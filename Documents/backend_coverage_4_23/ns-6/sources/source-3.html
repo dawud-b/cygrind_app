@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WorkoutController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.WorkoutExercises</a>
+</div>
+
+<h1>Coverage Summary for Class: WorkoutController (onetoone.WorkoutExercises)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WorkoutController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    22.2%
+  </span>
+  <span class="absValue">
+    (2/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    32%
+  </span>
+  <span class="absValue">
+    (8/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.WorkoutExercises;
+&nbsp;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/workouts&quot;)
+&nbsp;public class WorkoutController {
+&nbsp;
+&nbsp;    private final WorkoutService workoutService;
+&nbsp;
+<b class="fc">&nbsp;    public WorkoutController(WorkoutService workoutService) {</b>
+<b class="fc">&nbsp;        this.workoutService = workoutService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Fetch exercises by muscle group from API Ninja
+&nbsp;    @GetMapping(&quot;/api/muscle/{muscle}&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; getExercisesByMuscleFromApi(@PathVariable String muscle) {
+<b class="nc">&nbsp;        List&lt;Exercise&gt; exercises = workoutService.getExercisesByMuscleFromApi(muscle);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(exercises);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Save exercises for all muscle groups
+&nbsp;    @PostMapping(&quot;/api/save/all&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; saveAllExercises() {
+<b class="fc">&nbsp;        List&lt;Exercise&gt; allExercises = new ArrayList&lt;&gt;();</b>
+&nbsp;
+&nbsp;        // Iterate through all muscle groups
+<b class="fc">&nbsp;        for (String muscle : workoutService.getMuscleGroups()) {</b>
+&nbsp;            // Fetch and save exercises for the current muscle group
+<b class="fc">&nbsp;            List&lt;Exercise&gt; exercises = workoutService.getExercisesByMuscleFromApi(muscle);</b>
+<b class="fc">&nbsp;            List&lt;Exercise&gt; savedExercises = workoutService.saveExercisesToDatabase(exercises);</b>
+&nbsp;
+&nbsp;            // Add the saved exercises to the list of all exercises
+<b class="fc">&nbsp;            allExercises.addAll(savedExercises);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED).body(allExercises);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Save exercises for a specific muscle group
+&nbsp;    @PostMapping(&quot;/api/save/muscle/{muscle}&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; saveExercisesByMuscle(@PathVariable String muscle) {
+<b class="nc">&nbsp;        List&lt;Exercise&gt; exercises = workoutService.getExercisesByMuscleFromApi(muscle);</b>
+<b class="nc">&nbsp;        List&lt;Exercise&gt; savedExercises = workoutService.saveExercisesToDatabase(exercises);</b>
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED).body(savedExercises);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    // Save exercises from API Ninja to the local database
+&nbsp;//    @PostMapping(&quot;/api/save/muscle/{muscle}&quot;)
+&nbsp;//    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; saveExercisesByMuscle(@PathVariable String muscle) {
+&nbsp;//        List&lt;Exercise&gt; exercises = workoutService.getExercisesByMuscleFromApi(muscle);
+&nbsp;//        List&lt;Exercise&gt; savedExercises = workoutService.saveExercisesToDatabase(exercises);
+&nbsp;//        return ResponseEntity.status(HttpStatus.CREATED).body(savedExercises);
+&nbsp;//    }
+&nbsp;//
+&nbsp;//    @PostMapping(&quot;/api/save/all&quot;)
+&nbsp;//    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; saveAllExercises() {
+&nbsp;//        // Fetch all exercises from API Ninja
+&nbsp;//        List&lt;Exercise&gt; exercises = workoutService.getExercisesFromApi();
+&nbsp;//
+&nbsp;//        // Save all exercises to local database
+&nbsp;//        List&lt;Exercise&gt; savedExercises = workoutService.saveExercisesToDatabase(exercises);
+&nbsp;//
+&nbsp;//        return ResponseEntity.status(HttpStatus.CREATED).body(savedExercises);
+&nbsp;//    }
+&nbsp;
+&nbsp;    // Fetch all exercises from the local database
+&nbsp;    @GetMapping(&quot;/database/exercises&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Exercise&gt;&gt; getAllExercisesFromDatabase() {
+<b class="nc">&nbsp;        List&lt;Exercise&gt; exercises = workoutService.getAllExercisesFromDatabase();</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(exercises);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Add a new exercise to the local database
+&nbsp;    @PostMapping(&quot;/database/exercises&quot;)
+&nbsp;    public ResponseEntity&lt;Exercise&gt; addExerciseToDatabase(@RequestBody Exercise exercise) {
+<b class="nc">&nbsp;        Exercise newExercise = workoutService.addExerciseToDatabase(exercise);</b>
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED).body(newExercise);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Get exercise by ID from the local database
+&nbsp;    @GetMapping(&quot;/database/exercises/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Exercise&gt; getExerciseByIdFromDatabase(@PathVariable Long id) {
+<b class="nc">&nbsp;        Optional&lt;Exercise&gt; exercise = workoutService.getExerciseByIdFromDatabase(id);</b>
+<b class="nc">&nbsp;        return exercise.map(ResponseEntity::ok)</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Update an existing exercise in the local database
+&nbsp;    @PutMapping(&quot;/database/exercises/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Exercise&gt; updateExerciseInDatabase(@PathVariable Long id, @RequestBody Exercise updatedExercise) {
+<b class="nc">&nbsp;        Optional&lt;Exercise&gt; exercise = workoutService.updateExerciseInDatabase(id, updatedExercise);</b>
+<b class="nc">&nbsp;        return exercise.map(ResponseEntity::ok)</b>
+<b class="nc">&nbsp;                .orElseGet(() -&gt; ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Delete an exercise by ID from the local database
+&nbsp;    @DeleteMapping(&quot;/database/exercises/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Void&gt; deleteExerciseFromDatabase(@PathVariable Long id) {
+<b class="nc">&nbsp;        boolean isDeleted = workoutService.deleteExerciseFromDatabase(id);</b>
+<b class="nc">&nbsp;        return isDeleted ? ResponseEntity.noContent().build() : ResponseEntity.status(HttpStatus.NOT_FOUND).build();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:06</div>
+</div>
+</body>
+</html>

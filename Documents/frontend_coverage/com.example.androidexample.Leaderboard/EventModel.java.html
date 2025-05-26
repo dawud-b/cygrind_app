@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventModel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">EventModel.java</span></div><h1>EventModel.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+/**
+ * A model class that represents an event with details such as ID, title, description, exercise type,
+ * start and end dates, active status, and leaderboard entries.
+ *
+ * This class encapsulates the properties of an event, including the event's duration, status, and associated leaderboard entries.
+ * It also provides utility methods for formatting the event's dates and retrieving remaining time.
+ */
+public class EventModel {
+
+    private long id;  // Event ID
+    private String title;  // Event title
+    private String description;  // Event description
+    private String exerciseType;  // Exercise type associated with the event
+    private LocalDateTime startDate;  // Event start date and time
+    private LocalDateTime endDate;  // Event end date and time
+    private boolean active;  // Status of the event (active or not)
+<span class="nc" id="L24">    private List&lt;LeaderboardEntry&gt; leaderboardEntries = new ArrayList&lt;&gt;();  // List of leaderboard entries for the event</span>
+
+    /**
+     * Constructs an EventModel object with the specified details.
+     *
+     * @param id The ID of the event.
+     * @param title The title of the event.
+     * @param description The description of the event.
+     * @param exerciseType The type of exercise for the event.
+     * @param startDate The start date and time of the event.
+     * @param endDate The end date and time of the event.
+     * @param active Whether the event is currently active or not.
+     */
+    public EventModel(long id, String title, String description, String exerciseType,
+<span class="nc" id="L38">                      LocalDateTime startDate, LocalDateTime endDate, boolean active) {</span>
+<span class="nc" id="L39">        this.id = id;</span>
+<span class="nc" id="L40">        this.title = title;</span>
+<span class="nc" id="L41">        this.description = description;</span>
+<span class="nc" id="L42">        this.exerciseType = exerciseType;</span>
+<span class="nc" id="L43">        this.startDate = startDate;</span>
+<span class="nc" id="L44">        this.endDate = endDate;</span>
+<span class="nc" id="L45">        this.active = active;</span>
+<span class="nc" id="L46">    }</span>
+
+    /**
+     * Returns the ID of the event.
+     *
+     * @return The event ID.
+     */
+    public long getId() {
+<span class="nc" id="L54">        return id;</span>
+    }
+
+    /**
+     * Sets the ID of the event.
+     *
+     * @param id The event ID to set.
+     */
+    public void setId(long id) {
+<span class="nc" id="L63">        this.id = id;</span>
+<span class="nc" id="L64">    }</span>
+
+    /**
+     * Returns the title of the event.
+     *
+     * @return The event title.
+     */
+    public String getTitle() {
+<span class="nc" id="L72">        return title;</span>
+    }
+
+    /**
+     * Sets the title of the event.
+     *
+     * @param title The event title to set.
+     */
+    public void setTitle(String title) {
+<span class="nc" id="L81">        this.title = title;</span>
+<span class="nc" id="L82">    }</span>
+
+    /**
+     * Returns the description of the event.
+     *
+     * @return The event description.
+     */
+    public String getDescription() {
+<span class="nc" id="L90">        return description;</span>
+    }
+
+    /**
+     * Sets the description of the event.
+     *
+     * @param description The event description to set.
+     */
+    public void setDescription(String description) {
+<span class="nc" id="L99">        this.description = description;</span>
+<span class="nc" id="L100">    }</span>
+
+    /**
+     * Returns the type of exercise for the event.
+     *
+     * @return The exercise type for the event.
+     */
+    public String getExerciseType() {
+<span class="nc" id="L108">        return exerciseType;</span>
+    }
+
+    /**
+     * Sets the exercise type for the event.
+     *
+     * @param exerciseType The exercise type to set.
+     */
+    public void setExerciseType(String exerciseType) {
+<span class="nc" id="L117">        this.exerciseType = exerciseType;</span>
+<span class="nc" id="L118">    }</span>
+
+    /**
+     * Returns the start date and time of the event.
+     *
+     * @return The event's start date and time.
+     */
+    public LocalDateTime getStartDate() {
+<span class="nc" id="L126">        return startDate;</span>
+    }
+
+    /**
+     * Sets the start date and time of the event.
+     *
+     * @param startDate The event's start date and time to set.
+     */
+    public void setStartDate(LocalDateTime startDate) {
+<span class="nc" id="L135">        this.startDate = startDate;</span>
+<span class="nc" id="L136">    }</span>
+
+    /**
+     * Returns the end date and time of the event.
+     *
+     * @return The event's end date and time.
+     */
+    public LocalDateTime getEndDate() {
+<span class="nc" id="L144">        return endDate;</span>
+    }
+
+    /**
+     * Sets the end date and time of the event.
+     *
+     * @param endDate The event's end date and time to set.
+     */
+    public void setEndDate(LocalDateTime endDate) {
+<span class="nc" id="L153">        this.endDate = endDate;</span>
+<span class="nc" id="L154">    }</span>
+
+    /**
+     * Returns whether the event is currently active.
+     *
+     * @return True if the event is active, false otherwise.
+     */
+    public boolean isActive() {
+<span class="nc" id="L162">        return active;</span>
+    }
+
+    /**
+     * Sets the active status of the event.
+     *
+     * @param active The active status to set.
+     */
+    public void setActive(boolean active) {
+<span class="nc" id="L171">        this.active = active;</span>
+<span class="nc" id="L172">    }</span>
+
+    /**
+     * Returns the leaderboard entries for the event.
+     *
+     * @return A list of leaderboard entries.
+     */
+    public List&lt;LeaderboardEntry&gt; getLeaderboardEntries() {
+<span class="nc" id="L180">        return leaderboardEntries;</span>
+    }
+
+    /**
+     * Sets the leaderboard entries for the event.
+     *
+     * @param leaderboardEntries The leaderboard entries to set.
+     */
+    public void setLeaderboardEntries(List&lt;LeaderboardEntry&gt; leaderboardEntries) {
+<span class="nc" id="L189">        this.leaderboardEntries = leaderboardEntries;</span>
+<span class="nc" id="L190">    }</span>
+
+    /**
+     * Returns a string representing the time remaining for the event.
+     * Since the backend data for remaining time isn't available, a static message is returned.
+     *
+     * @return A string representing the remaining time, or a static message if unavailable.
+     */
+    public String getTimeRemaining() {
+        // Since we don't have time frame data from the backend yet,
+        // just return a static message
+<span class="nc" id="L201">        return &quot;Event in progress&quot;;</span>
+    }
+
+    /**
+     * Returns a formatted string of the event's start and end dates in the pattern &quot;MMM d, yyyy - MMM d, yyyy&quot;.
+     *
+     * @return A string representing the formatted start and end dates of the event, or an empty string if dates are unavailable.
+     */
+    public String getFormattedDates() {
+<span class="nc" id="L210">        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;MMM d, yyyy&quot;);</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">        if (startDate != null &amp;&amp; endDate != null) {</span>
+<span class="nc" id="L212">            return startDate.format(formatter) + &quot; - &quot; + endDate.format(formatter);</span>
+        }
+<span class="nc" id="L214">        return &quot;&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

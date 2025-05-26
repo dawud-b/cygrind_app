@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LeaderboardAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">LeaderboardAdapter.java</span></div><h1>LeaderboardAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.List;
+/**
+ * Adapter for displaying leaderboard entries in a RecyclerView.
+ * This adapter binds leaderboard data to a view, displaying the user's rank, name, score, and progress
+ * in the leaderboard. It dynamically calculates progress bar percentages based on the highest score.
+ */
+public class LeaderboardAdapter extends RecyclerView.Adapter&lt;LeaderboardAdapter.ViewHolder&gt; {
+
+    private List&lt;LeaderboardEntry&gt; leaderboardEntries;  // List of leaderboard entries
+    private Context context;  // Context for inflating layouts
+    private int maxScore;  // Maximum score in the leaderboard to calculate progress bar percentages
+
+    /**
+     * Constructor to initialize the leaderboard adapter with context and leaderboard entries.
+     * It calculates the maximum score for progress bar percentage calculations.
+     *
+     * @param context The context used to inflate the leaderboard item views.
+     * @param leaderboardEntries The list of leaderboard entries to display.
+     */
+<span class="nc" id="L35">    public LeaderboardAdapter(Context context, List&lt;LeaderboardEntry&gt; leaderboardEntries) {</span>
+<span class="nc" id="L36">        this.context = context;</span>
+<span class="nc" id="L37">        this.leaderboardEntries = leaderboardEntries;</span>
+
+        // Calculate max score for progress bars
+<span class="nc" id="L40">        maxScore = 0;</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for (LeaderboardEntry entry : leaderboardEntries) {</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            if (entry.getScore() &gt; maxScore) {</span>
+<span class="nc" id="L43">                maxScore = entry.getScore();</span>
+            }
+<span class="nc" id="L45">        }</span>
+
+        // Ensure maxScore is not zero to avoid division by zero errors
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (maxScore == 0) maxScore = 1;</span>
+<span class="nc" id="L49">    }</span>
+
+    /**
+     * Creates a new ViewHolder instance to hold the views for each leaderboard entry.
+     *
+     * @param parent The parent view group to which the item view will be attached.
+     * @param viewType The view type of the new view.
+     * @return A new ViewHolder for the leaderboard item.
+     */
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+<span class="nc" id="L61">        View view = LayoutInflater.from(parent.getContext())</span>
+<span class="nc" id="L62">                .inflate(R.layout.leaderboard_item, parent, false);</span>
+<span class="nc" id="L63">        return new ViewHolder(view);</span>
+    }
+
+    /**
+     * Binds the leaderboard entry data to the given ViewHolder.
+     * It sets the rank, user name, score, progress bar, and adjusts the background color for the rank.
+     *
+     * @param holder The ViewHolder to bind data to.
+     * @param position The position in the data set for the item.
+     */
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+<span class="nc" id="L75">        LeaderboardEntry entry = leaderboardEntries.get(position);</span>
+
+        // Set rank (position + 1)
+<span class="nc" id="L78">        holder.userRank.setText(String.valueOf(position + 1));</span>
+
+        // Set background color for rank based on position
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (position == 0) {</span>
+<span class="nc" id="L82">            holder.userRank.setBackgroundColor(Color.parseColor(&quot;#FFD700&quot;)); // Gold</span>
+<span class="nc" id="L83">            holder.userRank.setTextColor(Color.BLACK);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        } else if (position == 1) {</span>
+<span class="nc" id="L85">            holder.userRank.setBackgroundColor(Color.parseColor(&quot;#C0C0C0&quot;)); // Silver</span>
+<span class="nc" id="L86">            holder.userRank.setTextColor(Color.BLACK);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        } else if (position == 2) {</span>
+<span class="nc" id="L88">            holder.userRank.setBackgroundColor(Color.parseColor(&quot;#CD7F32&quot;)); // Bronze</span>
+<span class="nc" id="L89">            holder.userRank.setTextColor(Color.WHITE);</span>
+        } else {
+<span class="nc" id="L91">            holder.userRank.setBackgroundColor(Color.parseColor(&quot;#E53935&quot;)); // Red</span>
+<span class="nc" id="L92">            holder.userRank.setTextColor(Color.WHITE);</span>
+        }
+
+        // Set user name using display name method from LeaderboardEntry
+<span class="nc" id="L96">        holder.userName.setText(entry.getDisplayName());</span>
+
+        // Set score text
+<span class="nc" id="L99">        holder.userScore.setText(entry.getScore() + &quot; pts&quot;);</span>
+
+        // Calculate and set progress bar value
+<span class="nc" id="L102">        int progress = (int)((entry.getScore() * 100.0f) / maxScore);</span>
+<span class="nc" id="L103">        holder.scoreProgress.setProgress(progress);</span>
+<span class="nc" id="L104">    }</span>
+
+    /**
+     * Returns the total number of items in the leaderboard.
+     *
+     * @return The number of leaderboard entries.
+     */
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L113">        return leaderboardEntries.size();</span>
+    }
+
+    /**
+     * Updates the leaderboard data with new entries and recalculates the maximum score.
+     *
+     * @param newEntries The new list of leaderboard entries to be displayed.
+     */
+    public void updateData(List&lt;LeaderboardEntry&gt; newEntries) {
+<span class="nc" id="L122">        this.leaderboardEntries = newEntries;</span>
+
+        // Recalculate max score for progress bars
+<span class="nc" id="L125">        maxScore = 0;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (LeaderboardEntry entry : leaderboardEntries) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (entry.getScore() &gt; maxScore) {</span>
+<span class="nc" id="L128">                maxScore = entry.getScore();</span>
+            }
+<span class="nc" id="L130">        }</span>
+
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (maxScore == 0) maxScore = 1;  // Avoid division by zero</span>
+
+<span class="nc" id="L134">        notifyDataSetChanged();  // Notify the adapter that data has changed</span>
+<span class="nc" id="L135">    }</span>
+
+    /**
+     * ViewHolder class to represent individual leaderboard items.
+     * Holds references to the views in each leaderboard item layout.
+     */
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView userRank;  // Text view to display the user's rank
+        TextView userName;  // Text view to display the user's name
+        TextView userScore; // Text view to display the user's score
+        ProgressBar scoreProgress;  // Progress bar to display the user's score progress
+
+        /**
+         * Constructor to initialize the view holder and find the views in the layout.
+         *
+         * @param itemView The item view representing a single leaderboard entry.
+         */
+        public ViewHolder(@NonNull View itemView) {
+<span class="nc" id="L153">            super(itemView);</span>
+<span class="nc" id="L154">            userRank = itemView.findViewById(R.id.user_rank);</span>
+<span class="nc" id="L155">            userName = itemView.findViewById(R.id.user_name);</span>
+<span class="nc" id="L156">            userScore = itemView.findViewById(R.id.user_score);</span>
+<span class="nc" id="L157">            scoreProgress = itemView.findViewById(R.id.score_progress);</span>
+<span class="nc" id="L158">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

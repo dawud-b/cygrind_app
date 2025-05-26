@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Profile</a> &gt; <span class="el_source">ProfileActivity.java</span></div><h1>ProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Profile;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.HomeActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+
+import org.json.JSONObject;
+import android.content.SharedPreferences;
+
+/**
+ * This activity displays the user's profile information, including their name, age, weight, height, email,
+ * and phone number. The user can view their details and navigate to the Edit Profile Activity or back to the Home Activity.
+ * &lt;p&gt;
+ * The profile information is fetched from the server when the activity is created, and displayed in the respective
+ * TextView elements. The user has the option to navigate to the EditProfileActivity to update their profile information
+ * or to the HomeActivity using the back button.
+ */
+<span class="fc" id="L33">public class ProfileActivity extends AppCompatActivity {</span>
+
+    private TextView nameText;   // TextView to display the user's full name
+    private TextView ageText;    // TextView to display the user's age
+    private TextView weightText; // TextView to display the user's weight
+    private TextView heightText; // TextView to display the user's height
+    private TextView emailText;  // TextView to display the user's email address
+    private TextView phoneText;  // TextView to display the user's phone number
+    private Button backButton;   // Button to navigate back to the Home Activity
+    private Button editButton;   // Button to navigate to the Edit Profile Activity
+
+    private String username;     // The username of the currently logged-in user
+
+    /**
+     * Called when the activity is first created. This method sets up the UI, fetches the user's profile data
+     * from the server, and sets up listeners for the back and edit buttons.
+     *
+     * @param savedInstanceState The saved instance state if the activity is being recreated.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L54">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L55">        setContentView(R.layout.activity_profile);  // Link to the profile activity layout</span>
+
+        // Initialize UI elements
+<span class="fc" id="L58">        backButton = findViewById(R.id.profile_back);</span>
+<span class="fc" id="L59">        editButton = findViewById(R.id.edit_profile_btn);</span>
+<span class="fc" id="L60">        nameText = findViewById(R.id.display_name);</span>
+<span class="fc" id="L61">        ageText = findViewById(R.id.display_age);</span>
+<span class="fc" id="L62">        weightText = findViewById(R.id.display_weight);</span>
+<span class="fc" id="L63">        heightText = findViewById(R.id.display_height);</span>
+<span class="fc" id="L64">        emailText = findViewById(R.id.editTextEmailAddress);</span>
+<span class="fc" id="L65">        phoneText = findViewById(R.id.editTextPhone);</span>
+
+        // Fetch user data from the server
+<span class="fc" id="L68">        fetchUserData();</span>
+
+        // Set up listeners for the buttons
+<span class="fc" id="L71">        setupButtonListeners();</span>
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Sets up the listeners for the back and edit buttons.
+     * The back button navigates to the HomeActivity, while the edit button navigates to the EditProfileActivity.
+     */
+    private void setupButtonListeners() {
+        // Back button listener
+<span class="fc" id="L80">        backButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L81">            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);</span>
+<span class="nc" id="L82">            startActivity(intent);</span>
+<span class="nc" id="L83">        });</span>
+
+        // Edit button listener
+<span class="fc" id="L86">        editButton.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            if (editButton != null) {</span>
+<span class="fc" id="L88">                Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);</span>
+<span class="fc" id="L89">                startActivity(intent);</span>
+<span class="fc" id="L90">            } else {</span>
+<span class="nc" id="L91">                Toast.makeText(ProfileActivity.this, &quot;Button is null&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="fc" id="L93">        });</span>
+<span class="fc" id="L94">    }</span>
+
+    /**
+     * Fetches the user's profile data from the server using the stored username in SharedPreferences.
+     * The data is then displayed in the respective TextViews on the profile screen.
+     */
+    private void fetchUserData() {
+        // Get username from SharedPreferences
+<span class="fc" id="L102">        SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L103">        String username = sharedPreferences.getString(&quot;username&quot;, null);</span>
+
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (username == null) {</span>
+<span class="nc" id="L106">            Toast.makeText(this, &quot;No user logged in&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L107">            return;</span>
+        }
+
+        // Create a request queue for network requests
+<span class="fc" id="L111">        RequestQueue queue = Volley.newRequestQueue(this);</span>
+
+        // Construct the URL for the user data request
+<span class="fc" id="L114">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URLManager.USERS_URL + &quot;/&quot; + username, null,</span>
+<span class="fc" id="L115">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            // Extract data from the JSON response with null checks and default values
+<span class="fc" id="L120">                            String firstName = response.optString(&quot;firstName&quot;, &quot;Not Set&quot;);</span>
+<span class="fc" id="L121">                            String lastName = response.optString(&quot;lastName&quot;, &quot;Not Set&quot;);</span>
+<span class="fc" id="L122">                            int age = response.optInt(&quot;age&quot;, 0);</span>
+<span class="fc" id="L123">                            int height = response.optInt(&quot;height&quot;, 0);</span>
+<span class="fc" id="L124">                            int weight = response.optInt(&quot;weight&quot;, 0);</span>
+<span class="fc" id="L125">                            String email = response.optString(&quot;email&quot;, &quot;Not Set&quot;);</span>
+<span class="fc" id="L126">                            String phone = response.optString(&quot;telephone&quot;, &quot;Not Set&quot;);</span>
+
+                            // Set the text views with the fetched data
+<span class="pc bpc" id="L129" title="3 of 4 branches missed.">                            nameText.setText(firstName.equals(&quot;Not Set&quot;) &amp;&amp; lastName.equals(&quot;Not Set&quot;)</span>
+<span class="nc" id="L130">                                    ? &quot;Name Not Set&quot;</span>
+<span class="fc" id="L131">                                    : firstName + &quot; &quot; + lastName);</span>
+
+<span class="fc bfc" id="L133" title="All 2 branches covered.">                            ageText.setText(age &gt; 0 ? age + &quot; years&quot; : &quot;Age Not Set&quot;);</span>
+
+<span class="fc bfc" id="L135" title="All 2 branches covered.">                            heightText.setText(height &gt; 0</span>
+<span class="fc" id="L136">                                    ? height / 12 + &quot;ft &quot; + height % 12 + &quot;in&quot;</span>
+<span class="fc" id="L137">                                    : &quot;Height Not Set&quot;);</span>
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">                            weightText.setText(weight &gt; 0 ? weight + &quot; lbs&quot; : &quot;Weight Not Set&quot;);</span>
+
+<span class="fc" id="L141">                            emailText.setText(email);</span>
+<span class="fc" id="L142">                            phoneText.setText(phone);</span>
+
+<span class="nc" id="L144">                        } catch (Exception e) {</span>
+<span class="nc" id="L145">                            e.printStackTrace();</span>
+<span class="nc" id="L146">                            Toast.makeText(ProfileActivity.this, &quot;Error parsing data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L147">                        }</span>
+<span class="fc" id="L148">                    }</span>
+                },
+<span class="fc" id="L150">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L153">                        error.printStackTrace();</span>
+<span class="nc" id="L154">                        Log.e(&quot;VolleyError&quot;, &quot;Error: &quot; + error.toString());</span>
+
+                        // Handle network response errors
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L158">                            Log.e(&quot;VolleyError&quot;, &quot;Status Code: &quot; + error.networkResponse.statusCode);</span>
+                        }
+
+<span class="nc" id="L161">                        Toast.makeText(ProfileActivity.this, &quot;Failed to fetch user data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L162">                    }</span>
+                });
+
+        // Add the request to the request queue
+<span class="fc" id="L166">        queue.add(request);</span>
+<span class="fc" id="L167">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

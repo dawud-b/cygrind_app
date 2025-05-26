@@ -1,0 +1,415 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PointsController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.points</a>
+</div>
+
+<h1>Coverage Summary for Class: PointsController (onetoone.points)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PointsController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    11.1%
+  </span>
+  <span class="absValue">
+    (1/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0.7%
+  </span>
+  <span class="absValue">
+    (1/135)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.points;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplateRepo;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.time.LocalTime;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/points&quot;)
+<b class="fc">&nbsp;public class PointsController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private PointTransactionRepository pointTransactionRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WorkoutTemplateRepo workoutTemplateRepo;
+&nbsp;
+&nbsp;    // CREATE - Award points for daily login
+&nbsp;    @PostMapping(&quot;/login/{username}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; awardLoginPoints(@PathVariable String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check if user already got login points today
+<b class="nc">&nbsp;        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();</b>
+<b class="nc">&nbsp;        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;PointTransaction&gt; todayLoginPoints = pointTransactionRepository.findByUserAndTimestampBetween(</b>
+&nbsp;                user, startOfDay, endOfDay);
+&nbsp;
+<b class="nc">&nbsp;        boolean alreadyAwarded = todayLoginPoints.stream()</b>
+<b class="nc">&nbsp;                .anyMatch(p -&gt; p.getAction().equals(PointsConstants.ACTION_DAILY_LOGIN));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (alreadyAwarded) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;Daily login points already awarded today&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Create and save new points transaction
+<b class="nc">&nbsp;        PointTransaction transaction = new PointTransaction(</b>
+&nbsp;                user,
+&nbsp;                PointsConstants.POINTS_DAILY_LOGIN,
+&nbsp;                PointsConstants.ACTION_DAILY_LOGIN,
+&nbsp;                &quot;Points for daily login&quot;
+&nbsp;        );
+<b class="nc">&nbsp;        pointTransactionRepository.save(transaction);</b>
+&nbsp;
+&nbsp;        // Update user&#39;s total points
+<b class="nc">&nbsp;        user.addPoints(PointsConstants.POINTS_DAILY_LOGIN);</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;pointsAwarded&quot;, PointsConstants.POINTS_DAILY_LOGIN);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // CREATE - Award points for completing a workout
+&nbsp;    @PostMapping(&quot;/workout-completed/{username}/{templateId}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; awardWorkoutPoints(@PathVariable String username, @PathVariable int templateId) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        WorkoutTemplate template = workoutTemplateRepo.findById(templateId);</b>
+<b class="nc">&nbsp;        if (template == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;Workout template not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Create and save new points transaction
+<b class="nc">&nbsp;        String description = &quot;Points for completing a workout&quot;;</b>
+<b class="nc">&nbsp;        if (template.getTemplateName() != null) {</b>
+<b class="nc">&nbsp;            description += &quot;: &quot; + template.getTemplateName();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        PointTransaction transaction = new PointTransaction(</b>
+&nbsp;                user,
+&nbsp;                PointsConstants.POINTS_COMPLETED_WORKOUT,
+&nbsp;                PointsConstants.ACTION_WORKOUT_COMPLETE,
+&nbsp;                description
+&nbsp;        );
+<b class="nc">&nbsp;        pointTransactionRepository.save(transaction);</b>
+&nbsp;
+&nbsp;        // Update user&#39;s total points
+<b class="nc">&nbsp;        user.addPoints(PointsConstants.POINTS_COMPLETED_WORKOUT);</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;pointsAwarded&quot;, PointsConstants.POINTS_COMPLETED_WORKOUT);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // CREATE - Award points for creating a template
+&nbsp;    @PostMapping(&quot;/template-created/{username}/{templateId}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; awardTemplatePoints(@PathVariable String username, @PathVariable int templateId) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        WorkoutTemplate template = workoutTemplateRepo.findById(templateId);</b>
+<b class="nc">&nbsp;        if (template == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;Workout template not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Create and save new points transaction
+<b class="nc">&nbsp;        String description = &quot;Points for creating a workout template&quot;;</b>
+<b class="nc">&nbsp;        if (template.getTemplateName() != null) {</b>
+<b class="nc">&nbsp;            description += &quot;: &quot; + template.getTemplateName();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        PointTransaction transaction = new PointTransaction(</b>
+&nbsp;                user,
+&nbsp;                PointsConstants.POINTS_CREATED_WORKOUT_TEMPLATE,
+&nbsp;                PointsConstants.ACTION_CREATE_TEMPLATE,
+&nbsp;                description
+&nbsp;        );
+<b class="nc">&nbsp;        pointTransactionRepository.save(transaction);</b>
+&nbsp;
+&nbsp;        // Update user&#39;s total points
+<b class="nc">&nbsp;        user.addPoints(PointsConstants.POINTS_CREATED_WORKOUT_TEMPLATE);</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;pointsAwarded&quot;, PointsConstants.POINTS_CREATED_WORKOUT_TEMPLATE);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // CREATE - Generic endpoint to award custom points
+&nbsp;    @PostMapping(&quot;/custom/{username}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; awardCustomPoints(
+&nbsp;            @PathVariable String username,
+&nbsp;            @RequestBody Map&lt;String, Object&gt; pointsData) {
+&nbsp;
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Extract points, action and description from request
+<b class="nc">&nbsp;        Integer pointsAmount = (Integer) pointsData.get(&quot;points&quot;);</b>
+<b class="nc">&nbsp;        String action = (String) pointsData.get(&quot;action&quot;);</b>
+<b class="nc">&nbsp;        String description = (String) pointsData.get(&quot;description&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (pointsAmount == null || action == null || description == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;Points amount, action, and description are required&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Create and save new points transaction
+<b class="nc">&nbsp;        PointTransaction transaction = new PointTransaction(user, pointsAmount, action, description);</b>
+<b class="nc">&nbsp;        pointTransactionRepository.save(transaction);</b>
+&nbsp;
+&nbsp;        // Update user&#39;s total points
+<b class="nc">&nbsp;        user.addPoints(pointsAmount);</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;pointsAwarded&quot;, pointsAmount);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // READ - Get a user&#39;s total points
+&nbsp;    @GetMapping(&quot;/total/{username}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; getTotalPoints(@PathVariable String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;username&quot;, username);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // READ - Get a user&#39;s points history
+&nbsp;    @GetMapping(&quot;/history/{username}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; getPointsHistory(@PathVariable String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;PointTransaction&gt; history = pointTransactionRepository.findByUserOrderByTimestampDesc(user);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;username&quot;, username);</b>
+<b class="nc">&nbsp;        response.put(&quot;pointsHistory&quot;, history);</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // READ - Get points leaderboard
+&nbsp;    @GetMapping(&quot;/leaderboard&quot;)
+&nbsp;    public List&lt;Map&lt;String, Object&gt;&gt; getLeaderboard() {
+<b class="nc">&nbsp;        List&lt;User&gt; allUsers = userRepository.findAll();</b>
+&nbsp;
+&nbsp;        // Sort users by points (descending)
+<b class="nc">&nbsp;        allUsers.sort((u1, u2) -&gt; Integer.compare(u2.getTotalPoints(), u1.getTotalPoints()));</b>
+&nbsp;
+&nbsp;        // Create leaderboard response
+<b class="nc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; leaderboard = new java.util.ArrayList&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        int rank = 1;</b>
+<b class="nc">&nbsp;        for (User user : allUsers) {</b>
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; userEntry = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            userEntry.put(&quot;rank&quot;, rank++);</b>
+<b class="nc">&nbsp;            userEntry.put(&quot;username&quot;, user.getUsername());</b>
+<b class="nc">&nbsp;            userEntry.put(&quot;points&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;            leaderboard.add(userEntry);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return leaderboard;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // DELETE - Remove points entry (could be used for corrections)
+&nbsp;    @DeleteMapping(&quot;/{transactionId}&quot;)
+&nbsp;    public Map&lt;String, Object&gt; deletePointsEntry(@PathVariable Long transactionId) {
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;        PointTransaction transaction = pointTransactionRepository.findById(transactionId).orElse(null);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (transaction == null) {</b>
+<b class="nc">&nbsp;            response.put(&quot;status&quot;, &quot;error&quot;);</b>
+<b class="nc">&nbsp;            response.put(&quot;message&quot;, &quot;Points transaction not found&quot;);</b>
+<b class="nc">&nbsp;            return response;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User user = transaction.getUser();</b>
+&nbsp;
+&nbsp;        // Update user&#39;s total points (subtract the points from this transaction)
+<b class="nc">&nbsp;        user.addPoints(-transaction.getPoints());</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+&nbsp;        // Delete the points transaction
+<b class="nc">&nbsp;        pointTransactionRepository.delete(transaction);</b>
+&nbsp;
+<b class="nc">&nbsp;        response.put(&quot;status&quot;, &quot;success&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;message&quot;, &quot;Points transaction deleted&quot;);</b>
+<b class="nc">&nbsp;        response.put(&quot;totalPoints&quot;, user.getTotalPoints());</b>
+&nbsp;
+<b class="nc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:06</div>
+</div>
+</body>
+</html>

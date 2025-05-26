@@ -1,0 +1,234 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WorkoutTemplateController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Workout_Template</a>
+</div>
+
+<h1>Coverage Summary for Class: WorkoutTemplateController (onetoone.Workout_Template)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WorkoutTemplateController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (4/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    31.2%
+  </span>
+  <span class="absValue">
+    (5/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.7%
+  </span>
+  <span class="absValue">
+    (16/35)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Workout_Template;
+&nbsp;
+&nbsp;import onetoone.Exercise_Template.ExerciseTemplate;
+&nbsp;import onetoone.Exercise_Template.ExerciseTemplateRepo;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;
+&nbsp;@RestController
+<b class="fc">&nbsp;public class WorkoutTemplateController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    WorkoutTemplateRepo templateRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private ExerciseTemplateRepo exerciseTemplateRepo;
+&nbsp;
+&nbsp;    @GetMapping(path = &quot;/templates&quot;)
+&nbsp;    List&lt;WorkoutTemplate&gt; getAllTemplates() {
+<b class="nc">&nbsp;        return templateRepo.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // GETs the WorkoutTemplate specified.
+&nbsp;    @GetMapping(path = &quot;/templates/{id}&quot;)
+&nbsp;    WorkoutTemplate getTemplateById( @PathVariable int id) {
+<b class="fc">&nbsp;        return templateRepo.findById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // GETs the list of ExerciseTemplates within the specified WorkoutTemplate.
+&nbsp;    @GetMapping(&quot;/templates/{id}/exerciseTemplates&quot;)
+&nbsp;    List&lt;ExerciseTemplate&gt; getAllExerciseTemplates(@PathVariable int id) {
+<b class="nc">&nbsp;        WorkoutTemplate template = templateRepo.findById(id);</b>
+<b class="nc">&nbsp;        return template.getExerciseTemplates();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Create a new Workout-Template. Template requires a set User that already exists.
+&nbsp;    // NOTE FOR FRONTEND:
+&nbsp;    // You only need to send the User id. Ex: {&quot;name&quot; : &quot;temp_name&quot;, &quot;user&quot; : {&quot;id&quot; : &quot;user_id&quot;}}
+&nbsp;    // Returns the ID of the created WorkoutTemplate
+&nbsp;    @PostMapping(&quot;/templates&quot;)
+&nbsp;    WorkoutTemplate createTemplate(@RequestBody WorkoutTemplate template) {
+<b class="pc">&nbsp;        if (template.getTemplateName() == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        User u = template.getUser();</b>
+<b class="pc">&nbsp;        if (u == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;        // Add to Users WorkoutTemplates List
+<b class="fc">&nbsp;        u.addWorkoutTemplate(template);</b>
+<b class="fc">&nbsp;        return templateRepo.save(template);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // DELETEs the specified WorkoutTemplate
+&nbsp;    @DeleteMapping(&quot;/templates/{template_id}&quot;)
+&nbsp;    String deleteTemplate(@PathVariable int template_id) {
+<b class="fc">&nbsp;        WorkoutTemplate template = templateRepo.findById(template_id);</b>
+<b class="pc">&nbsp;        if (template == null) {</b>
+<b class="nc">&nbsp;            return &quot;Failed. Template not found&quot;;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        User u = template.getUser();</b>
+<b class="pc">&nbsp;        if (u == null) {</b>
+<b class="nc">&nbsp;            return &quot;Failed. User not found&quot;;</b>
+&nbsp;        }
+&nbsp;        // Delete from Users WorkoutTemplates List
+<b class="fc">&nbsp;        u.removeWorkoutTemplate(template);</b>
+&nbsp;        // Delete associated ExerciseTemplates
+<b class="fc">&nbsp;        List&lt;ExerciseTemplate&gt; exercises = exerciseTemplateRepo.findByWorkoutTemplate(template);</b>
+<b class="pc">&nbsp;        for (ExerciseTemplate e : exercises) {</b>
+<b class="nc">&nbsp;            exerciseTemplateRepo.delete(e);</b>
+&nbsp;        }
+&nbsp;        // Delete WorkoutTemplate
+<b class="fc">&nbsp;        templateRepo.delete(template);</b>
+<b class="fc">&nbsp;        return &quot;Deleted&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PutMapping(&quot;/templates/{template_id}&quot;)
+&nbsp;    WorkoutTemplate updateTemplate(@PathVariable int template_id, @RequestBody WorkoutTemplate template) {
+<b class="nc">&nbsp;        WorkoutTemplate templateToUpdate = templateRepo.findById(template_id);</b>
+<b class="nc">&nbsp;        if (templateToUpdate.getUser() == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (template.getDescription() != null) {</b>
+<b class="nc">&nbsp;            templateToUpdate.setDescription(template.getDescription());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (template.getTemplateName() != null) {</b>
+<b class="nc">&nbsp;            templateToUpdate.setTemplateName(template.getTemplateName());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        templateRepo.save(templateToUpdate);</b>
+<b class="nc">&nbsp;        return templateToUpdate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{username}/templates&quot;)
+&nbsp;    List&lt;WorkoutTemplate&gt; getTemplatesByUser(@PathVariable String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        return templateRepo.findByUser(user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;//    // Add an ExerciseTemplate into the current list
+&nbsp;//    // returns the updated WorkoutTemplate
+&nbsp;//    @PutMapping(&quot;/templates/{workoutTemp_id}/add&quot;)
+&nbsp;//    WorkoutTemplate addExercise(@PathVariable int workoutTemp_id, @RequestBody ExerciseTemplate exercise) {
+&nbsp;//        WorkoutTemplate temp = templateRepo.findById(workoutTemp_id);
+&nbsp;//        temp.addExerciseTemplate(exercise);
+&nbsp;//        return temp;
+&nbsp;//    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:21</div>
+</div>
+</body>
+</html>

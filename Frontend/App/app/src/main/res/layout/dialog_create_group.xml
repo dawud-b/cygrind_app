@@ -1,0 +1,32 @@
+<!-- dialog_create_group.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+    
+    <EditText
+        android:id="@+id/groupNameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Group Name"
+        android:textColor="#FFFFFF"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/descriptionInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description"
+        android:textColor="#FFFFFF"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/groupTypeInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Group Type"
+        android:textColor="#FFFFFF"
+        android:inputType="text" />
+
+</LinearLayout>

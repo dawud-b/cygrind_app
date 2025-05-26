@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">SearchAdapter.java</span></div><h1>SearchAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+import com.example.androidexample.User;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchAdapter extends RecyclerView.Adapter&lt;SearchAdapter.UserViewHolder&gt; {
+
+    private List&lt;User&gt; userList;
+    private List&lt;User&gt; userListFiltered;
+    private OnFriendRequestClickListener listener;
+
+    // Constructor to initialize the adapter with a list of User objects and the listener
+<span class="fc" id="L27">    public SearchAdapter(List&lt;User&gt; userList, OnFriendRequestClickListener listener) {</span>
+<span class="fc" id="L28">        this.userList = userList;</span>
+<span class="fc" id="L29">        this.userListFiltered = new ArrayList&lt;&gt;(userList);</span>
+<span class="fc" id="L30">        this.listener = listener;</span>
+<span class="fc" id="L31">    }</span>
+
+    @Override
+    public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each item in the list (you need to create a layout file for the individual user items)
+<span class="fc" id="L36">        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_user, parent, false);</span>
+<span class="fc" id="L37">        return new UserViewHolder(itemView);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(UserViewHolder holder, int position) {
+        // Get the user at the current position
+<span class="fc" id="L43">        User user = userListFiltered.get(position);</span>
+
+        // Bind the username to the TextView
+<span class="fc" id="L46">        holder.usernameTextView.setText(user.getUsername());</span>
+
+        // Set the listener for the send friend request button
+<span class="fc" id="L49">        holder.friendRequestButton.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">            if (listener != null) {</span>
+<span class="fc" id="L51">                listener.onFriendRequestClick(user);</span>
+            }
+<span class="fc" id="L53">        });</span>
+<span class="fc" id="L54">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L58">        return userListFiltered.size();</span>
+    }
+
+    // ViewHolder class to hold the individual views for each user item
+    public static class UserViewHolder extends RecyclerView.ViewHolder {
+
+        TextView usernameTextView;
+        ImageButton friendRequestButton;
+
+        public UserViewHolder(View itemView) {
+<span class="fc" id="L68">            super(itemView);</span>
+
+            // Initialize the views for the individual item
+<span class="fc" id="L71">            usernameTextView = itemView.findViewById(R.id.usernameTextView);</span>
+<span class="fc" id="L72">            friendRequestButton = itemView.findViewById(R.id.friendRequestButton);</span>
+<span class="fc" id="L73">        }</span>
+    }
+
+
+    // method for filtering the list
+    public void filterList(String query) {
+<span class="fc" id="L79">        userListFiltered.clear();</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (query.isEmpty()) {</span>
+<span class="fc" id="L81">            userListFiltered.addAll(userList); // If the query is empty, show all users</span>
+        } else {
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            for (User user : userList) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                if (user.getUsername().toLowerCase().contains(query.toLowerCase())) {</span>
+<span class="nc" id="L85">                    userListFiltered.add(user); // Add users whose name contains the query (case-insensitive)</span>
+                }
+<span class="nc" id="L87">            }</span>
+        }
+<span class="fc" id="L89">        notifyDataSetChanged(); // Notify the adapter that the data has changed</span>
+<span class="fc" id="L90">    }</span>
+
+    // Interface to handle button clicks
+    public interface OnFriendRequestClickListener {
+        void onFriendRequestClick(User user);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

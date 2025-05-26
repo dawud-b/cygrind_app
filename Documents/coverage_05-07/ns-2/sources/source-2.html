@@ -1,0 +1,279 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChallengeController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Challenge</a>
+</div>
+
+<h1>Coverage Summary for Class: ChallengeController (onetoone.Challenge)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChallengeController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.9%
+  </span>
+  <span class="absValue">
+    (10/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.4%
+  </span>
+  <span class="absValue">
+    (25/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.2%
+  </span>
+  <span class="absValue">
+    (65/69)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Challenge;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Calendar;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Tag(name = &quot;Challenge Controller&quot;, description = &quot;Endpoints for creating and updating Challenges&quot;)
+&nbsp;@RestController
+<b class="fc">&nbsp;public class ChallengeController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    ChallengeRepository challengeRepository;
+&nbsp;    @Autowired
+&nbsp;    ChallengeSetRepo challengeSetRepo;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get challenge sets by User&quot;, description = &quot;Returns all challenge sets assigned to the user in the path.&quot;)
+&nbsp;    @GetMapping(&quot;/challenges/user/{username}&quot;)
+&nbsp;    public List&lt;ChallengeSet&gt; getChallengesByUser(@Parameter(description = &quot;Username of the user of the challenges to return&quot;) @PathVariable String username) {
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="pc">&nbsp;        if (user == null) {return null;}</b>
+<b class="fc">&nbsp;        return challengeSetRepo.findByUser(user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get completed challenges by User&quot;, description = &quot;Returns all completed challenges assigned to the user in the path.&quot;)
+&nbsp;    @GetMapping(&quot;/challenges/{username}/completed&quot;)
+&nbsp;    public List&lt;Challenge&gt; getCompletedChallengesByUser(@Parameter(description = &quot;Username of the user of the challenges to return&quot;) @PathVariable String username) {
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="pc">&nbsp;        if (user == null) {return null;}</b>
+<b class="fc">&nbsp;        List&lt;Challenge&gt; returnList = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        List&lt;ChallengeSet&gt; challengeSets = challengeSetRepo.findByUser(user);</b>
+<b class="fc">&nbsp;        for (ChallengeSet challengeSet : challengeSets) {</b>
+<b class="fc">&nbsp;            List&lt;Challenge&gt; challenges = challengeSet.getChallenges();</b>
+<b class="fc">&nbsp;            for (Challenge challenge : challenges) {</b>
+<b class="fc">&nbsp;                if (challenge.isCompleted()) {</b>
+<b class="fc">&nbsp;                    returnList.add(challenge);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return returnList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get completed challenges by set&quot;, description = &quot;Returns all completed challenges in the challenge set assigned to the path id.&quot;)
+&nbsp;    @GetMapping(&quot;/challenges/completed/{id}&quot;)
+&nbsp;    public List&lt;Challenge&gt; getCompletedChallengesBySet(@Parameter(description = &quot;ID of the challengeSet of the challenges to return&quot;) @PathVariable long id) {
+<b class="fc">&nbsp;        ChallengeSet challenges = challengeSetRepo.findById(id);</b>
+<b class="pc">&nbsp;        if (challenges == null) {return null;}</b>
+<b class="nc">&nbsp;        return challenges.getByChallengesCompleteness(true);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get incomplete challenges in challenge set&quot;, description = &quot;Returns all incomplete challenges within the challenge set in the path.&quot;)
+&nbsp;    @GetMapping(&quot;/challenges/incomplete/{id}&quot;)
+&nbsp;    public List&lt;Challenge&gt; getIncompleteChallengesBySet(@Parameter(description = &quot;ID of the challengeSet of the challenges to return&quot;) @PathVariable long id) {
+<b class="fc">&nbsp;        ChallengeSet challenges = challengeSetRepo.findById(id);</b>
+<b class="pc">&nbsp;        if (challenges == null) {return null;}</b>
+<b class="nc">&nbsp;        return challenges.getByChallengesCompleteness(false);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get Challenge Set by ID&quot;, description = &quot;Returns the Challenge object with the path id.&quot;)
+&nbsp;    @GetMapping(&quot;/challenges/{id}&quot;)
+&nbsp;    public ChallengeSet getChallengeSetById(@Parameter(description = &quot;ID of the challenge set to return&quot;) @PathVariable Long id) {
+<b class="nc">&nbsp;        return challengeSetRepo.findById(id).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Create a challenge set&quot;, description = &quot;Creates and Returns a new ChallengeSet with the details given in the body. Pass user id.&quot;)
+&nbsp;    @PostMapping(&quot;/challenges&quot;)
+&nbsp;    public ChallengeSet createChallengeSet(@RequestBody ChallengeSet challenges) {
+<b class="fc">&nbsp;        User user = userRepository.findById(challenges.getUser().getId());</b>
+<b class="pc">&nbsp;        if (user == null) {return null;}</b>
+&nbsp;
+<b class="fc">&nbsp;        ChallengeSet newSet = new ChallengeSet();</b>
+<b class="fc">&nbsp;        for (Challenge challenge : challenges.getChallenges()) {</b>
+<b class="pc">&nbsp;            if (challenge.getPoints() &lt;= 0) {return null;}</b>
+&nbsp;
+<b class="fc">&nbsp;            Challenge newChallenge = new Challenge(challenge.getTitle(), challenge.getDescription(), challenge.getPoints());</b>
+<b class="fc">&nbsp;            newChallenge.setChallengeSet(newSet);</b>
+<b class="fc">&nbsp;            newSet.addChallenge(newChallenge);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        newSet.setUser(user);</b>
+<b class="fc">&nbsp;        newSet.setTitle(challenges.getTitle());</b>
+<b class="fc">&nbsp;        userRepository.save(user);</b>
+<b class="fc">&nbsp;        return challengeSetRepo.save(newSet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Create a challenge set for all users&quot;, description = &quot;Creates a new challenge set with details from the body and assigns it to all users. Ignores if the body has a user assigned.&quot;)
+&nbsp;    @PostMapping(&quot;/challenges/assignToAll&quot;)
+&nbsp;    public String createChallengeSetForAllUsers(@RequestBody ChallengeSet challenges) {
+<b class="fc">&nbsp;        List&lt;User&gt; users = userRepository.findAll();</b>
+<b class="fc">&nbsp;        for (User user : users) {</b>
+<b class="fc">&nbsp;            ChallengeSet newSet = new ChallengeSet();</b>
+<b class="fc">&nbsp;            for (Challenge challenge : challenges.getChallenges()) {</b>
+<b class="pc">&nbsp;                if (challenge.getPoints() &lt;= 0) {</b>
+<b class="nc">&nbsp;                    return &quot;Failed. Reward points must be greater than 0.&quot;;</b>
+&nbsp;                }
+<b class="fc">&nbsp;                Challenge newChallenge = new Challenge(challenge.getTitle(), challenge.getDescription(), challenge.getPoints());</b>
+<b class="fc">&nbsp;                newChallenge.setChallengeSet(newSet);</b>
+<b class="fc">&nbsp;                newSet.addChallenge(newChallenge);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            newSet.setUser(user);</b>
+<b class="fc">&nbsp;            newSet.setTitle(challenges.getTitle());</b>
+<b class="fc">&nbsp;            challengeSetRepo.save(newSet);</b>
+<b class="fc">&nbsp;            userRepository.save(user);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return &quot;Challenge Set created successfully&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Set a challenge stage as complete&quot;, description = &quot;Sets the next stage of a challenge set as complete and adds its points to the user.&quot;)
+&nbsp;    @PutMapping(&quot;/challenges/{id}/complete&quot;)
+&nbsp;    public ChallengeSet setChallengeAsComplete(@Parameter(description = &quot;ID of challenge set to mark next stage complete&quot;) @PathVariable long id) {
+<b class="fc">&nbsp;        ChallengeSet challengeSet = challengeSetRepo.findById(id);</b>
+<b class="pc">&nbsp;        if (challengeSet == null) {return null;}</b>
+&nbsp;
+&nbsp;        // if no challenges in set return
+<b class="pc">&nbsp;        if (challengeSet.getChallenges() == null) {return null;}</b>
+&nbsp;
+&nbsp;        // if all stages complete, just return the challengeSet
+<b class="pc">&nbsp;        if (challengeSet.getProgress() == 1) {return challengeSet;}</b>
+&nbsp;
+<b class="fc">&nbsp;        Challenge challenge = challengeSet.getChallengeByStage(challengeSet.getChallengesCompleted());</b>
+<b class="fc">&nbsp;        challenge.setCompleted();</b>
+<b class="fc">&nbsp;        challenge.setCompletedDate(getNow());</b>
+<b class="fc">&nbsp;        challengeRepository.save(challenge);</b>
+&nbsp;
+<b class="fc">&nbsp;        User user = challengeSet.getUser();</b>
+<b class="fc">&nbsp;        user.addPoints(challenge.getPoints());</b>
+<b class="fc">&nbsp;        userRepository.save(user);</b>
+&nbsp;
+<b class="fc">&nbsp;        challengeSet.setChallengesCompleted();</b>
+<b class="fc">&nbsp;        return challengeSetRepo.save(challengeSet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Delete Challege Set&quot;, description = &quot;Deletes the challenge set and challenges of the set assigned to the path id.&quot;)
+&nbsp;    @DeleteMapping(&quot;/challenges/{id}&quot;)
+&nbsp;    public void deleteChallengeSet(@Parameter(description = &quot;ID of the challenge set to delete&quot;) @PathVariable long id) {
+<b class="fc">&nbsp;        ChallengeSet challengeSet = challengeSetRepo.findById(id);</b>
+<b class="pc">&nbsp;        if (challengeSet == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="fc">&nbsp;        for (Challenge challenge : challengeSet.getChallenges()) {</b>
+<b class="fc">&nbsp;            challengeRepository.delete(challenge);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        challengeSetRepo.delete(challengeSet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Date getNow(){
+<b class="fc">&nbsp;        LocalDateTime now = LocalDateTime.now();</b>
+<b class="fc">&nbsp;        Calendar calendar = Calendar.getInstance();</b>
+<b class="fc">&nbsp;        calendar.set(now.getYear(), now.getMonthValue()-1, now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());</b>
+<b class="fc">&nbsp;        return calendar.getTime();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-07 10:38</div>
+</div>
+</body>
+</html>

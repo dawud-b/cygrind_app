@@ -1,0 +1,174 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ExerciseTemplate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Exercise_Template</a>
+</div>
+
+<h1>Coverage Summary for Class: ExerciseTemplate (onetoone.Exercise_Template)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ExerciseTemplate</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (14/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    63.6%
+  </span>
+  <span class="absValue">
+    (14/22)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ExerciseTemplate$HibernateInstantiator$BrDIG77t</td>
+  </tr>
+  <tr>
+    <td class="name">ExerciseTemplate$HibernateProxy$8fHUJ6Jv</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (14/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    63.6%
+  </span>
+  <span class="absValue">
+    (14/22)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Exercise_Template;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import onetoone.WorkoutExercises.Exercise;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;
+&nbsp;@Entity
+&nbsp;public class ExerciseTemplate {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private long id;
+&nbsp;    private int weight;
+&nbsp;    private int repCount;
+&nbsp;    private int setCount;
+&nbsp;    private int duration; // seconds
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    private Exercise exercise; // many ExerciesTemplates can have the same Exercies.
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    private WorkoutTemplate workoutTemplate;
+&nbsp;
+<b class="nc">&nbsp;    public ExerciseTemplate(WorkoutTemplate workoutTemplate, Exercise exercise, int weight, int repCount, int setCount, int duration) {</b>
+<b class="nc">&nbsp;        this.workoutTemplate = workoutTemplate;</b>
+<b class="nc">&nbsp;        this.exercise = exercise;</b>
+<b class="nc">&nbsp;        this.weight = weight;</b>
+<b class="nc">&nbsp;        this.repCount = repCount;</b>
+<b class="nc">&nbsp;        this.setCount = setCount;</b>
+<b class="nc">&nbsp;        this.duration = duration;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public ExerciseTemplate() {}</b>
+&nbsp;
+<b class="fc">&nbsp;    public WorkoutTemplate getWorkoutTemplate() {return workoutTemplate;}</b>
+<b class="fc">&nbsp;    public void setWorkoutTemplate(WorkoutTemplate workoutTemplate) {this.workoutTemplate = workoutTemplate;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public long getId() {return id;}</b>
+<b class="nc">&nbsp;    public void setId(long id) {this.id = id;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getWeight() {return weight;}</b>
+<b class="fc">&nbsp;    public void setWeight(int weight) {this.weight = weight;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getRepCount() {return repCount;}</b>
+<b class="fc">&nbsp;    public void setRepCount(int repCount) {this.repCount = repCount;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getSetCount() {return setCount;}</b>
+<b class="fc">&nbsp;    public void setSetCount(int setCount) {this.setCount = setCount;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getDuration() {return duration;}</b>
+<b class="fc">&nbsp;    public void setDuration(int duration) {this.duration = duration;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public Exercise getExercise() {return exercise;}</b>
+<b class="fc">&nbsp;    public void setExercise(Exercise exercise) {this.exercise = exercise;}</b>
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-05 23:54</div>
+</div>
+</body>
+</html>

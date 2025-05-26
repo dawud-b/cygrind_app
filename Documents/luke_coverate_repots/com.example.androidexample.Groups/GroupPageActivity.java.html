@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupPageActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">GroupPageActivity.java</span></div><h1>GroupPageActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+
+import org.json.JSONObject;
+
+<span class="nc" id="L24">public class GroupPageActivity extends AppCompatActivity {</span>
+<span class="nc" id="L25">    public boolean inGroup = false; // current user's group status</span>
+    public Long groupId; // current user's group id
+<span class="nc" id="L27">    public boolean isLeader = false; // if current user is leader of group</span>
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private GroupViewPagerAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L34">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L35">        setContentView(R.layout.activity_group_page);</span>
+
+<span class="nc" id="L37">        getGroupDetails();</span>
+
+<span class="nc" id="L39">        tabLayout = findViewById(R.id.group_page_tabLayout);</span>
+<span class="nc" id="L40">        viewPager = findViewById(R.id.group_page_viewPager);</span>
+
+        // Set up ViewPager2 with the adapter
+<span class="nc" id="L43">        adapter = new GroupViewPagerAdapter(this);</span>
+<span class="nc" id="L44">        viewPager.setAdapter(adapter);</span>
+
+        // Connect TabLayout with ViewPager2
+<span class="nc" id="L47">        new TabLayoutMediator(tabLayout, viewPager,</span>
+                (tab, position) -&gt; {
+<span class="nc bnc" id="L49" title="All 5 branches missed.">                    switch (position) {</span>
+                        case 0:
+<span class="nc" id="L51">                            tab.setText(&quot;Search&quot;);</span>
+<span class="nc" id="L52">                            break;</span>
+                        case 1:
+<span class="nc" id="L54">                            tab.setText(&quot;Members&quot;);</span>
+<span class="nc" id="L55">                            break;</span>
+                        case 2:
+<span class="nc" id="L57">                            tab.setText(&quot;Chat&quot;);</span>
+<span class="nc" id="L58">                            break;</span>
+                        case 3:
+<span class="nc" id="L60">                            tab.setText(&quot;Requests&quot;);</span>
+                            break;
+                    }
+<span class="nc" id="L63">                }).attach();</span>
+<span class="nc" id="L64">    }</span>
+
+    // populates groupId and isLeader fields for current user
+    private void getGroupDetails() {
+<span class="nc" id="L68">        SharedPreferences prefs = getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L69">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L70">        String url = URLManager.getUserGroupURL(username);</span>
+
+        // get request for group details
+<span class="nc" id="L73">        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,</span>
+<span class="nc" id="L74">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the JSON response
+<span class="nc" id="L78">                        Log.d(&quot;VolleyResponse&quot;, &quot;current group: &quot; + response.toString());</span>
+
+<span class="nc" id="L80">                        WorkoutGroup currentGroup = new WorkoutGroup(response);</span>
+<span class="nc" id="L81">                        inGroup = true;</span>
+<span class="nc" id="L82">                        groupId = currentGroup.getId(); // store group id</span>
+
+                        // store boolean isLeader accordingly
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                        if( username.equals(currentGroup.getLeader().getUsername())) {</span>
+<span class="nc" id="L86">                            isLeader = true;</span>
+                        } else {
+<span class="nc" id="L88">                            isLeader = false;</span>
+                        }
+
+                        // set bundle for websocket connection
+<span class="nc" id="L92">                        Bundle bundle = new Bundle();</span>
+<span class="nc" id="L93">                        String session_id = &quot;&quot; + currentGroup.getId() + &quot;:workoutGroup&quot;;</span>
+<span class="nc" id="L94">                        bundle.putString(&quot;session_id&quot;, session_id);  // pass session id</span>
+<span class="nc" id="L95">                        String url = URLManager.chatURL(session_id, username);</span>
+<span class="nc" id="L96">                        bundle.putString(&quot;server_url&quot;, url);  // Pass the data using a bundle</span>
+
+<span class="nc" id="L98">                        adapter.setBundle(bundle);</span>
+<span class="nc" id="L99">                    }</span>
+                },
+<span class="nc" id="L101">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L104">                        inGroup = false;</span>
+<span class="nc" id="L105">                        isLeader = false;</span>
+                        // Handle errors
+<span class="nc" id="L107">                        Log.e(&quot;VolleyError&quot;, error.toString());</span>
+                        // Handle error response
+<span class="nc bnc" id="L109" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.statusCode == 404) {</span>
+                            // Toast.makeText(getApplicationContext(), &quot;User not found or no workout group&quot;, Toast.LENGTH_SHORT).show();
+                        } else {
+<span class="nc" id="L112">                            Toast.makeText(getApplicationContext(), &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L114">                    }</span>
+                });
+
+        // Add the request to the RequestQueue
+<span class="nc" id="L118">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonObjectRequest);</span>
+<span class="nc" id="L119">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

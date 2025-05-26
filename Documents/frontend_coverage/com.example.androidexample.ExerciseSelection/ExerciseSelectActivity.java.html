@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExerciseSelectActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.ExerciseSelection</a> &gt; <span class="el_source">ExerciseSelectActivity.java</span></div><h1>ExerciseSelectActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.ExerciseSelection;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.androidexample.Exercise;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+import com.example.androidexample.WorkoutTemplate.EditTemplateDataHolder;
+import com.example.androidexample.WorkoutTemplate.EditWorkoutTemplateActivity;
+import com.example.androidexample.WorkoutTemplate.TemplateExercise;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Activity that allows users to select and add exercises to a workout template.
+ * Displays a list of exercises fetched from a server and filtered by muscle group.
+ * Handles user interaction for selecting exercises and inputting workout details.
+ * Sends selected data back to the previous activity.
+ *
+ * Implements {@link ExerciseListAdapter.OnExerciseListener} to handle click events.
+ */
+<span class="nc" id="L51">public class ExerciseSelectActivity extends AppCompatActivity implements ExerciseListAdapter.OnExerciseListener {</span>
+
+    private RecyclerView exerciseListRecyclerView;
+    private ExerciseListAdapter exerciseListAdapter;
+    private List&lt;JSONObject&gt; exerciseRepo;
+    private List&lt;Exercise&gt; exerciseList;
+    private Button  backBtn;
+    private TextView activityTitle;
+    private Spinner muscleGroupSpinner;
+    private String[] muscleGroups;
+
+    /**
+     * Initializes the activity, fetches exercises, sets up UI components,
+     * and defines listeners.
+     *
+     * @param savedInstanceState The saved state of the activity if previously created.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L70">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L71">        setContentView(R.layout.activity_exerciselist);</span>
+
+<span class="nc" id="L73">        exerciseRepo = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L74">        exerciseList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L75">        muscleGroups = new String[]{};</span>
+
+        // Initialize views
+<span class="nc" id="L78">        activityTitle = findViewById(R.id.exerciselist_title);</span>
+<span class="nc" id="L79">        exerciseListRecyclerView = findViewById(R.id.templateList);</span>
+<span class="nc" id="L80">        backBtn = findViewById(R.id.exerciseList_back_btn);</span>
+<span class="nc" id="L81">        muscleGroupSpinner = findViewById(R.id.exerciselist_spinner);</span>
+
+<span class="nc" id="L83">        exerciseListAdapter = new ExerciseListAdapter(exerciseList, this);</span>
+<span class="nc" id="L84">        exerciseListRecyclerView.setAdapter(exerciseListAdapter);</span>
+<span class="nc" id="L85">        exerciseListRecyclerView.setLayoutManager(new LinearLayoutManager(this));</span>
+
+<span class="nc" id="L87">        backBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View view) {
+<span class="nc" id="L90">                Intent intent = new Intent(ExerciseSelectActivity.this, EditWorkoutTemplateActivity.class);</span>
+<span class="nc" id="L91">                startActivity(intent);</span>
+<span class="nc" id="L92">            }</span>
+        });
+
+        // populates exerciseRepo with get request
+<span class="nc" id="L96">        fetchExercises();</span>
+<span class="nc" id="L97">    }</span>
+
+    /**
+     * Returns an array of distinct muscle groups from the fetched exercise repository.
+     *
+     * @return An array of muscle group names including &quot;all&quot;.
+     */
+    private String[] getMuscleGroups() {
+<span class="nc" id="L105">        ArrayList&lt;String&gt; groups = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L106">        groups.add(&quot;all&quot;);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if(exerciseRepo != null) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            for(JSONObject ex : exerciseRepo) {</span>
+                try {
+<span class="nc" id="L110">                    String g = ex.getString(&quot;muscle&quot;);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                    if( !groups.contains(g) ) {</span>
+<span class="nc" id="L112">                        groups.add(g);</span>
+                    }
+<span class="nc" id="L114">                } catch (JSONException e) {</span>
+<span class="nc" id="L115">                    Log.e(&quot;JSONException&quot;, e.toString());</span>
+<span class="nc" id="L116">                }</span>
+<span class="nc" id="L117">            }</span>
+        }
+<span class="nc" id="L119">        return groups.toArray(new String[groups.size()]);</span>
+    }
+
+    /**
+     * Sets up the spinner dropdown with available muscle groups
+     * and filters the exercise list when a selection is made.
+     */
+    private void setDropDownMenu() {
+<span class="nc" id="L127">        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(ExerciseSelectActivity.this, android.R.layout.simple_spinner_item, muscleGroups);</span>
+<span class="nc" id="L128">        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);</span>
+<span class="nc" id="L129">        muscleGroupSpinner.setAdapter(adapter);</span>
+
+<span class="nc" id="L131">        muscleGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {</span>
+            @Override
+            public void onItemSelected(AdapterView&lt;?&gt; parentView, View selectedItemView, int position, long id) {
+                // filter based on selection
+                try {
+<span class="nc" id="L136">                    setExerciseObjs(muscleGroups[position]);</span>
+<span class="nc" id="L137">                } catch (JSONException e) {</span>
+<span class="nc" id="L138">                    Log.e(&quot;Error setting exercise&quot;, e.toString());</span>
+<span class="nc" id="L139">                }</span>
+<span class="nc" id="L140">            }</span>
+
+            @Override
+            public void onNothingSelected(AdapterView&lt;?&gt; parentView) {
+                try {
+<span class="nc" id="L145">                    setExerciseObjs(&quot;all&quot;);</span>
+<span class="nc" id="L146">                } catch (JSONException e) {</span>
+<span class="nc" id="L147">                    Log.e(&quot;Error setting exercise&quot;, e.toString());</span>
+<span class="nc" id="L148">                }</span>
+<span class="nc" id="L149">            }</span>
+        });
+<span class="nc" id="L151">    }</span>
+
+
+    /**
+     * Filters and populates the exercise list based on the selected muscle group.
+     *
+     * @param filter The muscle group to filter exercises by. Use &quot;all&quot; for no filtering.
+     * @throws JSONException If there's an error parsing JSON data from exerciseRepo.
+     */
+    private void setExerciseObjs(String filter) throws JSONException {
+<span class="nc" id="L161">        exerciseList.clear();</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (filter.equals(&quot;all&quot;)) {</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            for (int i = 0; i &lt; exerciseRepo.size(); i++) {</span>
+<span class="nc" id="L164">                exerciseList.add(new Exercise(exerciseRepo.get(i)));</span>
+            }
+        } else {
+            // Add filter logic for different muscle groups
+<span class="nc bnc" id="L168" title="All 2 branches missed.">            for (int i = 0; i &lt; exerciseRepo.size(); i++) {</span>
+<span class="nc" id="L169">                JSONObject exercise = exerciseRepo.get(i);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                if (exercise.getString(&quot;muscle&quot;).equalsIgnoreCase(filter)) {</span>
+<span class="nc" id="L171">                    exerciseList.add(new Exercise(exercise));</span>
+                }
+            }
+        }
+<span class="nc" id="L175">        exerciseListAdapter.notifyDataSetChanged(); // Notify adapter after list is updated</span>
+<span class="nc" id="L176">    }</span>
+
+
+    /**
+     * Callback invoked when an exercise is selected to be added.
+     * Prompts user for workout details (weight, reps, sets) via dialog.
+     *
+     * @param position The position of the selected exercise in the list.
+     */
+    @Override
+    public void onAddClick(int position) {
+<span class="nc" id="L187">        View dialogView = getLayoutInflater().inflate(R.layout.dialog_input, null);</span>
+
+<span class="nc" id="L189">        final EditText editWeight = dialogView.findViewById(R.id.editWeight);</span>
+<span class="nc" id="L190">        final EditText editSets = dialogView.findViewById(R.id.editSets);</span>
+<span class="nc" id="L191">        final EditText editReps = dialogView.findViewById(R.id.editReps);</span>
+
+        // Create the AlertDialog using a Builder
+<span class="nc" id="L194">        AlertDialog.Builder builder = new AlertDialog.Builder(ExerciseSelectActivity.this);</span>
+<span class="nc" id="L195">        builder.setTitle(&quot;Enter Workout Details&quot;)</span>
+<span class="nc" id="L196">                .setView(dialogView)</span>
+<span class="nc" id="L197">                .setPositiveButton(&quot;OK&quot;, new DialogInterface.OnClickListener() {</span>
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Get the input data
+<span class="nc" id="L201">                        String weight = editWeight.getText().toString();</span>
+<span class="nc" id="L202">                        String sets = editSets.getText().toString();</span>
+<span class="nc" id="L203">                        String reps = editReps.getText().toString();</span>
+
+                        // Handle input (you can add validation here)
+<span class="nc bnc" id="L206" title="All 6 branches missed.">                        if (!weight.isEmpty() &amp;&amp; !sets.isEmpty() &amp;&amp; !reps.isEmpty()) {</span>
+<span class="nc" id="L207">                            Toast.makeText(ExerciseSelectActivity.this,</span>
+                                    &quot;Weight: &quot; + weight + &quot;lbs, Sets: &quot; + sets + &quot;, Reps: &quot; + reps,
+<span class="nc" id="L209">                                    Toast.LENGTH_SHORT).show();</span>
+                            // Show the entered values or do something with them
+                            try {
+<span class="nc" id="L212">                                int weightInt = Integer.parseInt(weight);</span>
+<span class="nc" id="L213">                                int repsInt = Integer.parseInt(reps);</span>
+<span class="nc" id="L214">                                int setsInt = Integer.parseInt(sets);</span>
+
+<span class="nc" id="L216">                                postExerciseTemplate(new TemplateExercise(exerciseList.get(position), weightInt, repsInt, setsInt));</span>
+<span class="nc" id="L217">                            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L218">                                Toast.makeText(ExerciseSelectActivity.this, &quot;Entries must be a number.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L219">                            } catch (JSONException e) {</span>
+<span class="nc" id="L220">                                Log.e(&quot;Error converting ExerciseTemlate to JSON&quot;, e.toString());</span>
+<span class="nc" id="L221">                            }</span>
+                        } else {
+                            // If any field is empty, show an error
+<span class="nc" id="L224">                            Toast.makeText(ExerciseSelectActivity.this, &quot;Please fill in all fields.&quot;, Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L226">                    }</span>
+                })
+<span class="nc" id="L228">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L229">                .create()</span>
+<span class="nc" id="L230">                .show();</span>
+<span class="nc" id="L231">    }</span>
+
+    /**
+     * Posts the selected exercise with user-defined attributes to the server.
+     *
+     * @param tempEx The {@link TemplateExercise} object to post.
+     * @throws JSONException If JSON conversion fails.
+     */
+    private void postExerciseTemplate(TemplateExercise tempEx) throws JSONException {
+
+<span class="nc" id="L241">        JSONObject exerciseTemplateObj = tempEx.toJSON();</span>
+<span class="nc" id="L242">        Log.d(&quot;ExerciseTempObj&quot;, exerciseTemplateObj.toString());</span>
+
+<span class="nc" id="L244">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, URLManager.EXERCISE_TEMPLATE_URL, exerciseTemplateObj,</span>
+<span class="nc" id="L245">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+<span class="nc" id="L248">                        Log.d(&quot;Response&quot;, response.toString());</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                        if( response == null ) {</span>
+<span class="nc" id="L250">                            Toast.makeText(ExerciseSelectActivity.this, &quot;creation failed&quot; , Toast.LENGTH_SHORT).show();</span>
+                        } else {
+                            // backend response when user is already created
+<span class="nc" id="L253">                            Toast.makeText(ExerciseSelectActivity.this, &quot;workout saved&quot; , Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L254">                            Intent intent = new Intent(ExerciseSelectActivity.this, EditWorkoutTemplateActivity.class);</span>
+                            try {
+<span class="nc" id="L256">                                tempEx.setId(response.getLong(&quot;id&quot;));</span>
+<span class="nc" id="L257">                            } catch (JSONException e) {</span>
+<span class="nc" id="L258">                                throw new RuntimeException(e);</span>
+<span class="nc" id="L259">                            }</span>
+<span class="nc" id="L260">                            EditTemplateDataHolder.exerciseList.add(tempEx);</span>
+<span class="nc" id="L261">                            intent.putExtra(&quot;item added&quot;, true);</span>
+<span class="nc" id="L262">                            startActivity(intent);</span>
+                        }
+<span class="nc" id="L264">                    }</span>
+                },
+<span class="nc" id="L266">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L269">                        Log.e(&quot;Response Error&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L270">                        Toast.makeText(ExerciseSelectActivity.this, &quot;Request failed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L271">                    }</span>
+<span class="nc" id="L272">                }) {</span>
+        };
+
+        // Add the request to the request queue
+<span class="nc" id="L276">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L277">    }</span>
+
+    /**
+     * Fetches exercise data from the server, populates the repository,
+     * and updates the exercise list and dropdown menu.
+     */
+    private void fetchExercises() {
+<span class="nc" id="L284">        String url = &quot;http://coms-3090-035.class.las.iastate.edu:8080/workouts/database/exercises&quot;;</span>
+<span class="nc" id="L285">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null, // Pass null as the request body since it's a GET request
+<span class="nc" id="L289">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L292">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+
+                        // copy response into local exercise repo
+<span class="nc" id="L295">                        exerciseRepo = new ArrayList&lt;&gt;(); // reset exercise repo</span>
+                        try {
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L298">                                exerciseRepo.add(response.getJSONObject(i));</span>
+                            }
+<span class="nc" id="L300">                        } catch (JSONException e) {</span>
+<span class="nc" id="L301">                            Log.e(&quot;Exercise Repo Parse Error&quot;, e.toString());</span>
+<span class="nc" id="L302">                        }</span>
+<span class="nc" id="L303">                        Log.d(&quot;Exercise Repo&quot;, exerciseRepo.toString());</span>
+
+                        // update exerciseList and adapter once data is received
+                        try {
+<span class="nc" id="L307">                            muscleGroups = getMuscleGroups();</span>
+<span class="nc" id="L308">                            setExerciseObjs(&quot;all&quot;);</span>
+<span class="nc" id="L309">                            setDropDownMenu();</span>
+<span class="nc" id="L310">                        } catch(JSONException e) {</span>
+<span class="nc" id="L311">                            Log.e(&quot;Error setting exercise&quot;, e.toString());</span>
+<span class="nc" id="L312">                        }</span>
+<span class="nc" id="L313">                    }</span>
+                },
+<span class="nc" id="L315">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L318">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L319">                        Toast.makeText(ExerciseSelectActivity.this, &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L320">                    }</span>
+<span class="nc" id="L321">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="nc" id="L324">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L327">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L332">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L335">                return params;</span>
+            }
+        };
+
+        // Add the request to the queue
+<span class="nc" id="L340">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L341">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

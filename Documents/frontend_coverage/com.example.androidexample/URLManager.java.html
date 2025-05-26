@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>URLManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">URLManager.java</span></div><h1>URLManager.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+/**
+ * URLManager is a utility class that manages the URLs used for communication with the backend server.
+ * It provides static methods to generate various URLs for different API endpoints based on the provided parameters.
+ */
+<span class="nc" id="L7">public class URLManager {</span>
+
+    // Base URLs for HTTP and WebSocket connections
+    private static final String BASE_HTTP_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String BASE_WS_URL = &quot;ws://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+    // Common URLs for specific resources
+    public static final String USERS_URL = BASE_HTTP_URL + &quot;/users&quot;;
+    public static final String EXERCISE_TEMPLATE_URL = BASE_HTTP_URL + &quot;/exerciseTemplate&quot;;
+    public static final String WORKOUT_TEMPLATE_URL = BASE_HTTP_URL + &quot;/templates&quot;;
+    public static final String FRIEND_REQUEST_URL = BASE_HTTP_URL + &quot;/friends/request&quot;;
+    public static final String WORKOUT_GROUP_URL = BASE_HTTP_URL + &quot;/workout-groups&quot;;
+
+    /**
+     * Constructs the URL for a user's workout group based on their username.
+     *
+     * @param username The username of the user.
+     * @return The URL for the user's workout group.
+     */
+    public static String getUserGroupURL(String username) {
+<span class="nc" id="L27">        return WORKOUT_GROUP_URL + &quot;/user/&quot; + username + &quot;/group&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the members of a specific workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @return The URL for retrieving group members.
+     */
+    public static String getGroupMembersURL(Long groupId) {
+<span class="nc" id="L37">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/members&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the join requests for a specific workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @param username The username of the group leader.
+     * @return The URL for retrieving group join requests.
+     */
+    public static String getGroupJoinRequestsURL(Long groupId, String username) {
+<span class="nc" id="L48">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/join-requests&quot; + &quot;?leaderUsername=&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the URL to accept a join request for a specific workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @param requestId The ID of the join request.
+     * @param username The username of the group leader.
+     * @return The URL for accepting the join request.
+     */
+    public static String acceptGroupJoinRequestsURL(Long groupId, Long requestId, String username) {
+<span class="nc" id="L60">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/accept-request/&quot; + requestId + &quot;?leaderUsername=&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the URL to kick a member from a specific workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @param memberUsername The username of the member to be kicked.
+     * @param leaderUsername The username of the group leader.
+     * @return The URL for kicking a group member.
+     */
+    public static String kickGroupMemberURL(Long groupId, String memberUsername, String leaderUsername) {
+<span class="nc" id="L72">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/remove-member&quot; + &quot;?memberUsername=&quot; + memberUsername + &quot;&amp;leaderUsername=&quot; + leaderUsername;</span>
+    }
+
+    /**
+     * Constructs the URL to decline a join request for a specific workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @param requestId The ID of the join request.
+     * @param username The username of the group leader.
+     * @return The URL for declining the join request.
+     */
+    public static String declineGroupJoinRequestsURL(Long groupId, Long requestId, String username) {
+<span class="nc" id="L84">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/accept-request/&quot; + requestId + &quot;?leaderUsername=&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the URL for a user to leave a workout group.
+     *
+     * @param groupId The ID of the workout group.
+     * @param username The username of the user leaving the group.
+     * @return The URL for the user to leave the group.
+     */
+    public static String leaveGroupURL(Long groupId, String username) {
+<span class="nc" id="L95">        return WORKOUT_GROUP_URL + &quot;/&quot; + groupId + &quot;/leave?username=&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the WebSocket URL for chatting in a specific session.
+     *
+     * @param sessionId The ID of the chat session.
+     * @param username The username of the participant.
+     * @return The WebSocket URL for the chat session.
+     */
+    public static String chatURL(String sessionId, String username) {
+<span class="fc" id="L106">        return BASE_WS_URL + &quot;/chat/&quot; + sessionId + &quot;/&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the URL to remove a friend from the user's friend list.
+     *
+     * @param username The username of the user.
+     * @param friend_username The username of the friend to be removed.
+     * @return The URL for removing a friend.
+     */
+    public static String removeFriendURL(String username, String friend_username) {
+<span class="nc" id="L117">        return USERS_URL + &quot;/&quot; + username + &quot;/friends/&quot; + friend_username;</span>
+    }
+
+    /**
+     * Constructs the URL for a user to request to join a workout group.
+     *
+     * @param id The ID of the workout group.
+     * @param username The username of the user requesting to join.
+     * @return The URL for the group join request.
+     */
+    public static String getGroupJoinURL(Long id, String username) {
+<span class="nc" id="L128">        return WORKOUT_GROUP_URL + &quot;/&quot; + id + &quot;/request-join&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to accept a friend request.
+     *
+     * @param requestId The ID of the friend request.
+     * @return The URL for accepting the friend request.
+     */
+    public static String getFriendAccept(Long requestId) {
+<span class="fc" id="L138">        return FRIEND_REQUEST_URL + &quot;/accept/&quot; + requestId;</span>
+    }
+
+    /**
+     * Constructs the URL to get the list of sent friend requests for a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving sent friend requests.
+     */
+    public static String getSentRequestsURL(String username) {
+<span class="nc" id="L148">        return FRIEND_REQUEST_URL + &quot;s/&quot; + username + &quot;/sent&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL for creating a new chat session.
+     *
+     * @return The URL for posting a new chat session.
+     */
+    public static String postChatSessionURL() {
+<span class="fc" id="L157">        return BASE_HTTP_URL + &quot;/chatSession&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the list of friends for a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving the user's friends.
+     */
+    public static String getFriendsURL(String username) {
+<span class="fc" id="L167">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/friends&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to get the list of received friend requests for a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving received friend requests.
+     */
+    public static String getReceivedRequestsURL(String username) {
+<span class="fc" id="L177">        return FRIEND_REQUEST_URL + &quot;s/&quot; + username + &quot;/received&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to get the exercises associated with a specific workout template.
+     *
+     * @param id The ID of the workout template.
+     * @return The URL for retrieving exercises from a workout template.
+     */
+    public static String getExerciseTempFromWorkoutTempURL(Long id) {
+<span class="nc" id="L187">        return WORKOUT_TEMPLATE_URL + &quot;/&quot; + id + &quot;/exercises&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the workout templates associated with a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving the user's workout templates.
+     */
+    public static String getWorkoutTempFromUserURL(String username) {
+<span class="fc" id="L197">        return BASE_HTTP_URL + &quot;/&quot; + username + &quot;/templates&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the chat sessions for a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving the user's chat sessions.
+     */
+    public static String getUserChatSessionsURL(String username) {
+<span class="fc" id="L207">        return USERS_URL + &quot;/&quot; + username + &quot;/chatSessions&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL for a login check based on the username.
+     *
+     * @param username The username for the login check.
+     * @return The URL for checking login credentials.
+     */
+    public static String getLoginPutReqURL(String username) {
+<span class="fc" id="L217">        return USERS_URL + &quot;/passcheck/&quot; + username;</span>
+    }
+
+    /**
+     * Gets the base HTTP URL.
+     *
+     * @return The base HTTP URL.
+     */
+    public static String getBaseUrl() {
+<span class="fc" id="L226">        return BASE_HTTP_URL;</span>
+    }
+
+    // Trainer related endpoints
+
+    /**
+     * Constructs the URL to retrieve all active trainers.
+     *
+     * @return The URL for retrieving active trainers.
+     */
+    public static String getTrainersURL() {
+<span class="nc" id="L237">        return BASE_HTTP_URL + &quot;/trainers&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve a specific trainer by ID.
+     *
+     * @param trainerId The ID of the trainer.
+     * @return The URL for retrieving the trainer by ID.
+     */
+    public static String getTrainerURL(long trainerId) {
+<span class="nc" id="L247">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve the trainers followed by a specific user.
+     *
+     * @param username The username of the user.
+     * @return The URL for retrieving followed trainers.
+     */
+    public static String getFollowedTrainersURL(String username) {
+<span class="nc" id="L257">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/followed-trainers&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to follow a specific trainer.
+     *
+     * @param trainerId The ID of the trainer.
+     * @param username The username of the user following the trainer.
+     * @return The URL for following the trainer.
+     */
+    public static String getFollowTrainerURL(long trainerId, String username) {
+<span class="nc" id="L268">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId + &quot;/followers/&quot; + username;</span>
+    }
+
+    /**
+     * Constructs the URL to check if a user is a trainer.
+     *
+     * @param username The username of the user.
+     * @return The URL for checking if the user is a trainer.
+     */
+    public static String getIsTrainerURL(String username) {
+<span class="nc" id="L278">        return BASE_HTTP_URL + &quot;/users/&quot; + username + &quot;/is-trainer&quot;;</span>
+    }
+
+    /**
+     * Constructs the URL to retrieve a trainer's workout templates.
+     *
+     * @param trainerId The ID of the trainer.
+     * @return The URL for retrieving the trainer's workout templates.
+     */
+    public static String getTrainerTemplatesURL(long trainerId) {
+<span class="nc" id="L288">        return BASE_HTTP_URL + &quot;/trainers/&quot; + trainerId + &quot;/templates&quot;;</span>
+    }
+
+    public static final String EXERCISE_DATABASE_URL = BASE_HTTP_URL + &quot;/database/exercises&quot;;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

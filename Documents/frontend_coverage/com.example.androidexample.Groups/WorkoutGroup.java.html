@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutGroup.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">WorkoutGroup.java</span></div><h1>WorkoutGroup.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.util.Log;
+
+import com.example.androidexample.User;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+/**
+ * Represents a workout group in the application.
+ * This class encapsulates details about the workout group such as its ID, name, description,
+ * type, leader, and list of members.
+ */
+public class WorkoutGroup {
+
+    private Long id;  // The unique identifier for the workout group
+    private String groupName;  // The name of the workout group
+    private String description;  // A brief description of the workout group
+    private String groupType;  // The type/category of the workout group (e.g., Fitness, Yoga, etc.)
+    private User leader;  // The leader of the workout group
+    private List&lt;User&gt; members;  // The list of users who are members of the group
+
+    /**
+     * Constructs a WorkoutGroup object from the provided JSONObject.
+     * The JSON object is expected to contain the necessary fields such as 'id', 'groupName',
+     * 'description', 'groupType', and 'leader'. These fields are parsed and assigned to the
+     * corresponding class members.
+     *
+     * @param groupJson The JSON object containing the details of the workout group.
+     */
+<span class="nc" id="L34">    public WorkoutGroup(JSONObject groupJson) {</span>
+        try {
+            // Parse each field from the JSON object
+<span class="nc" id="L37">            this.id = groupJson.getLong(&quot;id&quot;);</span>
+<span class="nc" id="L38">            this.groupName = groupJson.getString(&quot;groupName&quot;);</span>
+<span class="nc" id="L39">            this.description = groupJson.getString(&quot;description&quot;);</span>
+<span class="nc" id="L40">            this.groupType = groupJson.getString(&quot;groupType&quot;);</span>
+
+            // Parse the 'leader' field, assuming it's a nested JSON object
+<span class="nc" id="L43">            this.leader = new User(groupJson.getJSONObject(&quot;leader&quot;));</span>
+<span class="nc" id="L44">        } catch (JSONException e) {</span>
+            // Handle errors if any field is missing or the JSON structure is incorrect
+<span class="nc" id="L46">            Log.e(&quot;JSONException&quot;, &quot;Error parsing workout group JSON&quot;);</span>
+<span class="nc" id="L47">        }</span>
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * Gets the unique identifier for the workout group.
+     *
+     * @return The ID of the workout group
+     */
+    public Long getId() {
+<span class="nc" id="L56">        return id;</span>
+    }
+
+    /**
+     * Sets the unique identifier for the workout group.
+     *
+     * @param id The ID of the workout group
+     */
+    public void setId(Long id) {
+<span class="nc" id="L65">        this.id = id;</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * Gets the name of the workout group.
+     *
+     * @return The name of the workout group
+     */
+    public String getGroupName() {
+<span class="nc" id="L74">        return groupName;</span>
+    }
+
+    /**
+     * Sets the name of the workout group.
+     *
+     * @param groupName The name of the workout group
+     */
+    public void setGroupName(String groupName) {
+<span class="nc" id="L83">        this.groupName = groupName;</span>
+<span class="nc" id="L84">    }</span>
+
+    /**
+     * Gets the description of the workout group.
+     *
+     * @return The description of the workout group
+     */
+    public String getDescription() {
+<span class="nc" id="L92">        return description;</span>
+    }
+
+    /**
+     * Sets the description of the workout group.
+     *
+     * @param description The description of the workout group
+     */
+    public void setDescription(String description) {
+<span class="nc" id="L101">        this.description = description;</span>
+<span class="nc" id="L102">    }</span>
+
+    /**
+     * Gets the type of the workout group.
+     *
+     * @return The type of the workout group (e.g., Fitness, Yoga, etc.)
+     */
+    public String getGroupType() {
+<span class="nc" id="L110">        return groupType;</span>
+    }
+
+    /**
+     * Sets the type of the workout group.
+     *
+     * @param groupType The type of the workout group
+     */
+    public void setGroupType(String groupType) {
+<span class="nc" id="L119">        this.groupType = groupType;</span>
+<span class="nc" id="L120">    }</span>
+
+    /**
+     * Gets the leader of the workout group.
+     *
+     * @return The leader of the workout group
+     */
+    public User getLeader() {
+<span class="nc" id="L128">        return leader;</span>
+    }
+
+    /**
+     * Sets the leader of the workout group.
+     *
+     * @param leader The leader of the workout group
+     */
+    public void setLeader(User leader) {
+<span class="nc" id="L137">        this.leader = leader;</span>
+<span class="nc" id="L138">    }</span>
+
+    /**
+     * Gets the list of members of the workout group.
+     *
+     * @return The list of members of the workout group
+     */
+    public List&lt;User&gt; getMembers() {
+<span class="nc" id="L146">        return members;</span>
+    }
+
+    /**
+     * Sets the list of members of the workout group.
+     *
+     * @param members The list of members of the workout group
+     */
+    public void setMembers(List&lt;User&gt; members) {
+<span class="nc" id="L155">        this.members = members;</span>
+<span class="nc" id="L156">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

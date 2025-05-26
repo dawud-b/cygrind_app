@@ -1,0 +1,535 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TrainerController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Trainer</a>
+</div>
+
+<h1>Coverage Summary for Class: TrainerController (onetoone.Trainer)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TrainerController</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.3%
+  </span>
+  <span class="absValue">
+    (11/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.6%
+  </span>
+  <span class="absValue">
+    (31/68)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.1%
+  </span>
+  <span class="absValue">
+    (76/110)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TrainerController$TrainerRegistrationDTO</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (28/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45.6%
+  </span>
+  <span class="absValue">
+    (31/68)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.2%
+  </span>
+  <span class="absValue">
+    (93/127)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Trainer;
+&nbsp;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplateRepo;
+&nbsp;import onetoone.users.User;
+&nbsp;import onetoone.users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;/**
+&nbsp; * REST controller for trainer-related operations.
+&nbsp; * Handles all endpoints for trainer profiles, followers, and workout templates.
+&nbsp; */
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Trainer Controller&quot;, description = &quot;REST APIs related to Trainer Entity and operations&quot;)
+<b class="fc">&nbsp;public class TrainerController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TrainerRepository trainerRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WorkoutTemplateRepo workoutTemplateRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private TrainerService trainerService;
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get all active trainers&quot;, description = &quot;Retrieve a list of all trainers that are currently active in the system.&quot;)
+&nbsp;    @GetMapping(&quot;/trainers&quot;)
+&nbsp;    public List&lt;Trainer&gt; getAllTrainers() {
+<b class="nc">&nbsp;        return trainerRepository.findByIsActiveTrue();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get trainer by ID&quot;, description = &quot;Retrieve a specific trainer&#39;s profile using their unique identifier.&quot;)
+&nbsp;    @GetMapping(&quot;/trainers/{id}&quot;)
+&nbsp;    public Trainer getTrainerById(@PathVariable int id) {
+<b class="nc">&nbsp;        Trainer trainer = trainerRepository.findById(id);</b>
+<b class="nc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return null; // Return null to match existing API pattern</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return trainer;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get trainer followers&quot;, description = &quot;Retrieve the list of users following a specific trainer.&quot;)
+&nbsp;    @GetMapping(&quot;/trainers/{id}/followers&quot;)
+&nbsp;    public Set&lt;User&gt; getTrainerFollowers(@PathVariable int id) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(id);</b>
+<b class="pc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return trainer.getFollowers();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get user&#39;s followed trainers&quot;, description = &quot;Retrieve the list of trainers that a specific user is following.&quot;)
+&nbsp;    @GetMapping(&quot;/users/{username}/followed-trainers&quot;)
+&nbsp;    public List&lt;Trainer&gt; getFollowedTrainers(@PathVariable String username) {
+<b class="nc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="nc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return Collections.emptyList(); // Return empty list if user not found</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Use the repository method to find all trainers followed by this user
+<b class="nc">&nbsp;        return trainerRepository.findByFollowersContaining(user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Get trainer&#39;s workout templates&quot;, description = &quot;Retrieve all workout templates created by a specific trainer.&quot;)
+&nbsp;    @GetMapping(&quot;/trainers/{id}/templates&quot;)
+&nbsp;    public List&lt;WorkoutTemplate&gt; getTrainerWorkoutTemplates(@PathVariable int id) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(id);</b>
+<b class="pc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return trainer.getTrainerTemplates();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Add workout template&quot;, description = &quot;Create a new workout template associated with a specific trainer.&quot;)
+&nbsp;    @PostMapping(&quot;/trainers/{trainerId}/templates&quot;)
+&nbsp;    public WorkoutTemplate addWorkoutTemplate(@PathVariable int trainerId, @RequestBody WorkoutTemplate template) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(trainerId);</b>
+<b class="pc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Set the trainer for this template
+<b class="fc">&nbsp;        template.setTrainer(trainer);</b>
+&nbsp;
+&nbsp;        // Save the template
+<b class="fc">&nbsp;        WorkoutTemplate savedTemplate = workoutTemplateRepo.save(template);</b>
+&nbsp;
+&nbsp;        // Add to trainer&#39;s templates
+<b class="fc">&nbsp;        trainer.addWorkoutTemplate(savedTemplate);</b>
+<b class="fc">&nbsp;        trainerRepository.save(trainer);</b>
+&nbsp;
+<b class="fc">&nbsp;        return savedTemplate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Follow trainer&quot;, description = &quot;Allow a user to follow a specific trainer.&quot;)
+&nbsp;    @PostMapping(&quot;/trainers/{trainerId}/followers/{username}&quot;)
+&nbsp;    public String followTrainer(@PathVariable int trainerId, @PathVariable String username) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(trainerId);</b>
+<b class="pc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return &quot;Trainer not found or not active&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+<b class="pc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return &quot;User not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Check if user is already following this trainer
+<b class="pc">&nbsp;        if (trainer.getFollowers().contains(user)) {</b>
+<b class="nc">&nbsp;            return &quot;User is already following this trainer&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Add user to trainer&#39;s followers
+<b class="fc">&nbsp;        trainer.addFollower(user);</b>
+<b class="fc">&nbsp;        trainerRepository.save(trainer);</b>
+&nbsp;
+<b class="fc">&nbsp;        return &quot;Successfully followed trainer&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Update trainer profile&quot;, description = &quot;Modify a trainer&#39;s profile information.&quot;)
+&nbsp;    @PutMapping(&quot;/trainers/{id}&quot;)
+&nbsp;    public Trainer updateTrainer(@PathVariable int id, @RequestBody Trainer trainerDetails) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(id);</b>
+<b class="pc">&nbsp;        if (trainer == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Update fields if provided
+<b class="pc">&nbsp;        if (trainerDetails.getSpecialization() != null) {</b>
+<b class="fc">&nbsp;            trainer.setSpecialization(trainerDetails.getSpecialization());</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (trainerDetails.getBio() != null) {</b>
+<b class="fc">&nbsp;            trainer.setBio(trainerDetails.getBio());</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return trainerRepository.save(trainer);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Update workout template&quot;, description = &quot;Modify a workout template that belongs to a specific trainer.&quot;)
+&nbsp;    @PutMapping(&quot;/trainers/{trainerId}/templates/{templateId}&quot;)
+&nbsp;    public WorkoutTemplate updateWorkoutTemplate(
+&nbsp;            @PathVariable int trainerId,
+&nbsp;            @PathVariable int templateId,
+&nbsp;            @RequestBody WorkoutTemplate templateDetails) {
+&nbsp;
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(trainerId);</b>
+<b class="pc">&nbsp;        if (trainer == null || !trainer.isActive()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        WorkoutTemplate template = workoutTemplateRepo.findById(templateId);</b>
+<b class="pc">&nbsp;        if (template == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Verify this template belongs to the trainer
+<b class="pc">&nbsp;        if (template.getTrainer() == null || template.getTrainer().getId() != trainer.getId()) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Update fields
+<b class="pc">&nbsp;        if (templateDetails.getTemplateName() != null) {</b>
+<b class="fc">&nbsp;            template.setTemplateName(templateDetails.getTemplateName());</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (templateDetails.getDescription() != null) {</b>
+<b class="fc">&nbsp;            template.setDescription(templateDetails.getDescription());</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return workoutTemplateRepo.save(template);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Delete trainer&quot;, description = &quot;Remove a trainer&#39;s profile from the system and handle related entities.&quot;)
+&nbsp;    @DeleteMapping(&quot;/trainers/{id}&quot;)
+&nbsp;    public String deleteTrainer(@PathVariable int id) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(id);</b>
+<b class="pc">&nbsp;        if (trainer == null) {</b>
+<b class="nc">&nbsp;            return &quot;Trainer not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Remove all templates created by this trainer or set them to null
+<b class="fc">&nbsp;        List&lt;WorkoutTemplate&gt; templates = trainer.getTrainerTemplates();</b>
+<b class="pc">&nbsp;        for (WorkoutTemplate template : templates) {</b>
+<b class="nc">&nbsp;            template.setTrainer(null);</b>
+<b class="nc">&nbsp;            workoutTemplateRepo.save(template);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Remove trainer
+<b class="fc">&nbsp;        trainerRepository.delete(trainer);</b>
+<b class="fc">&nbsp;        return &quot;Trainer deleted successfully&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Unfollow trainer&quot;, description = &quot;Remove a user from a trainer&#39;s followers list.&quot;)
+&nbsp;    @DeleteMapping(&quot;/trainers/{trainerId}/followers/{username}&quot;)
+&nbsp;    public String unfollowTrainer(@PathVariable int trainerId, @PathVariable String username) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(trainerId);</b>
+<b class="fc">&nbsp;        User user = userRepository.findByUsername(username);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (trainer == null) {</b>
+<b class="nc">&nbsp;            return &quot;Trainer not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (user == null) {</b>
+<b class="nc">&nbsp;            return &quot;User not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (!trainer.getFollowers().contains(user)) {</b>
+<b class="nc">&nbsp;            return &quot;User is not following this trainer&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        trainer.removeFollower(user);</b>
+<b class="fc">&nbsp;        trainerRepository.save(trainer);</b>
+&nbsp;
+<b class="fc">&nbsp;        return &quot;Unfollowed successfully&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Delete workout template&quot;, description = &quot;Remove a workout template created by a specific trainer.&quot;)
+&nbsp;    @DeleteMapping(&quot;/trainers/{trainerId}/templates/{templateId}&quot;)
+&nbsp;    public String deleteWorkoutTemplate(@PathVariable int trainerId, @PathVariable int templateId) {
+<b class="fc">&nbsp;        Trainer trainer = trainerRepository.findById(trainerId);</b>
+<b class="pc">&nbsp;        if (trainer == null) {</b>
+<b class="nc">&nbsp;            return &quot;Trainer not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        WorkoutTemplate template = workoutTemplateRepo.findById(templateId);</b>
+<b class="pc">&nbsp;        if (template == null) {</b>
+<b class="nc">&nbsp;            return &quot;Template not found&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Verify this template belongs to the trainer
+<b class="pc">&nbsp;        if (template.getTrainer() == null || template.getTrainer().getId() != trainer.getId()) {</b>
+<b class="nc">&nbsp;            return &quot;This template doesn&#39;t belong to the trainer&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Remove template from trainer
+<b class="fc">&nbsp;        trainer.removeWorkoutTemplate(template);</b>
+<b class="fc">&nbsp;        trainerRepository.save(trainer);</b>
+&nbsp;
+&nbsp;        // Delete template
+<b class="fc">&nbsp;        workoutTemplateRepo.delete(template);</b>
+&nbsp;
+<b class="fc">&nbsp;        return &quot;Template deleted successfully&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Check trainer status&quot;, description = &quot;Verify if a user is registered as a trainer.&quot;)
+&nbsp;    @GetMapping(&quot;/users/{username}/is-trainer&quot;)
+&nbsp;    public boolean isTrainer(@PathVariable String username) {
+<b class="nc">&nbsp;        return trainerService.isTrainer(username);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Register trainer&quot;, description = &quot;Create both a user and trainer profile in a single operation.&quot;)
+&nbsp;    @PostMapping(&quot;/register/trainer&quot;)
+&nbsp;    public Trainer registerTrainer(@RequestBody TrainerRegistrationDTO registrationDTO) {
+&nbsp;        try {
+&nbsp;            // First check if username already exists
+<b class="pc">&nbsp;            if (userRepository.findByUsername(registrationDTO.getUsername()) != null) {</b>
+<b class="nc">&nbsp;                return null; // Username already exists</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Check if email already exists
+<b class="pc">&nbsp;            if (userRepository.findByEmail(registrationDTO.getEmail()) != null) {</b>
+<b class="nc">&nbsp;                return null; // Email already exists</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Create the user first
+<b class="fc">&nbsp;            User user = new User();</b>
+<b class="fc">&nbsp;            user.setUsername(registrationDTO.getUsername());</b>
+<b class="fc">&nbsp;            user.setFirstName(registrationDTO.getFirstName());</b>
+<b class="fc">&nbsp;            user.setLastName(registrationDTO.getLastName());</b>
+<b class="fc">&nbsp;            user.setEmail(registrationDTO.getEmail());</b>
+<b class="fc">&nbsp;            user.setPassword(registrationDTO.getPassword());</b>
+<b class="fc">&nbsp;            user.setTelephone(registrationDTO.getTelephone());</b>
+&nbsp;
+&nbsp;            // Save the user
+<b class="fc">&nbsp;            User savedUser = userRepository.save(user);</b>
+&nbsp;
+&nbsp;            // Now create the trainer profile
+<b class="fc">&nbsp;            Trainer trainer = new Trainer(savedUser);</b>
+<b class="fc">&nbsp;            trainer.setSpecialization(registrationDTO.getSpecialization());</b>
+<b class="fc">&nbsp;            trainer.setBio(registrationDTO.getBio());</b>
+&nbsp;
+&nbsp;            // Save and return the trainer
+<b class="fc">&nbsp;            return trainerRepository.save(trainer);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            System.err.println(&quot;Error creating trainer: &quot; + e.getMessage());</b>
+<b class="nc">&nbsp;            e.printStackTrace();</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Data transfer object for combined user and trainer registration
+&nbsp;     */
+<b class="fc">&nbsp;    public static class TrainerRegistrationDTO {</b>
+&nbsp;        // User fields
+&nbsp;        private String username;
+&nbsp;        private String firstName;
+&nbsp;        private String lastName;
+&nbsp;        private String email;
+&nbsp;        private String password;
+&nbsp;        private String telephone;
+&nbsp;
+&nbsp;        // Trainer fields
+&nbsp;        private String specialization;
+&nbsp;        private String bio;
+&nbsp;
+&nbsp;        // Getters and setters
+&nbsp;        public String getUsername() {
+<b class="fc">&nbsp;            return username;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setUsername(String username) {
+<b class="fc">&nbsp;            this.username = username;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getFirstName() {
+<b class="fc">&nbsp;            return firstName;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setFirstName(String firstName) {
+<b class="fc">&nbsp;            this.firstName = firstName;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getLastName() {
+<b class="fc">&nbsp;            return lastName;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setLastName(String lastName) {
+<b class="fc">&nbsp;            this.lastName = lastName;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getEmail() {
+<b class="fc">&nbsp;            return email;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setEmail(String email) {
+<b class="fc">&nbsp;            this.email = email;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getPassword() {
+<b class="fc">&nbsp;            return password;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setPassword(String password) {
+<b class="fc">&nbsp;            this.password = password;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getTelephone() {
+<b class="fc">&nbsp;            return telephone;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setTelephone(String telephone) {
+<b class="fc">&nbsp;            this.telephone = telephone;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getSpecialization() {
+<b class="fc">&nbsp;            return specialization;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setSpecialization(String specialization) {
+<b class="fc">&nbsp;            this.specialization = specialization;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public String getBio() {
+<b class="fc">&nbsp;            return bio;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void setBio(String bio) {
+<b class="fc">&nbsp;            this.bio = bio;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-07 10:38</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,195 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Message</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.chat</a>
+</div>
+
+<h1>Coverage Summary for Class: Message (onetoone.chat)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Message</td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.5%
+  </span>
+  <span class="absValue">
+    (2/16)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Message$HibernateInstantiator$6PZJ7MC0</td>
+  </tr>
+  <tr>
+    <td class="name">Message$HibernateProxy$CUapBSdL</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.5%
+  </span>
+  <span class="absValue">
+    (2/16)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.chat;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Date;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import onetoone.users.User;
+&nbsp;
+&nbsp;
+&nbsp;/**
+&nbsp; * Saves message information including the contents of the message, sender, chatSession it was sent in,
+&nbsp; * and the date/time it was sent.
+&nbsp; *
+&nbsp; * @author Dawud Benedict
+&nbsp; */
+&nbsp;@Entity
+&nbsp;public class Message {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long id;
+&nbsp;
+&nbsp;    // who sent the message
+&nbsp;    @ManyToOne
+&nbsp;    private User user;
+&nbsp;
+&nbsp;    // What the message is
+&nbsp;    @Lob
+&nbsp;    private String content;
+&nbsp;
+&nbsp;    // The time the message was sent (server time)
+<b class="fc">&nbsp;    @Column(name = &quot;date&quot;)</b>
+&nbsp;    private Date sent = new Date();
+&nbsp;
+&nbsp;    // what chat the message belong to
+&nbsp;    @ManyToOne
+&nbsp;    private ChatSession chatSession;
+&nbsp;
+&nbsp;    @OneToMany(fetch = FetchType.EAGER)
+&nbsp;    private List&lt;Reaction&gt; reactions;
+&nbsp;
+<b class="fc">&nbsp;	public Message() {};</b>
+&nbsp;	
+<b class="nc">&nbsp;	public Message(User user, String content, Date time, ChatSession chatSession) {</b>
+<b class="nc">&nbsp;		this.user = user;</b>
+<b class="nc">&nbsp;		this.content = content;</b>
+<b class="nc">&nbsp;        this.sent = time;</b>
+<b class="nc">&nbsp;        this.chatSession = chatSession;</b>
+<b class="nc">&nbsp;        reactions = new ArrayList&lt;&gt;();</b>
+&nbsp;	}
+&nbsp;
+&nbsp;    public Long getId() {
+<b class="nc">&nbsp;        return id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public User getUser() {
+<b class="nc">&nbsp;        return user;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getContent() {
+<b class="nc">&nbsp;        return content;</b>
+&nbsp;    }
+&nbsp;    public void setContent(String content) {
+<b class="nc">&nbsp;        this.content = content;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Date getSent() {
+<b class="nc">&nbsp;        return sent;</b>
+&nbsp;    }
+&nbsp;    public void setSent(Date sent) {
+<b class="nc">&nbsp;        this.sent = sent;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public void addReaction(Reaction reaction) {reactions.add(reaction);}</b>
+<b class="nc">&nbsp;    public List&lt;Reaction&gt; getReactions() {return reactions;}</b>
+&nbsp;    
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-21 21:45</div>
+</div>
+</body>
+</html>

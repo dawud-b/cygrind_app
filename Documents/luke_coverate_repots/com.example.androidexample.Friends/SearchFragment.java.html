@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">SearchFragment.java</span></div><h1>SearchFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.User;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class SearchFragment extends Fragment {
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView recyclerView; // view for search results
+    private SearchAdapter adapter; // adapter for search results
+    private List&lt;User&gt; userList; // list of users, minus the current user
+    private User currentUser; // used for friend request POST
+    private EditText searchView;
+
+<span class="fc" id="L47">    public SearchFragment() {</span>
+        // Required empty public constructor
+<span class="fc" id="L49">    }</span>
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="fc" id="L54">        View rootView = inflater.inflate(R.layout.fragment_search, container, false);</span>
+
+<span class="fc" id="L56">        userList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L58">        swipeRefreshLayout = rootView.findViewById(R.id.friend_search_layout);</span>
+
+<span class="fc" id="L60">        recyclerView = rootView.findViewById(R.id.recyclerViewSearchResults);</span>
+<span class="fc" id="L61">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+        // Initialize the adapter and set it to the RecyclerView
+<span class="fc" id="L64">        adapter = new SearchAdapter(userList, new SearchAdapter.OnFriendRequestClickListener() {</span>
+            @Override
+            public void onFriendRequestClick(User user) {
+<span class="fc" id="L67">                sendFriendRequest(user);</span>
+<span class="fc" id="L68">            }</span>
+        });
+<span class="fc" id="L70">        recyclerView.setAdapter(adapter);</span>
+
+<span class="fc" id="L72">        fetchUsers();</span>
+
+<span class="fc" id="L74">        searchView = rootView.findViewById(R.id.searchBar);</span>
+<span class="fc" id="L75">        searchView.addTextChangedListener(new TextWatcher() {</span>
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // ignore
+<span class="fc" id="L79">            }</span>
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // filter based on string
+<span class="fc" id="L84">                String query = charSequence.toString();</span>
+<span class="fc" id="L85">                adapter.filterList(query);</span>
+<span class="fc" id="L86">            }</span>
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // ignore
+<span class="fc" id="L91">            }</span>
+        });
+
+        // Set up SwipeRefreshLayout listener
+<span class="fc" id="L95">        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {</span>
+            @Override
+            public void onRefresh() {
+<span class="nc" id="L98">                fetchUsers();</span>
+<span class="nc" id="L99">            }</span>
+        });
+
+<span class="fc" id="L102">        return rootView;</span>
+    }
+
+    private void fetchUsers() {
+<span class="fc" id="L106">        String url = URLManager.USERS_URL;</span>
+<span class="fc" id="L107">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null, // Pass null as the request body since it's a GET request
+<span class="fc" id="L111">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="fc" id="L114">                        Log.d(&quot;Volley Response&quot;, response.toString());</span>
+
+                        // empty userList
+<span class="fc" id="L117">                        userList.clear();</span>
+                        try {
+<span class="fc bfc" id="L119" title="All 2 branches covered.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L120">                                User user = new User(response.getJSONObject(i));</span>
+<span class="fc" id="L121">                                SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">                                if( !user.getUsername().equals(prefs.getString(&quot;username&quot;, &quot;&quot;))) {</span>
+<span class="fc" id="L123">                                    userList.add(new User(response.getJSONObject(i))); // add to userList</span>
+                                } else {
+<span class="fc" id="L125">                                    currentUser = new User(response.getJSONObject(i)); // save to currentUser</span>
+                                }
+                            }
+<span class="nc" id="L128">                        } catch (JSONException e) {</span>
+<span class="nc" id="L129">                            Log.e(&quot;User List Parse Error&quot;, e.toString());</span>
+<span class="fc" id="L130">                        }</span>
+<span class="fc" id="L131">                        Log.d(&quot;userList&quot;, userList.toString());</span>
+
+<span class="fc" id="L133">                        Log.d(&quot;userList&quot;, &quot;size&quot; + userList.size());</span>
+
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">                        if(userList.size() &gt; 0) {</span>
+<span class="fc" id="L136">                            adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L137">                            adapter.filterList(&quot;&quot;);</span>
+                        }
+                        //adapter.filterList(searchView.toString());
+<span class="fc" id="L140">                        swipeRefreshLayout.setRefreshing(false);</span>
+<span class="fc" id="L141">                    }</span>
+                },
+<span class="fc" id="L143">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L146">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L147">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L148">                    }</span>
+<span class="fc" id="L149">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="fc" id="L152">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+//                headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="fc" id="L155">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+<span class="nc" id="L160">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+//                params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L163">                return params;</span>
+            }
+        };
+
+        // Add the request to the queue
+<span class="fc" id="L168">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L169">    }</span>
+
+    private void sendFriendRequest(User user) {
+<span class="fc" id="L172">        Calendar c = Calendar.getInstance();</span>
+<span class="fc" id="L173">        long timestamp = c.getTimeInMillis();</span>
+
+<span class="fc" id="L175">        JSONObject obj = new JSONObject();</span>
+<span class="fc" id="L176">        JSONObject sendUser = new JSONObject();</span>
+<span class="fc" id="L177">        JSONObject rcvUser = new JSONObject();</span>
+        try {
+<span class="fc" id="L179">            sendUser.put(&quot;id&quot;, currentUser.getId());</span>
+<span class="fc" id="L180">            rcvUser.put(&quot;id&quot;, user.getId());</span>
+<span class="fc" id="L181">            obj.put(&quot;sender&quot;, sendUser);</span>
+<span class="fc" id="L182">            obj.put(&quot;date&quot;, timestamp);</span>
+<span class="fc" id="L183">            obj.put(&quot;receiver&quot;, rcvUser);</span>
+<span class="nc" id="L184">        } catch (JSONException e) {</span>
+<span class="nc" id="L185">            Log.e(&quot;JSONException&quot;, &quot;Error creating request JSON object&quot;);</span>
+<span class="fc" id="L186">        }</span>
+
+<span class="fc" id="L188">        String url = URLManager.FRIEND_REQUEST_URL;</span>
+
+        // create JSON object POST request and adds to Volley request queue
+<span class="fc" id="L191">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="fc" id="L192">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // backend response when user is already created
+<span class="fc" id="L196">                        Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L197">                    }</span>
+                },
+<span class="fc" id="L199">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L202">                        Log.e(&quot;CreateUser&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L203">                        Log.d(&quot;Sent object&quot;, obj.toString());</span>
+<span class="nc" id="L204">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L205">                    }</span>
+<span class="fc" id="L206">                }) {</span>
+            @Override
+            public byte[] getBody() {
+                // convert JSON user to string
+<span class="fc" id="L210">                return obj.toString().getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+                // Set the content type as application/json
+<span class="fc" id="L216">                return &quot;application/json&quot;;</span>
+            }
+        };
+
+        // Add the request to the request queue
+<span class="fc" id="L221">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L222">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

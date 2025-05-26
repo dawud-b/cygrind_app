@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+xmlns:tools="http://schemas.android.com/tools"
+xmlns:android="http://schemas.android.com/apk/res/android"
+tools:context=".ExerciseSelection.ExerciseSelectActivity"
+android:layout_height="match_parent"
+android:layout_width="match_parent"
+android:orientation="vertical">
+
+
+    <TextView
+        android:id="@+id/exerciselist_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Choose Exercise"
+        android:textSize="26sp" />
+
+    <Spinner
+        android:id="@+id/exerciselist_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/templateList"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/exerciseList_back_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel" />
+
+    </LinearLayout>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

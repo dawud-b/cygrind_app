@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutGroupAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">WorkoutGroupAdapter.java</span></div><h1>WorkoutGroupAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.List;
+
+/**
+ * Adapter for displaying a list of workout groups in a RecyclerView.
+ * This adapter binds data from a list of `WorkoutGroup` objects to the UI elements
+ * in a `RecyclerView` item view and provides functionality to handle click events
+ * on the &quot;Join Request&quot; button.
+ */
+public class WorkoutGroupAdapter extends RecyclerView.Adapter&lt;WorkoutGroupAdapter.WorkoutGroupViewHolder&gt; {
+
+    private List&lt;WorkoutGroup&gt; workoutGroups;  // List of workout groups to display
+    private OnJoinRequestClickListener listener;  // Listener for &quot;Join Request&quot; button click
+
+    /**
+     * Constructor for the adapter.
+     *
+     * @param workoutGroups A list of `WorkoutGroup` objects to be displayed in the RecyclerView.
+     * @param listener A listener that handles the &quot;Join Request&quot; button click events.
+     */
+<span class="nc" id="L30">    public WorkoutGroupAdapter(List&lt;WorkoutGroup&gt; workoutGroups, OnJoinRequestClickListener listener) {</span>
+<span class="nc" id="L31">        this.workoutGroups = workoutGroups;</span>
+<span class="nc" id="L32">        this.listener = listener;</span>
+<span class="nc" id="L33">    }</span>
+
+    /**
+     * Creates a new view holder for the workout group item view.
+     * This method is called when the RecyclerView needs a new view holder to display an item.
+     *
+     * @param parent The parent view group into which the item view will be added.
+     * @param viewType The view type of the new view.
+     * @return A new instance of `WorkoutGroupViewHolder`.
+     */
+    @Override
+    public WorkoutGroupViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for a single workout group item view
+<span class="nc" id="L46">        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_workout_group, parent, false);</span>
+<span class="nc" id="L47">        return new WorkoutGroupViewHolder(view);  // Return the new view holder</span>
+    }
+
+    /**
+     * Binds data to the view holder.
+     * This method is called to display the data for a specific position in the RecyclerView.
+     *
+     * @param holder The view holder that will hold the data for the item.
+     * @param position The position of the item in the list of workout groups.
+     */
+    @Override
+    public void onBindViewHolder(WorkoutGroupViewHolder holder, int position) {
+        // Get the workout group at the specified position
+<span class="nc" id="L60">        WorkoutGroup group = workoutGroups.get(position);</span>
+
+        // Set the text for group name, description, and leader
+<span class="nc" id="L63">        holder.groupName.setText(group.getGroupName());</span>
+<span class="nc" id="L64">        holder.description.setText(group.getDescription());</span>
+<span class="nc" id="L65">        holder.leader.setText(group.getLeader().getUsername());</span>
+
+        // Set the click listener for the &quot;Join Request&quot; button
+<span class="nc" id="L68">        holder.joinRequestBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L70">                listener.onJoinRequestClick(group);  // Notify the listener about the click</span>
+            }
+<span class="nc" id="L72">        });</span>
+<span class="nc" id="L73">    }</span>
+
+    /**
+     * Returns the total number of items in the workout groups list.
+     *
+     * @return The size of the workout groups list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L82">        return workoutGroups.size();</span>
+    }
+
+    /**
+     * ViewHolder for a single workout group item in the RecyclerView.
+     * This holds the views that represent a single workout group's details.
+     */
+    public static class WorkoutGroupViewHolder extends RecyclerView.ViewHolder {
+        TextView groupName;  // Text view to display the group name
+        TextView description;  // Text view to display the group description
+        TextView leader;  // Text view to display the leader's name
+        Button joinRequestBtn;  // Button to trigger the join request action
+
+        /**
+         * Constructor for the view holder.
+         *
+         * @param itemView The item view that represents a single workout group.
+         */
+        public WorkoutGroupViewHolder(View itemView) {
+<span class="nc" id="L101">            super(itemView);</span>
+<span class="nc" id="L102">            leader = itemView.findViewById(R.id.leader_txt);  // Initialize leader TextView</span>
+<span class="nc" id="L103">            groupName = itemView.findViewById(R.id.textViewGroupName);  // Initialize group name TextView</span>
+<span class="nc" id="L104">            description = itemView.findViewById(R.id.textViewDescription);  // Initialize description TextView</span>
+<span class="nc" id="L105">            joinRequestBtn = itemView.findViewById(R.id.btnJoinRequest);  // Initialize join request Button</span>
+<span class="nc" id="L106">        }</span>
+    }
+
+    /**
+     * Interface to handle the click event on the &quot;Join Request&quot; button.
+     * This interface is implemented by the parent activity or fragment to respond to
+     * the user's interaction with the button.
+     */
+    public interface OnJoinRequestClickListener {
+        /**
+         * Called when the user clicks the &quot;Join Request&quot; button for a workout group.
+         *
+         * @param group The workout group for which the join request button was clicked.
+         */
+        void onJoinRequestClick(WorkoutGroup group);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

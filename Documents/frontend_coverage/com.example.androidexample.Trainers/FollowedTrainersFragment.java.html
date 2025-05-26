@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowedTrainersFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">FollowedTrainersFragment.java</span></div><h1>FollowedTrainersFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+/**
+ * A Fragment that displays a list of trainers followed by the current user.
+ * The fragment fetches the list of followed trainers from a remote server
+ * and displays them in a `RecyclerView`. It supports refreshing the list
+ * with a swipe gesture using `SwipeRefreshLayout`.
+ * &lt;p&gt;
+ * This fragment also provides functionality for interacting with trainers,
+ * including viewing a trainer's profile and unfollowing a trainer.
+ */
+public class FollowedTrainersFragment extends Fragment {
+
+    private SwipeRefreshLayout swipeRefreshLayout;    // SwipeRefreshLayout for pull-to-refresh
+    private RecyclerView recyclerView;                // RecyclerView to display the list of followed trainers
+    private FollowedTrainersAdapter adapter;          // Adapter to bind data to the RecyclerView
+    private List&lt;Trainer&gt; trainerList;                // List of trainers followed by the user
+
+    private static final String TAG = &quot;FollowedTrainersFrag&quot;; // Tag for logging
+
+    /**
+     * Required empty public constructor.
+     */
+<span class="fc" id="L53">    public FollowedTrainersFragment() {</span>
+        // Required empty public constructor
+<span class="fc" id="L55">    }</span>
+
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * Initializes the RecyclerView, SwipeRefreshLayout, and adapter.
+     * Also sets up the listener for swipe-to-refresh functionality.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The View for the fragment's UI.
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+<span class="fc" id="L70">        View rootView = inflater.inflate(R.layout.fragment_followed_trainers, container, false);</span>
+
+<span class="fc" id="L72">        trainerList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L74">        swipeRefreshLayout = rootView.findViewById(R.id.friend_search_layout);</span>
+
+<span class="fc" id="L76">        recyclerView = rootView.findViewById(R.id.recyclerViewFollowedTrainers);</span>
+<span class="fc" id="L77">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+        // Initialize the adapter and set it to the RecyclerView
+<span class="fc" id="L80">        adapter = new FollowedTrainersAdapter(getContext(), trainerList, new FollowedTrainersAdapter.OnTrainerActionListener() {</span>
+            @Override
+            public void onViewProfileClicked(Trainer trainer) {
+<span class="nc" id="L83">                viewTrainerProfile(trainer);</span>
+<span class="nc" id="L84">            }</span>
+
+            @Override
+            public void onUnfollowClicked(Trainer trainer) {
+<span class="nc" id="L88">                unfollowTrainer(trainer);</span>
+<span class="nc" id="L89">            }</span>
+        });
+<span class="fc" id="L91">        recyclerView.setAdapter(adapter);</span>
+
+<span class="fc" id="L93">        fetchFollowedTrainers();</span>
+
+        // Set up SwipeRefreshLayout listener for refreshing the list
+<span class="fc" id="L96">        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {</span>
+            @Override
+            public void onRefresh() {
+<span class="fc" id="L99">                fetchFollowedTrainers();</span>
+<span class="fc" id="L100">            }</span>
+        });
+
+<span class="fc" id="L103">        return rootView;</span>
+    }
+
+    /**
+     * Fetches the list of followed trainers for the current user from the server.
+     * Makes a GET request to the server and updates the adapter with the fetched data.
+     * Also handles swipe-to-refresh state.
+     */
+    private void fetchFollowedTrainers() {
+<span class="fc" id="L112">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L113">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if(username.isEmpty()) {</span>
+<span class="nc" id="L115">            Log.e(TAG, &quot;username not set correctly&quot;);</span>
+<span class="nc" id="L116">            return;</span>
+        }
+<span class="fc" id="L118">        String url = URLManager.getBaseUrl() + &quot;/users/&quot; + username + &quot;/followed-trainers&quot;;</span>
+
+<span class="fc" id="L120">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                com.android.volley.Request.Method.GET,
+                url,
+                null, // Pass null as the request body since it's a GET request
+<span class="fc" id="L124">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="fc" id="L127">                        Log.d(TAG, &quot;Response: &quot; + response.toString());</span>
+
+                        // Clear current list and populate from response
+<span class="fc" id="L130">                        trainerList.clear();</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">                        for(int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="fc" id="L133">                                trainerList.add(new Trainer(response.getJSONObject(i)));</span>
+<span class="nc" id="L134">                            } catch (JSONException e) {</span>
+<span class="nc" id="L135">                                Log.e(TAG, &quot;Failed parsing trainer JSON: &quot; + e.toString());</span>
+<span class="fc" id="L136">                            }</span>
+                        }
+
+<span class="fc" id="L139">                        adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L140">                        swipeRefreshLayout.setRefreshing(false);</span>
+<span class="fc" id="L141">                    }</span>
+                },
+<span class="fc" id="L143">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L146">                        Log.e(TAG, &quot;Volley Error: &quot; + error.toString());</span>
+<span class="nc" id="L147">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L148">                        swipeRefreshLayout.setRefreshing(false);</span>
+<span class="nc" id="L149">                    }</span>
+<span class="fc" id="L150">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+<span class="fc" id="L153">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                // Add any required headers here
+<span class="fc" id="L155">                return headers;</span>
+            }
+        };
+
+        // Add the request to the queue
+<span class="fc" id="L160">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="fc" id="L161">    }</span>
+
+    /**
+     * Removes a trainer from the followed list and notifies the user of the action.
+     * Sends a DELETE request to the server to unfollow the trainer.
+     *
+     * @param trainer The trainer to unfollow.
+     */
+    private void unfollowTrainer(Trainer trainer) {
+<span class="nc" id="L170">        SharedPreferences prefs = getContext().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L171">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="nc" id="L173">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainer.getId() + &quot;/followers/&quot; + username;</span>
+
+<span class="nc" id="L175">        StringRequest request = new StringRequest(com.android.volley.Request.Method.DELETE, url,</span>
+<span class="nc" id="L176">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L179">                        Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L180">                        trainerList.remove(trainer);</span>
+<span class="nc" id="L181">                        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L182">                    }</span>
+                },
+<span class="nc" id="L184">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L187">                        Log.e(TAG, &quot;Error unfollowing trainer: &quot; + error.getMessage());</span>
+<span class="nc" id="L188">                        Toast.makeText(getContext(), &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L189">                    }</span>
+                });
+
+        // Add the request to the Volley request queue
+<span class="nc" id="L193">        VolleySingleton.getInstance(getContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L194">    }</span>
+
+    /**
+     * Opens a new activity to view the profile of the specified trainer.
+     *
+     * @param trainer The trainer whose profile is to be viewed.
+     */
+    private void viewTrainerProfile(Trainer trainer) {
+        // Intent to view trainer profile
+<span class="nc" id="L203">        Intent intent = new Intent(getActivity(), TrainerProfileActivity.class);</span>
+<span class="nc" id="L204">        intent.putExtra(&quot;TRAINER_ID&quot;, trainer.getId());</span>
+<span class="nc" id="L205">        startActivity(intent);</span>
+<span class="nc" id="L206">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,431 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > User</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.users</a>
+</div>
+
+<h1>Coverage Summary for Class: User (onetoone.users)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">User</td>
+<td class="coverageStat">
+  <span class="percent">
+    60.8%
+  </span>
+  <span class="absValue">
+    (31/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (41/82)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">User$HibernateInstantiator$tySeppOZ</td>
+  </tr>
+  <tr>
+    <td class="name">User$HibernateProxy$Y0KfM4bB</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    60.8%
+  </span>
+  <span class="absValue">
+    (31/51)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (41/82)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.users;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import jakarta.persistence.*;
+&nbsp;
+&nbsp;import onetoone.WorkoutGroups.WorkoutGroup;
+&nbsp;import onetoone.FriendRequest.FriendRequest;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;import onetoone.calendar.WorkoutDate;
+&nbsp;import onetoone.chat.ChatSession;
+&nbsp;import onetoone.points.PointTransaction;
+&nbsp;import org.hibernate.annotations.OnDelete;
+&nbsp;import org.hibernate.annotations.OnDeleteAction;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;
+&nbsp;/**
+&nbsp; * Provides the Definition/Structure for user information
+&nbsp; *
+&nbsp; * @author Dawud Benedict, Joey
+&nbsp; */
+&nbsp;@Entity
+&nbsp;public class User {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private long id;
+&nbsp;    private String username;
+&nbsp;    private String firstName;
+&nbsp;    private String lastName;
+&nbsp;    private String email;
+&nbsp;    private String telephone;
+&nbsp;    private int height; // inches
+&nbsp;    private int weight; // lbs
+&nbsp;    private int age;
+&nbsp;    private String password;
+&nbsp;    private String UserRole;
+&nbsp;    private int totalPoints; // Total points earned by the user
+&nbsp;
+&nbsp;    // ordered WorkoutTemplate list, should list in order created
+&nbsp;    @JsonIgnore
+&nbsp;    @OneToMany(mappedBy = &quot;user&quot;)
+&nbsp;    List&lt;WorkoutTemplate&gt; workoutTemplateList;
+&nbsp;
+&nbsp;    // New field for workout groups
+<b class="fc">&nbsp;    @JsonIgnore</b>
+&nbsp;    @ManyToMany(mappedBy = &quot;members&quot;)
+&nbsp;    private Set&lt;WorkoutGroup&gt; workoutGroups = new HashSet&lt;&gt;();
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    @OneToMany
+&nbsp;    List&lt;WorkoutTemplate&gt; Workout_Template;
+&nbsp;
+&nbsp;    @ManyToMany(fetch = FetchType.EAGER)
+&nbsp;    @JoinTable( name = &quot;users_friends&quot;,
+&nbsp;            joinColumns = @JoinColumn(name = &quot;User_id&quot;),
+&nbsp;            inverseJoinColumns = @JoinColumn(name = &quot;Friend_id&quot;))
+&nbsp;    @JsonIgnore
+&nbsp;    @OnDelete(action = OnDeleteAction.CASCADE)
+&nbsp;    private List&lt;User&gt; friendsList;
+&nbsp;
+&nbsp;    @OneToMany(mappedBy = &quot;sender&quot;)
+&nbsp;    @JsonIgnore
+&nbsp;    private Set&lt;FriendRequest&gt; sentRequests;
+&nbsp;
+&nbsp;    @OneToMany(mappedBy = &quot;receiver&quot;)
+&nbsp;    @JsonIgnore
+&nbsp;    private Set&lt;FriendRequest&gt; receivedRequests;
+&nbsp;
+&nbsp;    @ManyToMany(mappedBy = &quot;users&quot;)
+&nbsp;    @JsonIgnore
+&nbsp;    private List&lt;ChatSession&gt; chatSessions;
+&nbsp;
+&nbsp;    @OneToMany
+&nbsp;    private List&lt;WorkoutDate&gt; plannedWorkouts;
+&nbsp;
+&nbsp;    @OneToMany
+&nbsp;    private List&lt;WorkoutDate&gt; completedWorkouts;
+&nbsp;
+&nbsp;    // Points system - user&#39;s point transaction history
+&nbsp;    @JsonIgnore
+&nbsp;    @OneToMany(mappedBy = &quot;user&quot;)
+&nbsp;    private List&lt;PointTransaction&gt; pointTransactions;
+&nbsp;
+<b class="nc">&nbsp;    public User(String username, String firstName, String lastName, String email, String telephone, String UserRole) {</b>
+<b class="nc">&nbsp;        this.username = username;</b>
+<b class="nc">&nbsp;        this.email = email;</b>
+<b class="nc">&nbsp;        this.firstName = firstName;</b>
+<b class="nc">&nbsp;        this.lastName = lastName;</b>
+<b class="nc">&nbsp;        this.telephone = telephone;</b>
+<b class="nc">&nbsp;        this.UserRole = UserRole;</b>
+<b class="nc">&nbsp;        this.workoutTemplateList = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.friendsList = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.receivedRequests = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.sentRequests = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.chatSessions = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.plannedWorkouts = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.completedWorkouts = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;        this.totalPoints = 0;</b>
+<b class="nc">&nbsp;        this.pointTransactions = new ArrayList&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public User() {</b>
+<b class="fc">&nbsp;        this.workoutTemplateList = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.friendsList = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.receivedRequests = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.sentRequests = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.workoutGroups = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.chatSessions = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.plannedWorkouts = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.completedWorkouts = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.totalPoints = 0;</b>
+<b class="fc">&nbsp;        this.pointTransactions = new ArrayList&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Set&lt;WorkoutGroup&gt; getWorkoutGroups() {
+<b class="nc">&nbsp;        return workoutGroups;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setWorkoutGroups(Set&lt;WorkoutGroup&gt; workoutGroups) {
+<b class="nc">&nbsp;        this.workoutGroups = workoutGroups;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addWorkoutGroup(WorkoutGroup group) {
+<b class="nc">&nbsp;        this.workoutGroups.add(group);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void removeWorkoutGroup(WorkoutGroup group) {
+<b class="nc">&nbsp;        this.workoutGroups.remove(group);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public long getId() {
+<b class="fc">&nbsp;        return this.id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setId(long id) {
+<b class="fc">&nbsp;        this.id = id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUsername() {
+<b class="fc">&nbsp;        return this.username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUsername(String username) {
+<b class="fc">&nbsp;        this.username = username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getFirstName() {
+<b class="fc">&nbsp;        return this.firstName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setFirstName(String firstName) {
+<b class="fc">&nbsp;        this.firstName = firstName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getLastName() {
+<b class="fc">&nbsp;        return this.lastName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setLastName(String lastName) {
+<b class="fc">&nbsp;        this.lastName = lastName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getEmail() {
+<b class="fc">&nbsp;        return this.email;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEmail(String email) {
+<b class="fc">&nbsp;        this.email = email;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getTelephone() {
+<b class="fc">&nbsp;        return this.telephone;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setTelephone(String telephone) {
+<b class="fc">&nbsp;        this.telephone = telephone;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUserRole() {
+<b class="fc">&nbsp;        return this.UserRole;</b>
+&nbsp;    }
+&nbsp;    public void setUserRole(String UserRole){
+<b class="fc">&nbsp;        this.UserRole = UserRole;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public int getFriendsCount() {return friendsList.size(); }</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getHeight() {return this.height;}</b>
+<b class="nc">&nbsp;    public void setHeight(int height) {this.height = height;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public int getWeight() {return this.weight;}</b>
+&nbsp;    public void setWeight(int weight) {
+<b class="fc">&nbsp;        this.weight = weight;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public int getAge() {return this.age;}</b>
+<b class="nc">&nbsp;    public void setAge(int age) {this.age = age;}</b>
+&nbsp;
+<b class="fc">&nbsp;    public String getPassword() {return this.password;}</b>
+<b class="fc">&nbsp;    public void setPassword(String password) {this.password = password;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public List&lt;WorkoutTemplate&gt; getWorkoutTemplateList() { return this.workoutTemplateList; }</b>
+&nbsp;    public void setWorkoutTemplateList(List&lt;WorkoutTemplate&gt; workoutTemplateList) {
+<b class="nc">&nbsp;        this.workoutTemplateList = workoutTemplateList;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addWorkoutTemplate(WorkoutTemplate workoutTemplate) {
+<b class="fc">&nbsp;        this.workoutTemplateList.add(workoutTemplate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void removeWorkoutTemplate(WorkoutTemplate workoutTemplate) {
+<b class="fc">&nbsp;        this.workoutTemplateList.remove(workoutTemplate);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public void addFriend(User user) {friendsList.add(user);}</b>
+<b class="nc">&nbsp;    public void removeFriend(User user) {friendsList.remove(user);}</b>
+<b class="fc">&nbsp;    public List&lt;User&gt; getFriendsList() {return this.friendsList;}</b>
+&nbsp;
+&nbsp;    public User getFriendByUsername(String friendUsername) {
+<b class="nc">&nbsp;        if (this.friendsList == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        for (User friend : this.friendsList) {</b>
+<b class="nc">&nbsp;            if (friend.getUsername().equals(friendUsername)) {</b>
+<b class="nc">&nbsp;                return friend;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isFriend(User user) {
+<b class="nc">&nbsp;        return this.friendsList.contains(user);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public List&lt;ChatSession&gt; getChatSessions() {return this.chatSessions;}</b>
+&nbsp;    public void addChatSessions(ChatSession chatSession) {
+<b class="fc">&nbsp;        this.chatSessions.add(chatSession);</b>
+&nbsp;    }
+&nbsp;    public void removeChatSession(ChatSession chatSession) {
+<b class="fc">&nbsp;        this.chatSessions.remove(chatSession);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addPlannedWorkout(WorkoutDate plannedWorkout) {
+<b class="nc">&nbsp;        this.plannedWorkouts.add(plannedWorkout);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void removePlannedWorkout(WorkoutDate plannedWorkout) {
+<b class="nc">&nbsp;        this.plannedWorkouts.remove(plannedWorkout);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addCompletedWorkout(WorkoutDate completedWorkout) {
+<b class="nc">&nbsp;        this.completedWorkouts.add(completedWorkout);</b>
+&nbsp;        // Note: Points for completed workouts should be awarded through the PointsController
+&nbsp;    }
+&nbsp;
+&nbsp;    public void removeCompletedWorkout(WorkoutDate completedWorkout) {
+<b class="nc">&nbsp;        this.completedWorkouts.remove(completedWorkout);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Points system methods
+&nbsp;    public int getTotalPoints() {
+<b class="fc">&nbsp;        return totalPoints;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setTotalPoints(int totalPoints) {
+<b class="nc">&nbsp;        this.totalPoints = totalPoints;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void addPoints(int points) {
+<b class="nc">&nbsp;        this.totalPoints += points;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;PointTransaction&gt; getPointTransactions() {
+<b class="nc">&nbsp;        return pointTransactions;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setPointTransactions(List&lt;PointTransaction&gt; pointTransactions) {
+<b class="nc">&nbsp;        this.pointTransactions = pointTransactions;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="fc">&nbsp;        return username + &quot; &quot;</b>
+&nbsp;                + firstName + &quot; &quot;
+&nbsp;                + lastName + &quot; &quot;
+&nbsp;                + email + &quot; &quot;
+&nbsp;                + telephone;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:21</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Profile</a> &gt; <span class="el_source">ProfileActivity.java</span></div><h1>ProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Profile;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.androidexample.HomeActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+
+import org.json.JSONObject;
+import android.content.SharedPreferences;
+
+
+
+
+
+<span class="nc" id="L29">public class ProfileActivity extends AppCompatActivity {</span>
+
+    private TextView nameText;  // define first + last name textview variable
+    private TextView ageText;   // define age textview variable
+    private TextView weightText;   // define weight textview variable
+    private TextView heightText;   // define height textview variable
+    private TextView emailText;  // define email textview variable
+    private TextView phoneText;  // define phone textview variable
+    private Button backButton;    // define back button variable
+    private Button editButton;    // define edit button variable
+
+    private String username;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L45">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L46">        setContentView(R.layout.activity_profile);             // link to Main activity XML</span>
+
+        /* initialize UI elements */
+<span class="nc" id="L49">        backButton = findViewById(R.id.profile_back);</span>
+<span class="nc" id="L50">        editButton = findViewById(R.id.edit_profile_btn);</span>
+<span class="nc" id="L51">        nameText = findViewById(R.id.display_name);</span>
+<span class="nc" id="L52">        ageText = findViewById(R.id.display_age);</span>
+<span class="nc" id="L53">        weightText = findViewById(R.id.display_weight);</span>
+<span class="nc" id="L54">        heightText = findViewById(R.id.display_height);</span>
+<span class="nc" id="L55">        emailText = findViewById(R.id.editTextEmailAddress);</span>
+<span class="nc" id="L56">        phoneText = findViewById(R.id.editTextPhone);</span>
+
+<span class="nc" id="L58">        fetchUserData();</span>
+
+
+        /* click listener on back button being pressed */
+<span class="nc" id="L62">        backButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when back button is pressed, use intent to switch to Signup Activity */
+<span class="nc" id="L67">                Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);</span>
+<span class="nc" id="L68">                startActivity(intent);</span>
+<span class="nc" id="L69">            }</span>
+
+        });
+<span class="nc" id="L72">        editButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                // when back button is pressed, use intent to switch to Edit Activity
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (editButton != null){</span>
+<span class="nc" id="L78">                    Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);</span>
+<span class="nc" id="L79">                    startActivity(intent);</span>
+<span class="nc" id="L80">                }</span>
+                else{
+<span class="nc" id="L82">                    Toast.makeText(ProfileActivity.this, &quot;Button is null&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L84">            }</span>
+
+        });
+<span class="nc" id="L87">    }</span>
+    private void fetchUserData() {
+<span class="nc" id="L89">        SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="nc" id="L90">        String username = sharedPreferences.getString(&quot;username&quot;, null);</span>
+
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (username == null) {</span>
+<span class="nc" id="L93">            Toast.makeText(this, &quot;No user logged in&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L94">            return;</span>
+        }
+
+<span class="nc" id="L97">        RequestQueue queue = Volley.newRequestQueue(this);</span>
+
+<span class="nc" id="L99">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, URLManager.USERS_URL + &quot;/&quot; + username, null,</span>
+<span class="nc" id="L100">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            // Extract data from JSON object with null checks and default values
+<span class="nc" id="L105">                            String firstName = response.optString(&quot;firstName&quot;, &quot;Not Set&quot;);</span>
+<span class="nc" id="L106">                            String lastName = response.optString(&quot;lastName&quot;, &quot;Not Set&quot;);</span>
+<span class="nc" id="L107">                            int age = response.optInt(&quot;age&quot;, 0);</span>
+<span class="nc" id="L108">                            int height = response.optInt(&quot;height&quot;, 0);</span>
+<span class="nc" id="L109">                            int weight = response.optInt(&quot;weight&quot;, 0);</span>
+<span class="nc" id="L110">                            String email = response.optString(&quot;email&quot;, &quot;Not Set&quot;);</span>
+<span class="nc" id="L111">                            String phone = response.optString(&quot;telephone&quot;, &quot;Not Set&quot;);</span>
+
+                            // Set text views with the fetched data
+<span class="nc bnc" id="L114" title="All 4 branches missed.">                            nameText.setText(firstName.equals(&quot;Not Set&quot;) &amp;&amp; lastName.equals(&quot;Not Set&quot;)</span>
+<span class="nc" id="L115">                                    ? &quot;Name Not Set&quot;</span>
+<span class="nc" id="L116">                                    : firstName + &quot; &quot; + lastName);</span>
+
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                            ageText.setText(age &gt; 0 ? age + &quot; years&quot; : &quot;Age Not Set&quot;);</span>
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                            heightText.setText(height &gt; 0</span>
+<span class="nc" id="L121">                                    ? height/12 + &quot;ft &quot; + height%12 +&quot;in&quot;</span>
+<span class="nc" id="L122">                                    : &quot;Height Not Set&quot;);</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                            weightText.setText(weight &gt; 0 ? weight + &quot; lbs&quot; : &quot;Weight Not Set&quot;);</span>
+
+<span class="nc" id="L126">                            emailText.setText(email);</span>
+<span class="nc" id="L127">                            phoneText.setText(phone);</span>
+
+<span class="nc" id="L129">                        } catch (Exception e) {</span>
+<span class="nc" id="L130">                            e.printStackTrace();</span>
+<span class="nc" id="L131">                            Toast.makeText(ProfileActivity.this, &quot;Error parsing data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L132">                        }</span>
+<span class="nc" id="L133">                    }</span>
+                },
+<span class="nc" id="L135">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L138">                        error.printStackTrace();</span>
+<span class="nc" id="L139">                        Log.e(&quot;VolleyError&quot;, &quot;Error: &quot; + error.toString());</span>
+
+                        // More detailed error handling
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L143">                            Log.e(&quot;VolleyError&quot;, &quot;Status Code: &quot; + error.networkResponse.statusCode);</span>
+                        }
+
+<span class="nc" id="L146">                        Toast.makeText(ProfileActivity.this, &quot;Failed to fetch user data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L147">                    }</span>
+                });
+
+<span class="nc" id="L150">        queue.add(request);</span>
+<span class="nc" id="L151">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

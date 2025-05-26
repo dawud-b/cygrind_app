@@ -1,0 +1,168 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WorkoutDate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.calendar</a>
+</div>
+
+<h1>Coverage Summary for Class: WorkoutDate (onetoone.calendar)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WorkoutDate</td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    7.1%
+  </span>
+  <span class="absValue">
+    (1/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">WorkoutDate$HibernateInstantiator$AcVu1XuY</td>
+  </tr>
+  <tr>
+    <td class="name">WorkoutDate$HibernateProxy$FYmHpySG</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    7.1%
+  </span>
+  <span class="absValue">
+    (1/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.calendar;
+&nbsp;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonFormat;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;import onetoone.users.User;
+&nbsp;import org.springframework.format.annotation.DateTimeFormat;
+&nbsp;
+&nbsp;import java.util.Calendar;
+&nbsp;
+&nbsp;@Entity
+&nbsp;public class WorkoutDate {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private long id;
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    private WorkoutTemplate workout;
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    private User user;
+&nbsp;
+&nbsp;    private boolean completed;
+&nbsp;
+&nbsp;    @JsonFormat(pattern = &quot;yyyy-MM-dd&#39;T&#39;HH:mm:ss.SSSXXX&quot;)
+&nbsp;    private Calendar date;
+&nbsp;
+<b class="nc">&nbsp;    public WorkoutDate(User user, Calendar date, WorkoutTemplate workoutTemplate) {</b>
+<b class="nc">&nbsp;        this.user = user;</b>
+<b class="nc">&nbsp;        this.workout = workoutTemplate;</b>
+<b class="nc">&nbsp;        this.date = date;</b>
+<b class="nc">&nbsp;        this.completed = false;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public WorkoutDate() {}</b>
+&nbsp;
+<b class="nc">&nbsp;    public void setCompleted(boolean completed) {this.completed = completed;}</b>
+<b class="nc">&nbsp;    public boolean isCompleted() {return this.completed;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public User getUser() {return this.user;}</b>
+<b class="nc">&nbsp;    public void setUser(User user) {this.user = user;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public WorkoutTemplate getWorkout() {return this.workout;}</b>
+<b class="nc">&nbsp;    public void setWorkout(WorkoutTemplate workout) {this.workout = workout;}</b>
+&nbsp;
+<b class="nc">&nbsp;    public Calendar getDate() {return this.date;}</b>
+<b class="nc">&nbsp;    public void setDate(Calendar date) {this.date = date;}</b>
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:06</div>
+</div>
+</body>
+</html>

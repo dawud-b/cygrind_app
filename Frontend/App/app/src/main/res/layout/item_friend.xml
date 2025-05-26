@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <!-- TextView to display the friend's name -->
+    <TextView
+        android:id="@+id/friendName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Friend Name"
+        android:textSize="20sp"
+        android:layout_gravity="start"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"> <!-- Align the buttons to the right -->
+
+        <ImageButton
+            android:id="@+id/member_messageButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:attr/colorBackground"
+            android:src="@drawable/message_square_chat_svgrepo_com" />
+
+        <ImageButton
+            android:id="@+id/removeButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="?android:attr/colorBackground"
+            android:src="@drawable/remove_profile_svgrepo_com" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    tools:context=".WorkoutGroup.WorkoutGroupAdapter">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Group Name -->
+
+        <!-- Group Description -->
+        <TextView
+            android:id="@+id/textViewGroupName"
+            android:layout_width="262dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Workout Group Name"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textViewDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Group description goes here."
+            android:textSize="14sp"
+            />
+
+        <!-- Optional: Display Group Leader or Member Count -->
+        <TextView
+            android:id="@+id/leader_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Leader: John Doe"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"/>
+
+        <Button
+            android:id="@+id/btnJoinRequest"
+            android:layout_width="wrap_content"
+            android:layout_height="25dp"
+            android:background="@drawable/rounded_button"
+            android:text="Request" />
+        <!-- Join Request Button -->
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutTemplateAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.WorkoutTemplate</a> &gt; <span class="el_source">WorkoutTemplateAdapter.java</span></div><h1>WorkoutTemplateAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.WorkoutTemplate;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.List;
+
+/**
+ * {@code WorkoutTemplateAdapter} is a custom adapter for displaying a list of
+ * {@link WorkoutTemplate} objects in a {@link RecyclerView}. It provides UI elements
+ * for editing and deleting templates through interaction callbacks.
+ *
+ * This adapter uses the {@link WorkoutViewHolder} class to bind data to views.
+ */
+public class WorkoutTemplateAdapter extends RecyclerView.Adapter&lt;WorkoutTemplateAdapter.WorkoutViewHolder&gt; {
+
+    private List&lt;WorkoutTemplate&gt; workoutList;
+    private OnWorkoutActionListener listener;
+
+    /**
+     * Interface for handling edit and delete actions on workout templates.
+     */
+    public interface OnWorkoutActionListener {
+        /**
+         * Called when the edit button for a workout is clicked.
+         *
+         * @param position The index of the workout in the list.
+         */
+        void onEditClick(int position);
+
+        /**
+         * Called when the delete button for a workout is clicked.
+         *
+         * @param position The index of the workout in the list.
+         */
+        void onDeleteClick(int position);
+    }
+
+    /**
+     * Constructs a {@code WorkoutTemplateAdapter} with the provided data and action listener.
+     *
+     * @param workoutList The list of workout templates to display.
+     * @param listener    Listener to handle edit and delete actions.
+     */
+<span class="fc" id="L52">    public WorkoutTemplateAdapter(List&lt;WorkoutTemplate&gt; workoutList, OnWorkoutActionListener listener) {</span>
+<span class="fc" id="L53">        this.workoutList = workoutList;</span>
+<span class="fc" id="L54">        this.listener = listener;</span>
+<span class="fc" id="L55">    }</span>
+
+    /**
+     * Inflates the view for a single workout template item and returns a {@link WorkoutViewHolder}.
+     *
+     * @param parent   The parent view group.
+     * @param viewType The view type.
+     * @return A new {@link WorkoutViewHolder}.
+     */
+    @Override
+    public WorkoutViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="fc" id="L66">        View view = LayoutInflater.from(parent.getContext())</span>
+<span class="fc" id="L67">                .inflate(R.layout.workout_template_item, parent, false);</span>
+<span class="fc" id="L68">        return new WorkoutViewHolder(view);</span>
+    }
+
+    /**
+     * Binds data from a {@link WorkoutTemplate} to the view holder.
+     *
+     * @param holder   The view holder to bind data to.
+     * @param position The position of the data item in the list.
+     */
+    @Override
+    public void onBindViewHolder(WorkoutViewHolder holder, int position) {
+<span class="fc" id="L79">        WorkoutTemplate workout = workoutList.get(position);</span>
+<span class="fc" id="L80">        holder.title.setText(workout.getTitle());</span>
+
+<span class="pc" id="L82">        holder.editButton.setOnClickListener(v -&gt; listener.onEditClick(position));</span>
+<span class="pc" id="L83">        holder.deleteButton.setOnClickListener(v -&gt; listener.onDeleteClick(position));</span>
+<span class="fc" id="L84">    }</span>
+
+    /**
+     * Returns the number of items in the dataset.
+     *
+     * @return The size of the workout list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L93">        return workoutList.size();</span>
+    }
+
+    /**
+     * {@code WorkoutViewHolder} holds references to the views for each workout template item.
+     */
+    public static class WorkoutViewHolder extends RecyclerView.ViewHolder {
+        TextView title;
+        Button editButton;
+        Button deleteButton;
+
+        /**
+         * Initializes the view holder with the provided item view.
+         *
+         * @param itemView The view representing a single item.
+         */
+        public WorkoutViewHolder(View itemView) {
+<span class="fc" id="L110">            super(itemView);</span>
+<span class="fc" id="L111">            title = itemView.findViewById(R.id.workoutTitle);</span>
+<span class="fc" id="L112">            editButton = itemView.findViewById(R.id.editButton);</span>
+<span class="fc" id="L113">            deleteButton = itemView.findViewById(R.id.deleteButton);</span>
+<span class="fc" id="L114">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

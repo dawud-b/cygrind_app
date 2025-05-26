@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventWebSocketClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">EventWebSocketClient.java</span></div><h1>EventWebSocketClient.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+public class EventWebSocketClient {
+    private static final String TAG = &quot;EventWebSocketClient&quot;;
+    private WebSocketClient webSocketClient;
+    private EventWebSocketListener listener;
+    private String serverUrl;
+    private String username;
+<span class="nc" id="L19">    private boolean isConnected = false;</span>
+    private Handler mainHandler;
+
+<span class="nc" id="L22">    public EventWebSocketClient(String serverUrl, String username, EventWebSocketListener listener) {</span>
+<span class="nc" id="L23">        this.serverUrl = serverUrl;</span>
+<span class="nc" id="L24">        this.username = username;</span>
+<span class="nc" id="L25">        this.listener = listener;</span>
+<span class="nc" id="L26">        this.mainHandler = new Handler(Looper.getMainLooper());</span>
+<span class="nc" id="L27">    }</span>
+
+    public interface EventWebSocketListener {
+        void onConnected();
+        void onDisconnected(int code, String reason);
+        void onError(Exception ex);
+        void onMessageReceived(String message);
+    }
+
+    public void connect() {
+        try {
+<span class="nc" id="L38">            URI uri = new URI(serverUrl + &quot;/events/&quot; + username);</span>
+<span class="nc" id="L39">            webSocketClient = new WebSocketClient(uri) {</span>
+                @Override
+                public void onOpen(ServerHandshake handshakedata) {
+<span class="nc" id="L42">                    Log.d(TAG, &quot;WebSocket connection opened&quot;);</span>
+<span class="nc" id="L43">                    isConnected = true;</span>
+<span class="nc" id="L44">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L46">                            listener.onConnected();</span>
+                        }
+<span class="nc" id="L48">                    });</span>
+<span class="nc" id="L49">                }</span>
+
+                @Override
+                public void onMessage(String message) {
+<span class="nc" id="L53">                    Log.d(TAG, &quot;Received message: &quot; + message);</span>
+<span class="nc" id="L54">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L56">                            listener.onMessageReceived(message);</span>
+                        }
+<span class="nc" id="L58">                    });</span>
+<span class="nc" id="L59">                }</span>
+
+                @Override
+                public void onClose(int code, String reason, boolean remote) {
+<span class="nc" id="L63">                    Log.d(TAG, &quot;WebSocket connection closed: &quot; + reason);</span>
+<span class="nc" id="L64">                    isConnected = false;</span>
+<span class="nc" id="L65">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L67">                            listener.onDisconnected(code, reason);</span>
+                        }
+<span class="nc" id="L69">                    });</span>
+<span class="nc" id="L70">                }</span>
+
+                @Override
+                public void onError(Exception ex) {
+<span class="nc" id="L74">                    Log.e(TAG, &quot;WebSocket error&quot;, ex);</span>
+<span class="nc" id="L75">                    mainHandler.post(() -&gt; {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                        if (listener != null) {</span>
+<span class="nc" id="L77">                            listener.onError(ex);</span>
+                        }
+<span class="nc" id="L79">                    });</span>
+<span class="nc" id="L80">                }</span>
+            };
+
+<span class="nc" id="L83">            webSocketClient.connect();</span>
+<span class="nc" id="L84">        } catch (URISyntaxException e) {</span>
+<span class="nc" id="L85">            Log.e(TAG, &quot;URI syntax error&quot;, e);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L87">                listener.onError(e);</span>
+            }
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">    }</span>
+
+    public void disconnect() {
+<span class="nc bnc" id="L93" title="All 4 branches missed.">        if (webSocketClient != null &amp;&amp; isConnected) {</span>
+<span class="nc" id="L94">            webSocketClient.close();</span>
+        }
+<span class="nc" id="L96">    }</span>
+
+    public void sendMessage(String message) {
+<span class="nc bnc" id="L99" title="All 4 branches missed.">        if (webSocketClient != null &amp;&amp; isConnected) {</span>
+<span class="nc" id="L100">            webSocketClient.send(message);</span>
+        } else {
+<span class="nc" id="L102">            Log.e(TAG, &quot;Cannot send message - WebSocket is not connected&quot;);</span>
+        }
+<span class="nc" id="L104">    }</span>
+
+    public boolean isConnected() {
+<span class="nc" id="L107">        return isConnected;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <!-- Exercise Name -->
+    <TextView
+        android:id="@+id/exerciseName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Exercise"
+        android:textSize="16sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+    <!-- Vertical container for Sets, Reps, and Weight -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center">
+
+        <!-- Sets -->
+        <TextView
+            android:id="@+id/setsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sets: 0"
+            android:textSize="14sp"
+            android:gravity="center" />
+
+        <!-- Reps -->
+        <TextView
+            android:id="@+id/repsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reps: 0"
+            android:textSize="14sp"
+            android:gravity="center" />
+
+        <!-- Weight -->
+        <TextView
+            android:id="@+id/weightText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Weight: 0"
+            android:textSize="14sp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Remove Button -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/removeExerciseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/rounded_button"
+            android:text="Remove" />
+
+        <Button
+            android:id="@+id/editButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/rounded_button"
+            android:text="Edit" />
+    </LinearLayout>
+
+</LinearLayout>

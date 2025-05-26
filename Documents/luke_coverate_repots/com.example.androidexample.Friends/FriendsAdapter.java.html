@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FriendsAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Friends</a> &gt; <span class="el_source">FriendsAdapter.java</span></div><h1>FriendsAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Friends;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+import com.example.androidexample.User;
+
+import java.util.List;
+
+public class FriendsAdapter extends RecyclerView.Adapter&lt;FriendsAdapter.FriendViewHolder&gt; {
+
+    private Context context;
+    private List&lt;User&gt; friendList;
+    private OnFriendActionListener onFriendActionListener;
+
+    // Constructor to initialize the context and list of friends
+<span class="fc" id="L23">    public FriendsAdapter(Context context, List&lt;User&gt; friendList, OnFriendActionListener listener) {</span>
+<span class="fc" id="L24">        this.context = context;</span>
+<span class="fc" id="L25">        this.friendList = friendList;</span>
+<span class="fc" id="L26">        this.onFriendActionListener = listener;</span>
+<span class="fc" id="L27">    }</span>
+
+    @Override
+    public FriendViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each item in the RecyclerView
+<span class="fc" id="L32">        View view = LayoutInflater.from(context).inflate(R.layout.item_friend, parent, false);</span>
+<span class="fc" id="L33">        return new FriendViewHolder(view);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(FriendViewHolder holder, int position) {
+        // Bind data to the ViewHolder
+<span class="fc" id="L39">        User friend = friendList.get(position);</span>
+<span class="fc" id="L40">        holder.friendNameTextView.setText(friend.getUsername());</span>
+
+        // set button listeners
+<span class="fc" id="L43">        holder.messageButton.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            if (onFriendActionListener != null) {</span>
+<span class="fc" id="L45">                onFriendActionListener.onMessageClicked(friend); // Call the interface method</span>
+            }
+<span class="fc" id="L47">        });</span>
+
+        // Set up the remove friend button click listener
+<span class="fc" id="L50">        holder.removeFriend.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if (onFriendActionListener != null) {</span>
+<span class="nc" id="L52">                onFriendActionListener.onRemoveFriendClicked(friend); // Call the interface method</span>
+            }
+<span class="nc" id="L54">        });</span>
+<span class="fc" id="L55">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L59">        return friendList.size();  // Return the size of the friend list</span>
+    }
+
+    // ViewHolder class to hold the view for each item
+    public static class FriendViewHolder extends RecyclerView.ViewHolder {
+        TextView friendNameTextView;
+        ImageButton messageButton;
+        ImageButton removeFriend;
+
+        public FriendViewHolder(View itemView) {
+<span class="fc" id="L69">            super(itemView);</span>
+            // Initialize the TextView in the item layout
+<span class="fc" id="L71">            friendNameTextView = itemView.findViewById(R.id.friendName);</span>
+<span class="fc" id="L72">            messageButton= itemView.findViewById(R.id.member_messageButton);</span>
+<span class="fc" id="L73">            removeFriend = itemView.findViewById(R.id.removeButton);</span>
+<span class="fc" id="L74">        }</span>
+    }
+
+    public interface OnFriendActionListener {
+        void onMessageClicked(User friend);
+        void onRemoveFriendClicked(User friend);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Events WebSocket Client</title>
+    <style>
+        body {
+            font-family: Times New Roman, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #messages {
+            height: 400px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 8px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .help-text {
+            background-color: #e9f7ef;
+            padding: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+<h1>Events WebSocket Client</h1>
+
+<div>
+    <label for="username">Username:</label>
+    <input type="text" id="username" placeholder="Enter your username">
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+</div>
+
+<div id="messages"></div>
+
+<div>
+    <input type="text" id="messageInput" placeholder="Type a command (e.g., /help, /events)" disabled>
+    <button onclick="sendMessage()" id="sendButton" disabled>Send</button>
+</div>
+
+<div class="help-text">
+    <h3>Quick Commands:</h3>
+    <p>/help - Show available commands</p>
+    <p>/events - List all active events</p>
+    <p>/leaderboard [eventId] - View leaderboard for an event</p>
+    <p>/score [eventId] [score] - Submit your score</p>
+    <p>Admin-only: /create, /delete, /activate, /deactivate</p>
+</div>
+
+<script>
+    let websocket;
+
+    function connect() {
+        const username = document.getElementById("username").value;
+        if (!username) {
+            alert("Please enter a username");
+            return;
+        }
+
+        // Create WebSocket connection
+        //websocket = new WebSocket(`ws://localhost:8080/events/${username}`);
+           websocket = new WebSocket(`ws://coms-3090-035.class.las.iastate.edu:8080/events/${username}`);
+        // Connection opened
+        websocket.onopen = function(event) {
+            addMessage("Connected to Events server!");
+            document.getElementById("messageInput").disabled = false;
+            document.getElementById("sendButton").disabled = false;
+        };
+
+        // Listen for messages
+        websocket.onmessage = function(event) {
+            addMessage(event.data);
+        };
+
+        // Connection closed
+        websocket.onclose = function(event) {
+            addMessage("Disconnected from Events server");
+            document.getElementById("messageInput").disabled = true;
+            document.getElementById("sendButton").disabled = true;
+        };
+
+        // Connection error
+        websocket.onerror = function(event) {
+            addMessage("Error: " + event);
+        };
+    }
+
+    function disconnect() {
+        if (websocket) {
+            websocket.close();
+        }
+    }
+
+    function sendMessage() {
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value;
+
+        if (message && websocket) {
+            websocket.send(message);
+            messageInput.value = "";
+        }
+    }
+
+    function addMessage(message) {
+        const messagesDiv = document.getElementById("messages");
+        const messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Allow pressing Enter to send messages
+    document.getElementById("messageInput").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>

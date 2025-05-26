@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JoinRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">JoinRequest.java</span></div><h1>JoinRequest.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.os.Build;
+
+import com.example.androidexample.User;
+
+import org.json.JSONObject;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.json.JSONObject;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Represents a join request made by a user to join a workout group.
+ * This class encapsulates the details of a join request including the request ID, user details,
+ * group details, request time, and the status of the request (pending, accepted, or rejected).
+ */
+public class JoinRequest {
+
+    private Long id;  // The unique identifier for the join request
+    private User user;  // The user who made the join request
+    private WorkoutGroup group;  // The workout group to which the join request is made
+    private LocalDateTime requestedAt;  // The time when the join request was made
+    private RequestStatus status;  // The status of the join request (PENDING, ACCEPTED, REJECTED)
+
+    /**
+     * Enum representing the possible status values for a join request.
+     * The status can be one of the following:
+     * &lt;ul&gt;
+     *   &lt;li&gt;PENDING: The request is still pending approval&lt;/li&gt;
+     *   &lt;li&gt;ACCEPTED: The request has been accepted&lt;/li&gt;
+     *   &lt;li&gt;REJECTED: The request has been rejected&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+<span class="nc" id="L38">    public enum RequestStatus {</span>
+<span class="nc" id="L39">        PENDING,</span>
+<span class="nc" id="L40">        ACCEPTED,</span>
+<span class="nc" id="L41">        REJECTED</span>
+    }
+
+    /**
+     * Constructs a JoinRequest object from the provided JSONObject.
+     * The JSON object is expected to contain the necessary fields such as 'id', 'user', 'group',
+     * 'requestedAt', and 'status'. These fields are parsed and assigned to the corresponding class members.
+     *
+     * @param jsonObject The JSON object containing the details of the join request.
+     */
+<span class="nc" id="L51">    public JoinRequest(JSONObject jsonObject) {</span>
+        try {
+            // Parse the 'id' field
+<span class="nc" id="L54">            this.id = jsonObject.optLong(&quot;id&quot;, -1); // Default to -1 if not present</span>
+
+            // Parse the 'user' field, assuming it's a nested JSON object
+<span class="nc" id="L57">            JSONObject userJson = jsonObject.optJSONObject(&quot;user&quot;);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (userJson != null) {</span>
+<span class="nc" id="L59">                this.user = new User(userJson); // Assuming User has a constructor that takes JSONObject</span>
+            }
+
+            // Parse the 'group' field, assuming it's a nested JSON object
+<span class="nc" id="L63">            JSONObject groupJson = jsonObject.optJSONObject(&quot;group&quot;);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (groupJson != null) {</span>
+<span class="nc" id="L65">                this.group = new WorkoutGroup(groupJson); // Assuming WorkoutGroup has a constructor that takes JSONObject</span>
+            }
+
+            // Parse the 'requestedAt' field (date/time as a string)
+<span class="nc" id="L69">            String requestedAtStr = jsonObject.optString(&quot;requestedAt&quot;, null);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if (requestedAtStr != null) {</span>
+<span class="nc" id="L71">                DateTimeFormatter formatter = null; // Use an appropriate date format</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L73">                    formatter = DateTimeFormatter.ISO_DATE_TIME;</span>
+<span class="nc" id="L74">                    this.requestedAt = LocalDateTime.parse(requestedAtStr, formatter);</span>
+                }
+            }
+
+            // Parse the 'status' field
+<span class="nc" id="L79">            String statusStr = jsonObject.optString(&quot;status&quot;, &quot;PENDING&quot;); // Default to PENDING if not present</span>
+<span class="nc" id="L80">            this.status = RequestStatus.valueOf(statusStr.toUpperCase()); // Convert string to enum</span>
+
+<span class="nc" id="L82">        } catch (Exception e) {</span>
+<span class="nc" id="L83">            e.printStackTrace();</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">    }</span>
+
+    /**
+     * Gets the unique identifier for the join request.
+     *
+     * @return The ID of the join request
+     */
+    public Long getId() {
+<span class="nc" id="L93">        return id;</span>
+    }
+
+    /**
+     * Sets the unique identifier for the join request.
+     *
+     * @param id The ID of the join request
+     */
+    public void setId(Long id) {
+<span class="nc" id="L102">        this.id = id;</span>
+<span class="nc" id="L103">    }</span>
+
+    /**
+     * Gets the user who made the join request.
+     *
+     * @return The user who made the join request
+     */
+    public User getUser() {
+<span class="nc" id="L111">        return user;</span>
+    }
+
+    /**
+     * Sets the user who made the join request.
+     *
+     * @param user The user who made the join request
+     */
+    public void setUser(User user) {
+<span class="nc" id="L120">        this.user = user;</span>
+<span class="nc" id="L121">    }</span>
+
+    /**
+     * Gets the workout group to which the join request is made.
+     *
+     * @return The workout group to which the join request is made
+     */
+    public WorkoutGroup getGroup() {
+<span class="nc" id="L129">        return group;</span>
+    }
+
+    /**
+     * Sets the workout group to which the join request is made.
+     *
+     * @param group The workout group to which the join request is made
+     */
+    public void setGroup(WorkoutGroup group) {
+<span class="nc" id="L138">        this.group = group;</span>
+<span class="nc" id="L139">    }</span>
+
+    /**
+     * Gets the time when the join request was made.
+     *
+     * @return The time when the join request was made
+     */
+    public LocalDateTime getRequestedAt() {
+<span class="nc" id="L147">        return requestedAt;</span>
+    }
+
+    /**
+     * Sets the time when the join request was made.
+     *
+     * @param requestedAt The time when the join request was made
+     */
+    public void setRequestedAt(LocalDateTime requestedAt) {
+<span class="nc" id="L156">        this.requestedAt = requestedAt;</span>
+<span class="nc" id="L157">    }</span>
+
+    /**
+     * Gets the status of the join request.
+     *
+     * @return The status of the join request (PENDING, ACCEPTED, REJECTED)
+     */
+    public RequestStatus getStatus() {
+<span class="nc" id="L165">        return status;</span>
+    }
+
+    /**
+     * Sets the status of the join request.
+     *
+     * @param status The status of the join request (PENDING, ACCEPTED, REJECTED)
+     */
+    public void setStatus(RequestStatus status) {
+<span class="nc" id="L174">        this.status = status;</span>
+<span class="nc" id="L175">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

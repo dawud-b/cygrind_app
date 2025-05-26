@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HomeActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">HomeActivity.java</span></div><h1>HomeActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.androidexample.Leaderboard.EventActivity;
+import com.example.androidexample.Friends.FriendPageActivity;
+import com.example.androidexample.Groups.GroupPageActivity;
+import com.example.androidexample.Messaging.MessageInboxActivity;
+import com.example.androidexample.Profile.ProfileActivity;
+import com.example.androidexample.WorkoutTemplate.WorkoutTemplateActivity;
+import com.example.androidexample.Trainers.TrainerPageActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+<span class="fc" id="L29">public class HomeActivity extends AppCompatActivity {</span>
+
+    private TextView usernameText;  // define username textview variable
+    private ImageButton logOutButton;     // define login button variable
+    private ImageButton profileButton;    // define signup button variable
+    private ImageButton friendsButton;    // define friends button variable
+    private ImageButton calendarButton;
+    private ImageButton trainerButton;
+
+    private ImageButton messageButton;
+    private ImageButton workoutButton;
+    private Button leaderboardButton;
+    private ImageButton groupButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L45">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L46">        setContentView(R.layout.activity_home_new);             // link to Main activity XML</span>
+
+        /* initialize UI elements */
+<span class="fc" id="L49">        usernameText = findViewById(R.id.home_username_txt);// link to username textview in the Main activity XML</span>
+<span class="fc" id="L50">        profileButton = findViewById(R.id.home_profile);</span>
+<span class="fc" id="L51">        logOutButton = findViewById(R.id.home_logout);</span>
+<span class="fc" id="L52">        workoutButton= findViewById(R.id.home_workout);</span>
+<span class="fc" id="L53">        friendsButton = findViewById(R.id.home_friends);</span>
+<span class="fc" id="L54">        calendarButton = findViewById(R.id.home_calendar);</span>
+<span class="fc" id="L55">        messageButton = findViewById(R.id.home_messages);</span>
+<span class="fc" id="L56">        groupButton = findViewById(R.id.home_groups);</span>
+<span class="fc" id="L57">        trainerButton = findViewById(R.id.home_trainer);</span>
+
+        // Initialize the leaderboard button
+<span class="fc" id="L60">        leaderboardButton = findViewById(R.id.view_leaderboard_button);</span>
+
+        /* extract data passed into this activity from another activity */
+<span class="fc" id="L63">        Bundle extras = getIntent().getExtras();</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (extras != null) {</span>
+<span class="fc" id="L65">            usernameText.setText(extras.getString(&quot;USERNAME&quot;)); // this will come from LoginActivity</span>
+<span class="fc" id="L66">            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L67">            SharedPreferences.Editor editor = sharedPreferences.edit();</span>
+<span class="fc" id="L68">            String username = extras.getString(&quot;username&quot;);</span>
+<span class="fc" id="L69">            editor.putString(&quot;username&quot;, extras.getString(&quot;username&quot;)); // store a string</span>
+<span class="fc" id="L70">            storeId(username);</span>
+<span class="fc" id="L71">            editor.apply(); // or commit(), but apply() is asynchronous</span>
+<span class="fc" id="L72">            usernameText.setText(username);</span>
+<span class="fc" id="L73">        } else {</span>
+<span class="fc" id="L74">            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L75">            usernameText.setText(sharedPreferences.getString(&quot;username&quot;, &quot;&quot;));</span>
+        }
+
+        // makeJsonObjReq();
+
+        /* click listener on logout button pressed */
+<span class="fc" id="L81">        logOutButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="fc" id="L86">                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);</span>
+<span class="fc" id="L87">                startActivity(intent);</span>
+<span class="fc" id="L88">            }</span>
+        });
+        /* click listener on logout button pressed */
+<span class="fc" id="L91">        profileButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="nc" id="L96">                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);</span>
+<span class="nc" id="L97">                startActivity(intent);</span>
+<span class="nc" id="L98">            }</span>
+        });
+        /* click listener on logout button pressed */
+<span class="fc" id="L101">        workoutButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="fc" id="L106">                Intent intent = new Intent(HomeActivity.this, WorkoutTemplateActivity.class);</span>
+<span class="fc" id="L107">                startActivity(intent);</span>
+<span class="fc" id="L108">            }</span>
+        });
+        /* click listener on logout button pressed */
+<span class="fc" id="L111">        friendsButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="fc" id="L116">                Intent intent = new Intent(HomeActivity.this, FriendPageActivity.class);</span>
+<span class="fc" id="L117">                startActivity(intent);</span>
+<span class="fc" id="L118">            }</span>
+        });
+        /* click listener on trainer button pressed */
+<span class="fc" id="L121">        trainerButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // Launch the TrainerPageActivity
+<span class="nc" id="L125">                Intent intent = new Intent(HomeActivity.this, TrainerPageActivity.class);</span>
+<span class="nc" id="L126">                startActivity(intent);</span>
+<span class="nc" id="L127">            }</span>
+        });
+
+        /* click listener for the leaderboard button */
+<span class="fc" id="L131">        leaderboardButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // Get the username for passing to the EventActivity
+<span class="nc" id="L135">                String username = usernameText.getText().toString();</span>
+
+                // Launch the EventActivity with default event ID 1
+                // You might want to dynamically fetch the active event ID instead
+<span class="nc" id="L139">                Intent intent = new Intent(HomeActivity.this, EventActivity.class);</span>
+<span class="nc" id="L140">                intent.putExtra(&quot;EVENT_ID&quot;, 1L); // Default to event ID 1</span>
+<span class="nc" id="L141">                intent.putExtra(&quot;EVENT_TITLE&quot;, &quot;Active Event&quot;);</span>
+<span class="nc" id="L142">                intent.putExtra(&quot;USERNAME&quot;, username);</span>
+<span class="nc" id="L143">                startActivity(intent);</span>
+<span class="nc" id="L144">            }</span>
+        });
+        /* click listener on logout button pressed */
+<span class="fc" id="L147">        messageButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="fc" id="L152">                Intent intent = new Intent(HomeActivity.this, MessageInboxActivity.class);</span>
+<span class="fc" id="L153">                startActivity(intent);</span>
+<span class="fc" id="L154">            }</span>
+        });
+
+        /* click listener on logout button pressed */
+<span class="fc" id="L158">        groupButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* when login button is pressed, use intent to switch to Login Activity */
+<span class="nc" id="L163">                Intent intent = new Intent(HomeActivity.this, GroupPageActivity.class);</span>
+<span class="nc" id="L164">                startActivity(intent);</span>
+<span class="nc" id="L165">            }</span>
+        });
+<span class="fc" id="L167">    }</span>
+
+    private void storeId(String username) {
+<span class="fc" id="L170">        String url = &quot;http://coms-3090-035.class.las.iastate.edu:8080/users/&quot; + username;</span>
+
+<span class="fc" id="L172">        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,</span>
+<span class="fc" id="L173">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the JSON response
+<span class="fc" id="L177">                        Log.d(&quot;VolleyResponse&quot;, &quot;User ID stored&quot; + response.toString());</span>
+
+                        try {
+                            // Assuming the response has an &quot;id&quot; field in the JSON object
+<span class="fc" id="L181">                            long userId = response.getLong(&quot;id&quot;);  // Adjust based on your API's response</span>
+<span class="fc" id="L182">                            SharedPreferences sharedPreferences = getSharedPreferences(&quot;MyPrefs&quot;, MODE_PRIVATE);</span>
+<span class="fc" id="L183">                            SharedPreferences.Editor editor = sharedPreferences.edit();</span>
+<span class="fc" id="L184">                            editor.putLong(&quot;id&quot;, userId);</span>
+<span class="fc" id="L185">                            editor.apply();</span>
+                            //Toast.makeText(HomeActivity.this, &quot;id stored&quot; + response, Toast.LENGTH_SHORT).show();
+<span class="nc" id="L187">                        } catch (JSONException e) {</span>
+<span class="nc" id="L188">                            e.printStackTrace();</span>
+<span class="fc" id="L189">                        }</span>
+<span class="fc" id="L190">                    }</span>
+                },
+<span class="fc" id="L192">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle errors
+<span class="nc" id="L196">                        Log.e(&quot;VolleyError&quot;, error.toString());</span>
+<span class="nc" id="L197">                    }</span>
+                });
+
+        // Add the request to the RequestQueue
+<span class="fc" id="L201">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonObjectRequest);</span>
+<span class="fc" id="L202">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

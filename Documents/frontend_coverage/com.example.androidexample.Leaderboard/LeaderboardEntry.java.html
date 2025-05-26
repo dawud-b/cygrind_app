@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LeaderboardEntry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">LeaderboardEntry.java</span></div><h1>LeaderboardEntry.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+/**
+ * Represents an entry in the leaderboard.
+ * Each entry contains information about a participant's username, full name (first and last name),
+ * weight class, and score. The class also provides methods to retrieve the participant's display name,
+ * either combining the first and last name or falling back to the username.
+ */
+public class LeaderboardEntry {
+    private String userName;  // The username of the participant
+    private String firstName;  // The first name of the participant
+    private String lastName;  // The last name of the participant
+    private String weightClass;  // The weight class of the participant
+    private int score;  // The score of the participant
+
+    /**
+     * Constructor to initialize a new leaderboard entry with the given participant details.
+     *
+     * @param userName The username of the participant.
+     * @param firstName The first name of the participant.
+     * @param lastName The last name of the participant.
+     * @param weightClass The weight class of the participant.
+     * @param score The score of the participant.
+     */
+<span class="nc" id="L24">    public LeaderboardEntry(String userName, String firstName, String lastName, String weightClass, int score) {</span>
+<span class="nc" id="L25">        this.userName = userName;</span>
+<span class="nc" id="L26">        this.firstName = firstName;</span>
+<span class="nc" id="L27">        this.lastName = lastName;</span>
+<span class="nc" id="L28">        this.weightClass = weightClass;</span>
+<span class="nc" id="L29">        this.score = score;</span>
+<span class="nc" id="L30">    }</span>
+
+    /**
+     * Gets the username of the participant.
+     *
+     * @return The username of the participant.
+     */
+    public String getUserName() {
+<span class="nc" id="L38">        return userName;</span>
+    }
+
+    /**
+     * Sets the username of the participant.
+     *
+     * @param userName The new username to set.
+     */
+    public void setUserName(String userName) {
+<span class="nc" id="L47">        this.userName = userName;</span>
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * Gets the first name of the participant.
+     *
+     * @return The first name of the participant.
+     */
+    public String getFirstName() {
+<span class="nc" id="L56">        return firstName;</span>
+    }
+
+    /**
+     * Sets the first name of the participant.
+     *
+     * @param firstName The new first name to set.
+     */
+    public void setFirstName(String firstName) {
+<span class="nc" id="L65">        this.firstName = firstName;</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * Gets the last name of the participant.
+     *
+     * @return The last name of the participant.
+     */
+    public String getLastName() {
+<span class="nc" id="L74">        return lastName;</span>
+    }
+
+    /**
+     * Sets the last name of the participant.
+     *
+     * @param lastName The new last name to set.
+     */
+    public void setLastName(String lastName) {
+<span class="nc" id="L83">        this.lastName = lastName;</span>
+<span class="nc" id="L84">    }</span>
+
+    /**
+     * Gets the weight class of the participant.
+     *
+     * @return The weight class of the participant.
+     */
+    public String getWeightClass() {
+<span class="nc" id="L92">        return weightClass;</span>
+    }
+
+    /**
+     * Sets the weight class of the participant.
+     *
+     * @param weightClass The new weight class to set.
+     */
+    public void setWeightClass(String weightClass) {
+<span class="nc" id="L101">        this.weightClass = weightClass;</span>
+<span class="nc" id="L102">    }</span>
+
+    /**
+     * Gets the score of the participant.
+     *
+     * @return The score of the participant.
+     */
+    public int getScore() {
+<span class="nc" id="L110">        return score;</span>
+    }
+
+    /**
+     * Sets the score of the participant.
+     *
+     * @param score The new score to set.
+     */
+    public void setScore(int score) {
+<span class="nc" id="L119">        this.score = score;</span>
+<span class="nc" id="L120">    }</span>
+
+    /**
+     * Returns the display name of the participant. This is the participant's first and last name
+     * if both are available, otherwise, it returns the username.
+     *
+     * @return The display name of the participant (either first and last name or username).
+     */
+    public String getDisplayName() {
+<span class="nc bnc" id="L129" title="All 8 branches missed.">        if (firstName != null &amp;&amp; !firstName.isEmpty() &amp;&amp; lastName != null &amp;&amp; !lastName.isEmpty()) {</span>
+<span class="nc" id="L130">            return firstName + &quot; &quot; + lastName;</span>
+        }
+<span class="nc" id="L132">        return userName;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

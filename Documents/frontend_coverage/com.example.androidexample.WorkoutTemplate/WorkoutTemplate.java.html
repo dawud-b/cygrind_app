@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutTemplate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.WorkoutTemplate</a> &gt; <span class="el_source">WorkoutTemplate.java</span></div><h1>WorkoutTemplate.java</h1><pre class="source lang-java linenums">package com.example.androidexample.WorkoutTemplate;
+
+import android.util.Log;
+
+import com.example.androidexample.Exercise;
+import com.example.androidexample.User;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents a workout template which includes metadata such as title, description, and date,
+ * along with a list of associated {@link TemplateExercise} objects. A workout template is created
+ * by a user and may be edited or stored for future workouts.
+ */
+public class WorkoutTemplate {
+
+    private Long id;
+    private String title; // Title of the workout template
+    private String description; // Description of the workout template
+    private String date; // Date associated with the workout (optional)
+    private ArrayList&lt;TemplateExercise&gt; exerciseList; // List of exercises in the template
+    private User user; // The user who created this template
+
+    /**
+     * Constructs a {@code WorkoutTemplate} with a title and default description.
+     *
+     * @param t The title of the workout template.
+     */
+<span class="fc" id="L34">    public WorkoutTemplate(String t) {</span>
+<span class="fc" id="L35">        this.title = t;</span>
+<span class="fc" id="L36">        this.description = &quot;No description.&quot;;</span>
+<span class="fc" id="L37">        this.exerciseList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L38">    }</span>
+
+    /**
+     * Constructs a {@code WorkoutTemplate} with title, description, and a list of exercises.
+     *
+     * @param t             The title of the workout template.
+     * @param description   The description of the workout template.
+     * @param exerciseList  The list of {@link TemplateExercise} instances in the template.
+     */
+<span class="nc" id="L47">    public WorkoutTemplate(String t, String description, ArrayList&lt;TemplateExercise&gt; exerciseList) {</span>
+<span class="nc" id="L48">        this.title = t;</span>
+<span class="nc" id="L49">        this.description = description;</span>
+<span class="nc" id="L50">        this.exerciseList = exerciseList;</span>
+<span class="nc" id="L51">    }</span>
+
+    /**
+     * Constructs a {@code WorkoutTemplate} from a JSON object, typically received from a backend.
+     *
+     * @param obj A JSON object representing the workout template.
+     */
+<span class="fc" id="L58">    public WorkoutTemplate(JSONObject obj) {</span>
+        try {
+<span class="fc" id="L60">            this.id = obj.getLong(&quot;id&quot;);</span>
+<span class="fc" id="L61">            this.title = obj.getString(&quot;templateName&quot;);</span>
+<span class="fc" id="L62">            this.description = obj.getString(&quot;description&quot;);</span>
+<span class="fc" id="L63">            this.date = obj.getString(&quot;id&quot;); // NOTE: Possible bug – date set from &quot;id&quot;</span>
+<span class="fc" id="L64">            this.user = new User(obj.getJSONObject(&quot;user&quot;));</span>
+<span class="fc" id="L65">            this.exerciseList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L66">        } catch (JSONException e) {</span>
+<span class="nc" id="L67">            Log.e(&quot;JSONException&quot;, e.toString());</span>
+<span class="fc" id="L68">        }</span>
+<span class="fc" id="L69">    }</span>
+
+    /** @param s Sets the title of the workout template. */
+    public void setTitle(String s) {
+<span class="nc" id="L73">        this.title = s;</span>
+<span class="nc" id="L74">    }</span>
+
+    /** @return The title of the workout template. */
+    public String getTitle() {
+<span class="fc" id="L78">        return this.title;</span>
+    }
+
+    /** @return The description of the workout template. */
+    public String getDescription() {
+<span class="fc" id="L83">        return this.description;</span>
+    }
+
+    /** @return The date associated with the workout template. */
+    public String getDate() {
+<span class="nc" id="L88">        return this.date;</span>
+    }
+
+    /** @return The unique identifier of the workout template. */
+    public Long getId() {
+<span class="nc" id="L93">        return this.id;</span>
+    }
+
+    /**
+     * Returns the list of exercises associated with this workout template.
+     *
+     * @return A list of {@link TemplateExercise} objects.
+     */
+    public ArrayList&lt;TemplateExercise&gt; getExercises() {
+<span class="nc" id="L102">        return this.exerciseList;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

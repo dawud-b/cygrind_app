@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowedTrainersAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">FollowedTrainersAdapter.java</span></div><h1>FollowedTrainersAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.List;
+
+public class FollowedTrainersAdapter extends RecyclerView.Adapter&lt;FollowedTrainersAdapter.TrainerViewHolder&gt; {
+
+    private Context context;
+    private List&lt;Trainer&gt; trainerList;
+    private OnTrainerActionListener onTrainerActionListener;
+
+    // Constructor to initialize the context and list of trainers
+<span class="nc" id="L22">    public FollowedTrainersAdapter(Context context, List&lt;Trainer&gt; trainerList, OnTrainerActionListener listener) {</span>
+<span class="nc" id="L23">        this.context = context;</span>
+<span class="nc" id="L24">        this.trainerList = trainerList;</span>
+<span class="nc" id="L25">        this.onTrainerActionListener = listener;</span>
+<span class="nc" id="L26">    }</span>
+
+    @Override
+    public TrainerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each item in the RecyclerView
+<span class="nc" id="L31">        View view = LayoutInflater.from(context).inflate(R.layout.item_trainer, parent, false);</span>
+<span class="nc" id="L32">        return new TrainerViewHolder(view);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(TrainerViewHolder holder, int position) {
+        // Bind data to the ViewHolder
+<span class="nc" id="L38">        Trainer trainer = trainerList.get(position);</span>
+<span class="nc" id="L39">        holder.trainerNameTextView.setText(trainer.getDisplayName());</span>
+<span class="nc" id="L40">        holder.trainerSpecializationTextView.setText(trainer.getSpecialization());</span>
+
+        // Set up view profile button click listener
+<span class="nc" id="L43">        holder.viewProfileButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            if (onTrainerActionListener != null) {</span>
+<span class="nc" id="L45">                onTrainerActionListener.onViewProfileClicked(trainer);</span>
+            }
+<span class="nc" id="L47">        });</span>
+
+        // Set up unfollow button click listener
+<span class="nc" id="L50">        holder.unfollowButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if (onTrainerActionListener != null) {</span>
+<span class="nc" id="L52">                onTrainerActionListener.onUnfollowClicked(trainer);</span>
+            }
+<span class="nc" id="L54">        });</span>
+<span class="nc" id="L55">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L59">        return trainerList.size();</span>
+    }
+
+    // ViewHolder class to hold the view for each item
+    public static class TrainerViewHolder extends RecyclerView.ViewHolder {
+        TextView trainerNameTextView;
+        TextView trainerSpecializationTextView;
+        ImageButton viewProfileButton;
+        ImageButton unfollowButton;
+
+        public TrainerViewHolder(View itemView) {
+<span class="nc" id="L70">            super(itemView);</span>
+<span class="nc" id="L71">            trainerNameTextView = itemView.findViewById(R.id.trainerName);</span>
+<span class="nc" id="L72">            trainerSpecializationTextView = itemView.findViewById(R.id.trainerSpecialization);</span>
+<span class="nc" id="L73">            viewProfileButton = itemView.findViewById(R.id.viewProfileButton);</span>
+<span class="nc" id="L74">            unfollowButton = itemView.findViewById(R.id.unfollowButton);</span>
+<span class="nc" id="L75">        }</span>
+    }
+
+    public interface OnTrainerActionListener {
+        void onViewProfileClicked(Trainer trainer);
+        void onUnfollowClicked(Trainer trainer);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

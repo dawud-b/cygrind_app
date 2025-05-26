@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExerciseListAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.ExerciseSelection</a> &gt; <span class="el_source">ExerciseListAdapter.java</span></div><h1>ExerciseListAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.ExerciseSelection;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.Exercise;
+import com.example.androidexample.R;
+
+import org.w3c.dom.Text;
+
+import java.util.List;
+
+
+/**
+ * A RecyclerView Adapter that binds a list of Exercise objects to a RecyclerView.
+ * It inflates the exercise item layout and handles displaying exercise data and user interactions.
+ * The adapter supports adding exercises by implementing the `OnExerciseListener`.
+ */
+public class ExerciseListAdapter extends RecyclerView.Adapter&lt;ExerciseListAdapter.ExerciseViewHolder&gt; {
+
+    // List of exercises to display in the RecyclerView
+    private List&lt;Exercise&gt; exerciseList;
+
+    // Listener for handling click events on the add button
+    private OnExerciseListener listener;
+
+    /**
+     * Interface for handling click events when an exercise is added.
+     */
+    public interface OnExerciseListener {
+        /**
+         * Callback method invoked when the add button for an exercise is clicked.
+         *
+         * @param position The position of the exercise in the list.
+         */
+        void onAddClick(int position);
+    }
+
+    /**
+     * Constructor to initialize the adapter with the list of exercises and the listener.
+     *
+     * @param exerciseList The list of exercises to display in the RecyclerView.
+     * @param listener The listener for handling add button click events.
+     */
+<span class="nc" id="L50">    public ExerciseListAdapter(List&lt;Exercise&gt; exerciseList, OnExerciseListener listener) {</span>
+<span class="nc" id="L51">        this.exerciseList = exerciseList;</span>
+<span class="nc" id="L52">        this.listener = listener;</span>
+<span class="nc" id="L53">    }</span>
+
+    /**
+     * Creates a new ViewHolder instance for the item layout.
+     * This method is called when the RecyclerView needs a new ViewHolder.
+     *
+     * @param parent The parent ViewGroup where the item layout will be attached.
+     * @param viewType The type of the view to create.
+     * @return A new ExerciseViewHolder instance.
+     */
+    @Override
+    public ExerciseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="nc" id="L65">        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_exercise_list, parent, false);</span>
+<span class="nc" id="L66">        return new ExerciseViewHolder(view);</span>
+    }
+
+    /**
+     * Binds data to the ViewHolder. This method is called to display data for a specific item.
+     *
+     * @param holder The ExerciseViewHolder that will display the data.
+     * @param position The position of the exercise in the list.
+     */
+    @Override
+    public void onBindViewHolder(ExerciseViewHolder holder, int position) {
+<span class="nc" id="L77">        Exercise exercise = exerciseList.get(position);</span>
+<span class="nc" id="L78">        holder.exerciseName.setText(exercise.getName());</span>
+<span class="nc" id="L79">        holder.difficultyText.setText(exercise.getDifficultly());</span>
+<span class="nc" id="L80">        holder.addButton.setOnClickListener(v -&gt; listener.onAddClick(position));</span>
+<span class="nc" id="L81">    }</span>
+
+    /**
+     * Returns the total number of items in the data set.
+     *
+     * @return The number of exercises in the list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L90">        return exerciseList.size();</span>
+    }
+
+    /**
+     * ViewHolder class for holding references to the views used to display each exercise item.
+     * It is used to efficiently bind data and avoid unnecessary view inflation.
+     */
+    public class ExerciseViewHolder extends RecyclerView.ViewHolder {
+
+        // UI elements for displaying exercise data
+        TextView exerciseName;
+        Button addButton;
+        TextView difficultyText;
+
+        /**
+         * Constructor to initialize the views in the item layout.
+         *
+         * @param itemView The root view of the item layout.
+         */
+<span class="nc" id="L109">        public ExerciseViewHolder(View itemView) {</span>
+<span class="nc" id="L110">            super(itemView);</span>
+<span class="nc" id="L111">            exerciseName = itemView.findViewById(R.id.exerciseName);</span>
+<span class="nc" id="L112">            addButton = itemView.findViewById(R.id.addButton);</span>
+<span class="nc" id="L113">            difficultyText = itemView.findViewById(R.id.exerciseDifficulty);</span>
+<span class="nc" id="L114">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

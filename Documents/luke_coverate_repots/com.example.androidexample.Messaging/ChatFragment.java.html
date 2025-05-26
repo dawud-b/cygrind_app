@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Messaging</a> &gt; <span class="el_source">ChatFragment.java</span></div><h1>ChatFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Messaging;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.AnimationUtils;
+import android.view.animation.ScaleAnimation;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+import com.example.androidexample.User;
+import com.example.androidexample.WebSocketService;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class ChatFragment extends Fragment {
+    private String sessionId;
+    private RecyclerView recyclerView;
+    private MessageAdapter messageAdapter;
+    private List&lt;Message&gt; messageList;
+    private Button sendBtn;
+    private EditText msgEntry;
+    private String currentUser;
+    private TextView dot1, dot2, dot3;
+    private LinearLayout typingIndicatorContainer;
+    private Animation typingDotAnimation;
+
+    // used for controlling animation
+<span class="fc" id="L56">    private boolean isTyping = false;</span>
+<span class="fc" id="L57">    private boolean isFirstCycle = true;</span>
+    private TextView typingTextView;
+
+    // required constructor
+<span class="fc" id="L61">    public ChatFragment() {};</span>
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for the fragment
+<span class="fc" id="L66">        View view = inflater.inflate(R.layout.fragment_chatbox, container, false);</span>
+
+        // store current username
+<span class="fc" id="L69">        SharedPreferences prefs = getActivity().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L70">        currentUser = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+        // initialize messageList
+<span class="fc" id="L73">        messageList = new ArrayList&lt;&gt;();</span>
+
+        // set typing indicator fields
+<span class="fc" id="L76">        dot1 = view.findViewById(R.id.dot1);</span>
+<span class="fc" id="L77">        dot2 = view.findViewById(R.id.dot2);</span>
+<span class="fc" id="L78">        dot3 = view.findViewById(R.id.dot3);</span>
+<span class="fc" id="L79">        typingIndicatorContainer = view.findViewById(R.id.typing_indicator);</span>
+<span class="fc" id="L80">        typingDotAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.typing_dot_animation);</span>
+<span class="fc" id="L81">        typingTextView = view.findViewById(R.id.typing_name);</span>
+
+        // initalize views
+<span class="fc" id="L84">        recyclerView = view.findViewById(R.id.recyclerViewMessage);</span>
+<span class="fc" id="L85">        sendBtn = view.findViewById(R.id.buttonSend);</span>
+<span class="fc" id="L86">        msgEntry = view.findViewById(R.id.messageEditText);</span>
+
+<span class="fc" id="L88">        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));</span>
+
+        // Set the adapter
+<span class="fc" id="L91">        messageAdapter = new MessageAdapter(messageList, new MessageAdapter.OnReactionClickListener() {</span>
+            @Override
+            public void onReactionClicked(Long messageId, String reactionType) {
+                // send reaction message over websocket
+<span class="nc" id="L95">                Intent intent = new Intent(&quot;SendWebSocketMessage&quot;);</span>
+<span class="nc" id="L96">                intent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="nc" id="L97">                intent.putExtra(&quot;message&quot;, &quot;[Reaction]:&quot; + messageId + &quot;:&quot; + reactionType);</span>
+<span class="nc" id="L98">                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);</span>
+<span class="nc" id="L99">            }</span>
+        });
+<span class="fc" id="L101">        recyclerView.setAdapter(messageAdapter);</span>
+
+<span class="fc" id="L103">        Bundle extras = getActivity().getIntent().getExtras();</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if( extras != null ) { // when coming from MessageInbox</span>
+<span class="fc" id="L105">            sessionId = extras.getString(&quot;session_id&quot;);</span>
+<span class="fc" id="L106">            String url = extras.getString(&quot;server_url&quot;);</span>
+
+<span class="fc" id="L108">            Intent serviceIntent = new Intent(getActivity(), WebSocketService.class);</span>
+<span class="fc" id="L109">            serviceIntent.setAction(&quot;CONNECT&quot;);</span>
+<span class="fc" id="L110">            serviceIntent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="fc" id="L111">            serviceIntent.putExtra(&quot;url&quot;, url);</span>
+<span class="fc" id="L112">            getActivity().startService(serviceIntent);</span>
+<span class="pc bnc" id="L113" title="All 2 branches missed.">        } else if( getArguments() != null ) { // when used as fragment in groups</span>
+<span class="nc" id="L114">            sessionId = getArguments().getString(&quot;session_id&quot;);</span>
+<span class="nc" id="L115">            String url = getArguments().getString(&quot;server_url&quot;);</span>
+
+<span class="nc" id="L117">            Intent serviceIntent = new Intent(getActivity(), WebSocketService.class);</span>
+<span class="nc" id="L118">            serviceIntent.setAction(&quot;CONNECT&quot;);</span>
+<span class="nc" id="L119">            serviceIntent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="nc" id="L120">            serviceIntent.putExtra(&quot;url&quot;, url);</span>
+<span class="nc" id="L121">            getActivity().startService(serviceIntent);</span>
+        }
+
+        // used to control animation
+        // Handler to delay hiding the typing indicator
+<span class="fc" id="L126">        Handler typingHandler = new Handler();</span>
+<span class="fc" id="L127">        Runnable hideTypingRunnable = new Runnable() {</span>
+            @Override
+            public void run() {
+                // send [User stopped typing] when done typing
+<span class="fc" id="L131">                Intent intent = new Intent(&quot;SendWebSocketMessage&quot;);</span>
+<span class="fc" id="L132">                intent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="fc" id="L133">                intent.putExtra(&quot;message&quot;, &quot;[User stopped typing]&quot;);</span>
+<span class="fc" id="L134">                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);</span>
+<span class="fc" id="L135">                Log.d(&quot;Chatbox Activity&quot;, &quot;Broadcast sent for message: &quot; + &quot;[User is typing]&quot;);</span>
+<span class="fc" id="L136">                isTyping = false;</span>
+<span class="fc" id="L137">            }</span>
+        };
+
+<span class="fc" id="L140">        msgEntry.addTextChangedListener(new TextWatcher() {</span>
+            @Override
+<span class="fc" id="L142">            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}</span>
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // send [User is typing] to socket when not actively typing
+<span class="fc bfc" id="L147" title="All 2 branches covered.">                if( !isTyping ) {</span>
+<span class="fc" id="L148">                    Intent intent = new Intent(&quot;SendWebSocketMessage&quot;);</span>
+<span class="fc" id="L149">                    intent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="fc" id="L150">                    intent.putExtra(&quot;message&quot;, &quot;[User is typing]&quot;);</span>
+<span class="fc" id="L151">                    LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);</span>
+<span class="fc" id="L152">                    Log.d(&quot;Chatbox Activity&quot;, &quot;Broadcast sent for message: &quot; + &quot;[User is typing]&quot;);</span>
+<span class="fc" id="L153">                    isTyping = true;</span>
+                }
+
+                // Remove any existing callbacks to hide the typing indicator (this resets the 5-second timer)
+<span class="fc" id="L157">                typingHandler.removeCallbacks(hideTypingRunnable);</span>
+
+                // Re-schedule the Runnable to hide the indicator after 5 seconds of inactivity
+<span class="fc" id="L160">                typingHandler.postDelayed(hideTypingRunnable, 5000); // 5000ms = 5 seconds</span>
+<span class="fc" id="L161">            }</span>
+
+            @Override
+<span class="fc" id="L164">            public void afterTextChanged(Editable editable) {}</span>
+        });
+
+<span class="fc" id="L167">        sendBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View view) {
+<span class="fc" id="L170">                String message = msgEntry.getText().toString().trim();</span>
+                // broadcast this message to the WebSocketService
+                // tag it with the key - to specify which WebSocketClient (connection) to send
+                // in this case: &quot;chat1&quot;
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">                if (message.isEmpty()) {</span>
+<span class="nc" id="L175">                    Log.w(&quot;Chatbox Activity&quot;, &quot;sendBtn clicked but message was empty.&quot;);</span>
+<span class="nc" id="L176">                    return;</span>
+                }
+<span class="fc" id="L178">                Intent intent = new Intent(&quot;SendWebSocketMessage&quot;);</span>
+<span class="fc" id="L179">                intent.putExtra(&quot;key&quot;, sessionId);</span>
+<span class="fc" id="L180">                intent.putExtra(&quot;message&quot;, msgEntry.getText().toString());</span>
+<span class="fc" id="L181">                LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);</span>
+<span class="fc" id="L182">                Log.d(&quot;Chatbox Activity&quot;, &quot;Broadcast sent for message: &quot; + message);</span>
+<span class="fc" id="L183">                msgEntry.setText(&quot;&quot;);</span>
+<span class="fc" id="L184">            }</span>
+        });
+
+<span class="fc" id="L187">        return view;</span>
+    }
+
+    // Function to start the animation on the dots
+    private void startTypingIndicator() {
+<span class="nc" id="L192">        typingIndicatorContainer.setVisibility(View.VISIBLE);</span>
+
+        // Set up animation for dot 1
+<span class="nc" id="L195">        dot1.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L196">        startDotAnimation(dot1, 0); // Start immediately</span>
+
+        // Set up animation for dot 2 (slightly delayed)
+<span class="nc" id="L199">        dot2.setVisibility(View.VISIBLE);</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        startDotAnimation(dot2, isFirstCycle ? 200 : 0); // Delay of 200ms</span>
+
+        // Set up animation for dot 3 (delayed more)
+<span class="nc" id="L203">        dot3.setVisibility(View.VISIBLE);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        startDotAnimation(dot3, isFirstCycle ? 400 : 0); // Delay of 400ms</span>
+
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if(isFirstCycle) {</span>
+<span class="nc" id="L207">            isFirstCycle = false;</span>
+        }
+<span class="nc" id="L209">    }</span>
+
+    // Function to start scaling animation for a dot with a delay
+    private void startDotAnimation(final TextView dot, long delay) {
+        // Scale animation (expand from the center)
+<span class="nc" id="L214">        ScaleAnimation scaleAnimation = new ScaleAnimation(</span>
+                0, 1,  // fromX, toX (scale from 0 to 1)
+                0, 1,  // fromY, toY (scale from 0 to 1)
+                Animation.RELATIVE_TO_SELF, 0.5f,  // pivotX
+                Animation.RELATIVE_TO_SELF, 0.5f); // pivotY
+<span class="nc" id="L219">        scaleAnimation.setDuration(400); // Animation duration for each dot</span>
+<span class="nc" id="L220">        scaleAnimation.setStartOffset(delay); // Set delay for cascade effect</span>
+<span class="nc" id="L221">        scaleAnimation.setRepeatMode(Animation.REVERSE); // Repeat the animation in reverse (expand and shrink)</span>
+<span class="nc" id="L222">        scaleAnimation.setRepeatCount(Animation.INFINITE); // Repeat indefinitely</span>
+
+        // Alpha animation (fade in)
+<span class="nc" id="L225">        AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1); // Fade from invisible to visible</span>
+<span class="nc" id="L226">        alphaAnimation.setDuration(400);</span>
+<span class="nc" id="L227">        alphaAnimation.setStartOffset(delay);</span>
+<span class="nc" id="L228">        scaleAnimation.setRepeatMode(Animation.REVERSE);</span>
+<span class="nc" id="L229">        scaleAnimation.setRepeatCount(Animation.INFINITE);</span>
+
+        // Combine the animations
+<span class="nc" id="L232">        AnimationSet animationSet = new AnimationSet(true);</span>
+<span class="nc" id="L233">        animationSet.addAnimation(scaleAnimation);</span>
+<span class="nc" id="L234">        animationSet.addAnimation(alphaAnimation);</span>
+<span class="nc" id="L235">        dot.startAnimation(animationSet);</span>
+<span class="nc" id="L236">    }</span>
+
+
+<span class="fc" id="L239">    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {</span>
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // verify key
+<span class="fc" id="L243">            String key = intent.getStringExtra(&quot;key&quot;);</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">            if (sessionId.equals(key)){</span>
+<span class="fc" id="L245">                String messageStr = intent.getStringExtra(&quot;message&quot;);</span>
+<span class="fc" id="L246">                Log.d(&quot;message received&quot;, &quot;message: &quot; + messageStr);</span>
+
+                // parse [Server] messages - connection and typing indicator
+<span class="fc bfc" id="L249" title="All 2 branches covered.">                if( messageStr.contains(&quot;[Server]&quot;)) {</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">                    if (messageStr.contains(&quot;is typing&quot;)) {</span>
+<span class="fc" id="L251">                        String[] split = messageStr.split(&quot; &quot;);</span>
+<span class="fc" id="L252">                        String typing_username = split[1];</span>
+<span class="fc" id="L253">                        SharedPreferences prefs = getActivity().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="fc" id="L254">                        String current_username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">                        if (!typing_username.equals(current_username)) {</span>
+<span class="nc" id="L256">                            startTypingIndicator();</span>
+<span class="nc" id="L257">                            isFirstCycle = true;</span>
+<span class="nc" id="L258">                            typingTextView.setText(typing_username); // display username</span>
+                        }
+<span class="fc bfc" id="L260" title="All 2 branches covered.">                    } else if (messageStr.contains(&quot;stopped typing&quot;)) {</span>
+<span class="fc" id="L261">                        typingIndicatorContainer.setVisibility(View.INVISIBLE);</span>
+                    }
+                }
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">                else if( messageStr.contains(&quot;[Reaction]&quot;)) {</span>
+<span class="nc" id="L265">                    String[] split = messageStr.split(&quot;:&quot;);</span>
+<span class="nc" id="L266">                    Long messageId = (long) Integer.parseInt(split[1]);</span>
+<span class="nc" id="L267">                    int reaction = Integer.parseInt(split[2]);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                    for(Message msg : messageList) {</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                        if( messageId == msg.getId() ) {</span>
+<span class="nc" id="L270">                            msg.addReaction(new Reaction(null, reaction));</span>
+<span class="nc" id="L271">                            break;</span>
+                        }
+<span class="nc" id="L273">                    }</span>
+<span class="nc" id="L274">                    messageAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L275">                }</span>
+                // regular message
+                else {
+                    // parse message string into messsage object
+<span class="fc" id="L279">                    Message messageObj = parseMessage(messageStr, currentUser);</span>
+
+                    // eliminates bug where messages are displayed several times
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">                    for (Message msg : messageList) {</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                        if (msg.getId() == messageObj.getId()) {</span>
+<span class="nc" id="L284">                            return;</span>
+                        }
+<span class="nc" id="L286">                    }</span>
+
+<span class="fc" id="L288">                    Log.d(&quot;message received&quot;, &quot;message object: &quot; + messageObj.toString());</span>
+
+<span class="fc" id="L290">                    getActivity().runOnUiThread(() -&gt; {</span>
+<span class="fc" id="L291">                        messageList.add(messageObj);</span>
+<span class="fc" id="L292">                        messageAdapter.notifyItemInserted(messageAdapter.getItemCount());</span>
+<span class="fc" id="L293">                        int lastPosition = messageAdapter.getItemCount() - 1;</span>
+<span class="fc" id="L294">                        recyclerView.smoothScrollToPosition(lastPosition);</span>
+<span class="fc" id="L295">                    });</span>
+                }
+            }
+<span class="fc" id="L298">        }</span>
+    };
+
+    @Override
+    public void onStart() {
+<span class="fc" id="L303">        super.onStart();</span>
+<span class="fc" id="L304">        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(messageReceiver,</span>
+                new IntentFilter(&quot;WebSocketMessageReceived&quot;));
+<span class="fc" id="L306">    }</span>
+
+    @Override
+    public void onStop() {
+<span class="fc" id="L310">        super.onStop();</span>
+<span class="fc" id="L311">        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(messageReceiver);</span>
+<span class="fc" id="L312">    }</span>
+
+    private Message parseMessage(String jsonString, String username) {
+        try {
+<span class="fc" id="L316">            JSONObject jsonObject = new JSONObject(jsonString);</span>
+
+            // Parsing the user object
+<span class="fc" id="L319">            JSONObject userJson = jsonObject.getJSONObject(&quot;user&quot;);</span>
+<span class="fc" id="L320">            User user = new User(userJson);</span>
+
+            // Parsing the message object
+<span class="fc" id="L323">            Message message = new Message();</span>
+<span class="fc" id="L324">            message.setId(jsonObject.getLong(&quot;id&quot;));</span>
+<span class="fc" id="L325">            message.setUser(user);</span>
+<span class="fc" id="L326">            message.setContent(jsonObject.getString(&quot;content&quot;));</span>
+<span class="fc" id="L327">            message.setSent(new Date(jsonObject.getLong(&quot;sent&quot;)));</span>
+
+<span class="fc" id="L329">            JSONArray reactions = jsonObject.getJSONArray(&quot;reactions&quot;);</span>
+<span class="fc" id="L330">            message.setReactions(reactions);</span>
+
+<span class="fc bfc" id="L332" title="All 2 branches covered.">            if( message.getSender().getUsername().equals(username)) {</span>
+<span class="fc" id="L333">                message.isCurrentUser = true;</span>
+            } else {
+<span class="fc" id="L335">                message.isCurrentUser = false;</span>
+            }
+
+<span class="fc" id="L338">            return message;</span>
+<span class="nc" id="L339">        } catch (Exception e) {</span>
+<span class="nc" id="L340">            e.printStackTrace();</span>
+<span class="nc" id="L341">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

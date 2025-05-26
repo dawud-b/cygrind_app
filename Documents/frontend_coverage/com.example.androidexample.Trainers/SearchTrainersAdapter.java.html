@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchTrainersAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">SearchTrainersAdapter.java</span></div><h1>SearchTrainersAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.util.ArrayList;
+import java.util.List;
+/**
+ * A RecyclerView Adapter that binds a list of trainers to the views in a RecyclerView.
+ * It supports filtering the list of trainers based on the search query and allows interactions
+ * with each trainer's follow button and view profile button.
+ * &lt;p&gt;
+ * This adapter handles displaying trainer information including name, specialization, and bio.
+ * It also provides functionality to follow a trainer and view their profile.
+ */
+public class SearchTrainersAdapter extends RecyclerView.Adapter&lt;SearchTrainersAdapter.TrainerViewHolder&gt; {
+
+    private Context context;                    // Context for inflating views and handling resources
+    private List&lt;Trainer&gt; trainerList;          // Original list of trainers
+    private List&lt;Trainer&gt; trainerListFiltered;  // Filtered list of trainers based on search query
+    private OnTrainerActionListener listener;   // Listener for handling button clicks
+
+    /**
+     * Constructor to initialize the adapter with a list of trainers and a listener.
+     *
+     * @param context The context used for inflating the views.
+     * @param trainerList The list of trainers to be displayed.
+     * @param listener The listener to handle follow and view profile actions.
+     */
+<span class="fc" id="L38">    public SearchTrainersAdapter(Context context, List&lt;Trainer&gt; trainerList, OnTrainerActionListener listener) {</span>
+<span class="fc" id="L39">        this.context = context;</span>
+<span class="fc" id="L40">        this.trainerList = trainerList;</span>
+<span class="fc" id="L41">        this.trainerListFiltered = new ArrayList&lt;&gt;(trainerList);</span>
+<span class="fc" id="L42">        this.listener = listener;</span>
+<span class="fc" id="L43">    }</span>
+
+    /**
+     * Creates a new ViewHolder instance for a trainer item.
+     *
+     * @param parent The parent view group where the item will be added.
+     * @param viewType The view type of the item.
+     * @return The newly created ViewHolder.
+     */
+    @Override
+    public TrainerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Inflate the layout for each trainer item in the RecyclerView
+<span class="fc" id="L55">        View itemView = LayoutInflater.from(context).inflate(R.layout.item_search_trainer, parent, false);</span>
+<span class="fc" id="L56">        return new TrainerViewHolder(itemView);</span>
+    }
+
+    /**
+     * Binds the trainer data to the views for the item at the specified position.
+     *
+     * @param holder The ViewHolder that holds the views.
+     * @param position The position of the item in the filtered list.
+     */
+    @Override
+    public void onBindViewHolder(TrainerViewHolder holder, int position) {
+        // Get the trainer at the current position in the filtered list
+<span class="fc" id="L68">        Trainer trainer = trainerListFiltered.get(position);</span>
+
+        // Set the trainer's name and specialization
+<span class="fc" id="L71">        holder.trainerNameTextView.setText(trainer.getDisplayName());</span>
+<span class="fc" id="L72">        holder.trainerSpecializationTextView.setText(trainer.getSpecialization());</span>
+
+        // Set the bio if available
+<span class="pc bpc" id="L75" title="2 of 4 branches missed.">        if (trainer.getBio() != null &amp;&amp; !trainer.getBio().isEmpty()) {</span>
+<span class="fc" id="L76">            holder.trainerBioTextView.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L77">            holder.trainerBioTextView.setText(trainer.getBio());</span>
+        } else {
+<span class="nc" id="L79">            holder.trainerBioTextView.setVisibility(View.GONE);</span>
+        }
+
+        // Set the follow button listener
+<span class="fc" id="L83">        holder.followButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (listener != null) {</span>
+<span class="nc" id="L85">                listener.onFollowClick(trainer);</span>
+            }
+<span class="nc" id="L87">        });</span>
+
+        // Set the view profile button listener
+<span class="fc" id="L90">        holder.viewProfileButton.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (listener != null) {</span>
+<span class="fc" id="L92">                listener.onViewProfileClick(trainer);</span>
+            }
+<span class="fc" id="L94">        });</span>
+<span class="fc" id="L95">    }</span>
+
+    /**
+     * Returns the number of items in the filtered list.
+     *
+     * @return The size of the filtered trainer list.
+     */
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L104">        return trainerListFiltered.size();</span>
+    }
+
+    /**
+     * ViewHolder class to hold the views for each trainer item.
+     */
+    public static class TrainerViewHolder extends RecyclerView.ViewHolder {
+
+        TextView trainerNameTextView;           // TextView for displaying the trainer's name
+        TextView trainerSpecializationTextView; // TextView for displaying the trainer's specialization
+        TextView trainerBioTextView;            // TextView for displaying the trainer's bio
+        ImageButton followButton;               // Button to follow the trainer
+        ImageButton viewProfileButton;          // Button to view the trainer's profile
+
+        /**
+         * Initializes the views for each individual trainer item.
+         *
+         * @param itemView The view for the individual item.
+         */
+        public TrainerViewHolder(View itemView) {
+<span class="fc" id="L124">            super(itemView);</span>
+
+<span class="fc" id="L126">            trainerNameTextView = itemView.findViewById(R.id.trainerName);</span>
+<span class="fc" id="L127">            trainerSpecializationTextView = itemView.findViewById(R.id.trainerSpecialization);</span>
+<span class="fc" id="L128">            trainerBioTextView = itemView.findViewById(R.id.trainerBio);</span>
+<span class="fc" id="L129">            followButton = itemView.findViewById(R.id.followButton);</span>
+<span class="fc" id="L130">            viewProfileButton = itemView.findViewById(R.id.viewProfileButton);</span>
+<span class="fc" id="L131">        }</span>
+    }
+
+    /**
+     * Filters the trainer list based on the provided search query.
+     * It updates the filtered list and notifies the adapter of the change.
+     *
+     * @param query The search query to filter the trainers by name or specialization.
+     */
+    public void filterList(String query) {
+<span class="fc" id="L141">        trainerListFiltered.clear();</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        if (query.isEmpty()) {</span>
+<span class="fc" id="L143">            trainerListFiltered.addAll(trainerList); // If the query is empty, show all trainers</span>
+        } else {
+<span class="fc" id="L145">            String lowerCaseQuery = query.toLowerCase();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">            for (Trainer trainer : trainerList) {</span>
+                // Filter by name or specialization
+<span class="fc bfc" id="L148" title="All 2 branches covered.">                if (trainer.getDisplayName().toLowerCase().contains(lowerCaseQuery) ||</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">                        trainer.getSpecialization().toLowerCase().contains(lowerCaseQuery)) {</span>
+<span class="fc" id="L150">                    trainerListFiltered.add(trainer);</span>
+                }
+<span class="fc" id="L152">            }</span>
+        }
+<span class="fc" id="L154">        notifyDataSetChanged(); // Notify the adapter that the data has changed</span>
+<span class="fc" id="L155">    }</span>
+
+    /**
+     * Interface to handle button clicks for interacting with trainers.
+     */
+    public interface OnTrainerActionListener {
+        /**
+         * Called when the follow button is clicked for a trainer.
+         *
+         * @param trainer The trainer that was followed.
+         */
+        void onFollowClick(Trainer trainer);
+
+        /**
+         * Called when the view profile button is clicked for a trainer.
+         *
+         * @param trainer The trainer whose profile is to be viewed.
+         */
+        void onViewProfileClick(Trainer trainer);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TrainerProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Trainers</a> &gt; <span class="el_source">TrainerProfileActivity.java</span></div><h1>TrainerProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Trainers;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Activity for viewing a trainer's profile including their bio, specialization,
+ * and workout templates they've created.
+ */
+<span class="nc" id="L35">public class TrainerProfileActivity extends AppCompatActivity {</span>
+    private static final String TAG = &quot;TrainerProfileActivity&quot;;
+
+    private TextView trainerNameTextView;
+    private TextView specializationTextView;
+    private TextView bioTextView;
+    private Button followUnfollowButton;
+    private RecyclerView templatesRecyclerView;
+
+    private long trainerId;
+    private Trainer trainer;
+<span class="nc" id="L46">    private boolean isFollowing = false;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L50">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L51">        setContentView(R.layout.activity_trainer_profile);</span>
+
+        // Get trainer ID from intent
+<span class="nc" id="L54">        trainerId = getIntent().getLongExtra(&quot;TRAINER_ID&quot;, -1);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (trainerId == -1) {</span>
+<span class="nc" id="L56">            Toast.makeText(this, &quot;Error: No trainer specified&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L57">            finish();</span>
+<span class="nc" id="L58">            return;</span>
+        }
+
+        // Initialize views
+<span class="nc" id="L62">        trainerNameTextView = findViewById(R.id.trainerName);</span>
+<span class="nc" id="L63">        specializationTextView = findViewById(R.id.trainerSpecialization);</span>
+<span class="nc" id="L64">        bioTextView = findViewById(R.id.trainerBio);</span>
+<span class="nc" id="L65">        followUnfollowButton = findViewById(R.id.followUnfollowButton);</span>
+<span class="nc" id="L66">        templatesRecyclerView = findViewById(R.id.templatesRecyclerView);</span>
+
+        // Set up RecyclerView for workout templates
+<span class="nc" id="L69">        templatesRecyclerView.setLayoutManager(new LinearLayoutManager(this));</span>
+
+        // Set up follow/unfollow button
+<span class="nc" id="L72">        followUnfollowButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                if (isFollowing) {</span>
+<span class="nc" id="L76">                    unfollowTrainer();</span>
+                } else {
+<span class="nc" id="L78">                    followTrainer();</span>
+                }
+<span class="nc" id="L80">            }</span>
+        });
+
+        // Load trainer data
+<span class="nc" id="L84">        fetchTrainerData();</span>
+
+        // Check if user is following this trainer
+<span class="nc" id="L87">        checkFollowingStatus();</span>
+<span class="nc" id="L88">    }</span>
+
+    private void fetchTrainerData() {
+<span class="nc" id="L91">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainerId;</span>
+
+<span class="nc" id="L93">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+<span class="nc" id="L97">                new Response.Listener&lt;JSONObject&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+<span class="nc" id="L101">                            trainer = new Trainer(response);</span>
+<span class="nc" id="L102">                            updateUI();</span>
+
+                            // Now fetch the templates
+<span class="nc" id="L105">                            fetchTrainerTemplates();</span>
+<span class="nc" id="L106">                        } catch (JSONException e) {</span>
+<span class="nc" id="L107">                            Log.e(TAG, &quot;Failed to parse trainer data: &quot; + e.getMessage());</span>
+<span class="nc" id="L108">                            Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L109">                                    &quot;Failed to load trainer data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L110">                        }</span>
+<span class="nc" id="L111">                    }</span>
+                },
+<span class="nc" id="L113">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L116">                        Log.e(TAG, &quot;Error fetching trainer data: &quot; + error.toString());</span>
+<span class="nc" id="L117">                        Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L118">                                &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L119">                    }</span>
+                });
+
+<span class="nc" id="L122">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L123">    }</span>
+
+    private void updateUI() {
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (trainer != null) {</span>
+<span class="nc" id="L127">            trainerNameTextView.setText(trainer.getDisplayName());</span>
+<span class="nc" id="L128">            specializationTextView.setText(trainer.getSpecialization());</span>
+
+<span class="nc bnc" id="L130" title="All 4 branches missed.">            if (trainer.getBio() != null &amp;&amp; !trainer.getBio().isEmpty()) {</span>
+<span class="nc" id="L131">                bioTextView.setText(trainer.getBio());</span>
+<span class="nc" id="L132">                bioTextView.setVisibility(View.VISIBLE);</span>
+            } else {
+<span class="nc" id="L134">                bioTextView.setVisibility(View.GONE);</span>
+            }
+        }
+<span class="nc" id="L137">    }</span>
+
+    private void fetchTrainerTemplates() {
+<span class="nc" id="L140">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainerId + &quot;/templates&quot;;</span>
+
+<span class="nc" id="L142">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+<span class="nc" id="L146">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Handle templates here
+                        // This would require creating a WorkoutTemplate model and adapter
+                        // Similar to how we've set up the Trainer classes
+<span class="nc" id="L152">                        Log.d(TAG, &quot;Templates received: &quot; + response.toString());</span>
+<span class="nc" id="L153">                    }</span>
+                },
+<span class="nc" id="L155">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L158">                        Log.e(TAG, &quot;Error fetching templates: &quot; + error.toString());</span>
+<span class="nc" id="L159">                    }</span>
+                });
+
+<span class="nc" id="L162">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L163">    }</span>
+
+    private void checkFollowingStatus() {
+        // Get current username
+<span class="nc" id="L167">        String username = getSharedPreferences(&quot;MyPrefs&quot;, 0).getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (username.isEmpty()) {</span>
+<span class="nc" id="L169">            return;</span>
+        }
+
+        // Fetch followed trainers to check if this trainer is among them
+<span class="nc" id="L173">        String url = URLManager.getBaseUrl() + &quot;/users/&quot; + username + &quot;/followed-trainers&quot;;</span>
+
+<span class="nc" id="L175">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+<span class="nc" id="L179">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L182">                        isFollowing = false;</span>
+
+                        // Check if current trainer is in the list
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L187">                                JSONObject trainerObj = response.getJSONObject(i);</span>
+<span class="nc" id="L188">                                long id = trainerObj.getLong(&quot;id&quot;);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                                if (id == trainerId) {</span>
+<span class="nc" id="L190">                                    isFollowing = true;</span>
+<span class="nc" id="L191">                                    break;</span>
+                                }
+<span class="nc" id="L193">                            } catch (JSONException e) {</span>
+<span class="nc" id="L194">                                Log.e(TAG, &quot;Error parsing followed trainers: &quot; + e.getMessage());</span>
+<span class="nc" id="L195">                            }</span>
+                        }
+
+                        // Update button text
+<span class="nc" id="L199">                        updateFollowButton();</span>
+<span class="nc" id="L200">                    }</span>
+                },
+<span class="nc" id="L202">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L205">                        Log.e(TAG, &quot;Error checking follow status: &quot; + error.toString());</span>
+<span class="nc" id="L206">                    }</span>
+                });
+
+<span class="nc" id="L209">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L210">    }</span>
+
+    private void updateFollowButton() {
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (isFollowing) {</span>
+<span class="nc" id="L214">            followUnfollowButton.setText(&quot;Unfollow&quot;);</span>
+        } else {
+<span class="nc" id="L216">            followUnfollowButton.setText(&quot;Follow&quot;);</span>
+        }
+<span class="nc" id="L218">    }</span>
+
+    private void followTrainer() {
+<span class="nc" id="L221">        String username = getSharedPreferences(&quot;MyPrefs&quot;, 0).getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L222">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainerId + &quot;/followers/&quot; + username;</span>
+
+<span class="nc" id="L224">        StringRequest request = new StringRequest(</span>
+                Request.Method.POST,
+                url,
+<span class="nc" id="L227">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L230">                        Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L231">                                &quot;Now following trainer&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L232">                        isFollowing = true;</span>
+<span class="nc" id="L233">                        updateFollowButton();</span>
+<span class="nc" id="L234">                    }</span>
+                },
+<span class="nc" id="L236">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L239">                        Log.e(TAG, &quot;Error following trainer: &quot; + error.toString());</span>
+<span class="nc" id="L240">                        Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L241">                                &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L242">                    }</span>
+                });
+
+<span class="nc" id="L245">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L246">    }</span>
+
+    private void unfollowTrainer() {
+<span class="nc" id="L249">        String username = getSharedPreferences(&quot;MyPrefs&quot;, 0).getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L250">        String url = URLManager.getBaseUrl() + &quot;/trainers/&quot; + trainerId + &quot;/followers/&quot; + username;</span>
+
+<span class="nc" id="L252">        StringRequest request = new StringRequest(</span>
+                Request.Method.DELETE,
+                url,
+<span class="nc" id="L255">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L258">                        Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L259">                                &quot;Unfollowed trainer&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L260">                        isFollowing = false;</span>
+<span class="nc" id="L261">                        updateFollowButton();</span>
+<span class="nc" id="L262">                    }</span>
+                },
+<span class="nc" id="L264">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L267">                        Log.e(TAG, &quot;Error unfollowing trainer: &quot; + error.toString());</span>
+<span class="nc" id="L268">                        Toast.makeText(TrainerProfileActivity.this,</span>
+<span class="nc" id="L269">                                &quot;Connection Error&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L270">                    }</span>
+                });
+
+<span class="nc" id="L273">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L274">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

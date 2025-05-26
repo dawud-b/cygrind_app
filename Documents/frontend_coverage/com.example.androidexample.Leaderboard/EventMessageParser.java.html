@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventMessageParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Leaderboard</a> &gt; <span class="el_source">EventMessageParser.java</span></div><h1>EventMessageParser.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Leaderboard;
+
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+/**
+ * A utility class responsible for parsing messages related to events, including timestamps,
+ * event listings, and leaderboard data.
+ *
+ * This class includes methods to extract relevant data from event-related messages
+ * and organize it into meaningful objects such as EventSummary and LeaderboardEntry.
+ */
+<span class="nc" id="L24">public class EventMessageParser {</span>
+    private static final String TAG = &quot;EventMessageParser&quot;;  // Tag for logging
+
+    /**
+     * Parses the timestamp from a given message.
+     *
+     * @param message The message containing a timestamp in the format [HH:mm:ss].
+     * @return The parsed timestamp (HH:mm:ss) if found, otherwise returns null.
+     */
+    public static String parseTimestamp(String message) {
+        // Looking for timestamp format like [HH:mm:ss]
+<span class="nc" id="L35">        Pattern pattern = Pattern.compile(&quot;\\[(\\d{2}:\\d{2}:\\d{2})\\]&quot;);</span>
+<span class="nc" id="L36">        Matcher matcher = pattern.matcher(message);</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (matcher.find()) {</span>
+<span class="nc" id="L38">            return matcher.group(1);</span>
+        }
+<span class="nc" id="L40">        return null;</span>
+    }
+
+    /**
+     * Parses an event listing message and extracts event summaries.
+     *
+     * @param message The message containing event listing data.
+     * @return A list of EventSummary objects representing the active events.
+     */
+    public static List&lt;EventSummary&gt; parseEventListing(String message) {
+<span class="nc" id="L50">        List&lt;EventSummary&gt; events = new ArrayList&lt;&gt;();</span>
+
+        // Format: &quot;Active Events:\n- ID: 1 | Event Title | Exercise Type\n- ID: 2...&quot;
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (!message.contains(&quot;Active Events:&quot;)) {</span>
+<span class="nc" id="L55">            return events;</span>
+        }
+
+<span class="nc" id="L58">        String[] lines = message.split(&quot;\n&quot;);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        for (String line : lines) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (line.startsWith(&quot;- ID:&quot;)) {</span>
+                try {
+                    // Extract event ID
+<span class="nc" id="L63">                    Pattern idPattern = Pattern.compile(&quot;ID:\\s*(\\d+)&quot;);</span>
+<span class="nc" id="L64">                    Matcher idMatcher = idPattern.matcher(line);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                    if (!idMatcher.find()) continue;</span>
+<span class="nc" id="L66">                    long id = Long.parseLong(idMatcher.group(1));</span>
+
+                    // Extract title
+<span class="nc" id="L69">                    Pattern titlePattern = Pattern.compile(&quot;\\|\\s*([^|]+)\\s*\\|&quot;);</span>
+<span class="nc" id="L70">                    Matcher titleMatcher = titlePattern.matcher(line);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                    if (!titleMatcher.find()) continue;</span>
+<span class="nc" id="L72">                    String title = titleMatcher.group(1).trim();</span>
+
+                    // Extract exercise type
+<span class="nc" id="L75">                    Pattern typePattern = Pattern.compile(&quot;\\|\\s*([^|]+)$&quot;);</span>
+<span class="nc" id="L76">                    Matcher typeMatcher = typePattern.matcher(line);</span>
+<span class="nc" id="L77">                    String exerciseType = &quot;&quot;;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                    if (typeMatcher.find()) {</span>
+<span class="nc" id="L79">                        exerciseType = typeMatcher.group(1).trim();</span>
+                    }
+
+<span class="nc" id="L82">                    events.add(new EventSummary(id, title, exerciseType));</span>
+<span class="nc" id="L83">                } catch (Exception e) {</span>
+<span class="nc" id="L84">                    Log.e(TAG, &quot;Error parsing event line: &quot; + line, e);</span>
+<span class="nc" id="L85">                }</span>
+            }
+        }
+
+<span class="nc" id="L89">        return events;</span>
+    }
+
+    /**
+     * Parses a leaderboard message and organizes it by weight class.
+     *
+     * @param message The message containing leaderboard data.
+     * @return A map where the keys are weight class names and the values are lists of LeaderboardEntry objects.
+     */
+    public static Map&lt;String, List&lt;LeaderboardEntry&gt;&gt; parseLeaderboard(String message) {
+<span class="nc" id="L99">        Map&lt;String, List&lt;LeaderboardEntry&gt;&gt; leaderboardByWeightClass = new HashMap&lt;&gt;();</span>
+
+        // Check if this is a leaderboard message
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (!message.contains(&quot;Leaderboard for&quot;)) {</span>
+<span class="nc" id="L103">            return leaderboardByWeightClass;</span>
+        }
+
+<span class="nc" id="L106">        String currentWeightClass = null;</span>
+<span class="nc" id="L107">        List&lt;LeaderboardEntry&gt; currentEntries = null;</span>
+
+<span class="nc" id="L109">        String[] lines = message.split(&quot;\n&quot;);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (String line : lines) {</span>
+<span class="nc" id="L111">            line = line.trim();</span>
+
+            // Check for weight class header
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (line.endsWith(&quot;Weight Class:&quot;)) {</span>
+<span class="nc" id="L115">                currentWeightClass = line.replace(&quot;Weight Class:&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L116">                currentEntries = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L117">                leaderboardByWeightClass.put(currentWeightClass, currentEntries);</span>
+<span class="nc" id="L118">                continue;</span>
+            }
+
+            // Parse participant entry (format: &quot;  1. John Doe (username) - 250 pts&quot;)
+<span class="nc bnc" id="L122" title="All 4 branches missed.">            if (line.matches(&quot;\\s*\\d+\\..*&quot;) &amp;&amp; currentEntries != null) {</span>
+                try {
+                    // Extract rank (not used in our model but useful for debugging)
+<span class="nc" id="L125">                    Pattern rankPattern = Pattern.compile(&quot;(\\d+)\\.&quot;);</span>
+<span class="nc" id="L126">                    Matcher rankMatcher = rankPattern.matcher(line);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                    if (!rankMatcher.find()) continue;</span>
+
+                    // Extract name and username
+<span class="nc" id="L130">                    Pattern namePattern = Pattern.compile(&quot;\\d+\\.\\s*([^(]+)\\(([^)]+)\\)\\s*-\\s*(\\d+)\\s*pts&quot;);</span>
+<span class="nc" id="L131">                    Matcher nameMatcher = namePattern.matcher(line);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                    if (!nameMatcher.find()) continue;</span>
+
+<span class="nc" id="L134">                    String fullName = nameMatcher.group(1).trim();</span>
+<span class="nc" id="L135">                    String username = nameMatcher.group(2).trim();</span>
+<span class="nc" id="L136">                    int score = Integer.parseInt(nameMatcher.group(3).trim());</span>
+
+                    // Split full name into first and last name (if possible)
+<span class="nc" id="L139">                    String firstName = fullName;</span>
+<span class="nc" id="L140">                    String lastName = &quot;&quot;;</span>
+<span class="nc" id="L141">                    String[] nameParts = fullName.split(&quot;\\s+&quot;, 2);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    if (nameParts.length == 2) {</span>
+<span class="nc" id="L143">                        firstName = nameParts[0];</span>
+<span class="nc" id="L144">                        lastName = nameParts[1];</span>
+                    }
+
+<span class="nc" id="L147">                    currentEntries.add(new LeaderboardEntry(username, firstName, lastName, currentWeightClass, score));</span>
+<span class="nc" id="L148">                } catch (Exception e) {</span>
+<span class="nc" id="L149">                    Log.e(TAG, &quot;Error parsing leaderboard entry: &quot; + line, e);</span>
+<span class="nc" id="L150">                }</span>
+            }
+        }
+
+<span class="nc" id="L154">        return leaderboardByWeightClass;</span>
+    }
+
+    /**
+     * A helper class to represent an event summary, containing details such as event ID,
+     * title, and exercise type.
+     */
+    public static class EventSummary {
+        private long id;
+        private String title;
+        private String exerciseType;
+
+        /**
+         * Constructs an EventSummary object with the provided details.
+         *
+         * @param id The event ID.
+         * @param title The event title.
+         * @param exerciseType The type of exercise for the event.
+         */
+<span class="nc" id="L173">        public EventSummary(long id, String title, String exerciseType) {</span>
+<span class="nc" id="L174">            this.id = id;</span>
+<span class="nc" id="L175">            this.title = title;</span>
+<span class="nc" id="L176">            this.exerciseType = exerciseType;</span>
+<span class="nc" id="L177">        }</span>
+
+        /**
+         * Returns the event ID.
+         *
+         * @return The event ID.
+         */
+        public long getId() {
+<span class="nc" id="L185">            return id;</span>
+        }
+
+        /**
+         * Returns the event title.
+         *
+         * @return The event title.
+         */
+        public String getTitle() {
+<span class="nc" id="L194">            return title;</span>
+        }
+
+        /**
+         * Returns the exercise type for the event.
+         *
+         * @return The exercise type.
+         */
+        public String getExerciseType() {
+<span class="nc" id="L203">            return exerciseType;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

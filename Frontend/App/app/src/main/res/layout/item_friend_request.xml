@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="start|end"> <!-- Set gravity for alignment -->
+
+    <!-- TextViews to display sender and receiver -->
+    <TextView
+        android:id="@+id/fromUserTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="From: "
+        android:textSize="20sp"
+        android:layout_weight="1" /> <!-- Allow text view to take the left space -->
+
+    <!-- Buttons to accept or decline the friendRequest -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"> <!-- Align the buttons to the right -->
+
+        <ImageButton
+            android:id="@+id/acceptButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:attr/colorBackground"
+            android:src="@drawable/accept_svgrepo_com" />
+
+        <ImageButton
+            android:id="@+id/declineButton"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="?android:attr/colorBackground"
+            android:src="@drawable/decline_svgrepo_com" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,198 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ExerciseTemplateController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Exercise_Template</a>
+</div>
+
+<h1>Coverage Summary for Class: ExerciseTemplateController (onetoone.Exercise_Template)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ExerciseTemplateController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    16.7%
+  </span>
+  <span class="absValue">
+    (1/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    3.3%
+  </span>
+  <span class="absValue">
+    (1/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Exercise_Template;
+&nbsp;
+&nbsp;import onetoone.WorkoutExercises.Exercise;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplate;
+&nbsp;import onetoone.Workout_Template.WorkoutTemplateRepo;
+&nbsp;import onetoone.users.User;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+<b class="fc">&nbsp;public class ExerciseTemplateController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    ExerciseTemplateRepo exerciseTemplateRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WorkoutTemplateRepo workoutTemplateRepo;
+&nbsp;
+&nbsp;    @GetMapping(&quot;/exerciseTemplate/{id}&quot;)
+&nbsp;    public ExerciseTemplate getExerciseTemplate(@PathVariable int id) {
+<b class="nc">&nbsp;        exerciseTemplateRepo.findById(id);</b>
+<b class="nc">&nbsp;        return exerciseTemplateRepo.findById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/exerciseTemplate&quot;)
+&nbsp;    public ExerciseTemplate addExerciseTemplate(@RequestBody ExerciseTemplate exerciseTemplate) {
+<b class="nc">&nbsp;        WorkoutTemplate worktemp = exerciseTemplate.getWorkoutTemplate();</b>
+<b class="nc">&nbsp;        if (worktemp == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        worktemp.addExerciseTemplate(exerciseTemplate);</b>
+<b class="nc">&nbsp;        return exerciseTemplateRepo.save(exerciseTemplate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(&quot;/exerciseTemplate/{id}&quot;)
+&nbsp;    public String deleteExerciseTemplate(@PathVariable int id) {
+<b class="nc">&nbsp;        ExerciseTemplate exTemp = exerciseTemplateRepo.findById(id);</b>
+<b class="nc">&nbsp;        if (exTemp == null) {</b>
+<b class="nc">&nbsp;             return &quot;ExerciseTemplate not found.&quot;;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        exerciseTemplateRepo.delete(exTemp);</b>
+<b class="nc">&nbsp;        return &quot;Deleted.&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PutMapping(&quot;/exerciseTemplate/{id}&quot;)
+&nbsp;    public ExerciseTemplate updateExerciseTemplate(@PathVariable int id, @RequestBody ExerciseTemplate exerciseTemplate) {
+<b class="nc">&nbsp;        ExerciseTemplate existingExerciseTemplate = exerciseTemplateRepo.findById(id);</b>
+<b class="nc">&nbsp;        if (existingExerciseTemplate.getWorkoutTemplate() == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (exerciseTemplate.getRepCount() != 0) {</b>
+<b class="nc">&nbsp;            existingExerciseTemplate.setRepCount(exerciseTemplate.getRepCount());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (exerciseTemplate.getSetCount() != 0) {</b>
+<b class="nc">&nbsp;            existingExerciseTemplate.setSetCount(exerciseTemplate.getSetCount());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (exerciseTemplate.getDuration() != 0) {</b>
+<b class="nc">&nbsp;            existingExerciseTemplate.setDuration(exerciseTemplate.getDuration());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (exerciseTemplate.getWeight() != 0) {</b>
+<b class="nc">&nbsp;            existingExerciseTemplate.setWeight(exerciseTemplate.getWeight());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        exerciseTemplateRepo.save(existingExerciseTemplate);</b>
+<b class="nc">&nbsp;        return existingExerciseTemplate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // GET the ExerciseTemplates from a WorkoutTemplate
+&nbsp;    @GetMapping(&quot;/templates/{workoutTemplate_id}/exercises&quot;)
+&nbsp;    List&lt;ExerciseTemplate&gt; getTemplatesByUser(@PathVariable int workoutTemplate_id) {
+<b class="nc">&nbsp;        WorkoutTemplate workoutTemp = workoutTemplateRepo.findById(workoutTemplate_id);</b>
+<b class="nc">&nbsp;        if (workoutTemp == null) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return exerciseTemplateRepo.findByWorkoutTemplate(workoutTemp);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-23 12:21</div>
+</div>
+</body>
+</html>

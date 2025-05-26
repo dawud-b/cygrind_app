@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:id="@+id/paymentSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+
+            <com.stripe.android.view.CardInputWidget
+                android:id="@+id/cardInputWidget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="4dp"
+                app:shouldShowPostalCode="false" />
+
+            <Button
+                android:id="@+id/payButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button"
+                android:text="Subscribe for $9.99/month" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/subscriptionStatusSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:id="@+id/subscriptionStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="You're subscribed!" />
+
+            <Button
+                android:id="@+id/cancelSubscriptionButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button"
+                android:text="Cancel Subscription" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

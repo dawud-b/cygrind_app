@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupMembersFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Groups</a> &gt; <span class="el_source">GroupMembersFragment.java</span></div><h1>GroupMembersFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Groups;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.androidexample.HomeActivity;
+import com.example.androidexample.Messaging.ChatActivity;
+import com.example.androidexample.R;
+import com.example.androidexample.URLManager;
+import com.example.androidexample.User;
+import com.example.androidexample.VolleySingleton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Fragment responsible for displaying and managing group members in the group page.
+ * It allows group members to be removed, messages to be sent, and for users to leave the group.
+ */
+public class GroupMembersFragment extends Fragment {
+
+    private RecyclerView recyclerView;   // RecyclerView to display group members
+    private GroupMemberAdapter adapter;  // Adapter for RecyclerView
+    private List&lt;User&gt; userList;         // List of group members
+    private View rootView;               // Root view of the fragment
+    private GroupPageActivity activity;  // Reference to the parent activity
+    private Button leaveBtn;             // Button to leave the group
+
+    /**
+     * Default constructor for the fragment.
+     */
+<span class="nc" id="L52">    public GroupMembersFragment() {</span>
+        // Required empty public constructor
+<span class="nc" id="L54">    }</span>
+
+    /**
+     * Inflates the layout for this fragment, initializes the RecyclerView, and sets up necessary listeners.
+     *
+     * @param inflater The LayoutInflater object to inflate the views.
+     * @param container The container in which the fragment's UI should be placed.
+     * @param savedInstanceState If the fragment is being re-created from a previous state.
+     * @return The root view of the fragment's layout.
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the fragment layout
+<span class="nc" id="L68">        rootView = inflater.inflate(R.layout.fragment_members, container, false);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if( rootView == null ) {</span>
+<span class="nc" id="L70">            System.out.println(&quot;Rootview is null&quot;);</span>
+        }
+
+<span class="nc" id="L73">        activity = (GroupPageActivity)getActivity();</span>
+
+        // Initialize userList
+<span class="nc" id="L76">        userList = new ArrayList&lt;&gt;();</span>
+
+        // Initialize RecyclerView
+<span class="nc" id="L79">        recyclerView = rootView.findViewById(R.id.group_members_list);</span>
+<span class="nc" id="L80">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+<span class="nc" id="L82">        leaveBtn = rootView.findViewById(R.id.group_leave_button);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if( leaveBtn == null ) {</span>
+<span class="nc" id="L84">            System.out.println(&quot;leave button is null&quot;);</span>
+        } else {
+<span class="nc" id="L86">            leaveBtn.setOnClickListener(new View.OnClickListener() {</span>
+                @Override
+                public void onClick(View view) {
+<span class="nc" id="L89">                    leaveGroup();</span>
+<span class="nc" id="L90">                }</span>
+            });
+        }
+
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if( activity == null ) {</span>
+<span class="nc" id="L95">            Log.e(&quot;GroupMemberFragment&quot;, &quot;activity is null&quot;);</span>
+        }
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if( activity.inGroup ) {</span>
+<span class="nc" id="L99">            Log.d(&quot;GroupMemberFragment&quot;, &quot;groupId: &quot; + activity.groupId);</span>
+<span class="nc" id="L100">            fetchMembers();</span>
+        } else {
+<span class="nc" id="L102">            Toast.makeText(activity, &quot;User not in group.&quot;, Toast.LENGTH_SHORT).show();</span>
+        }
+
+        // Set the adapter
+<span class="nc" id="L106">        adapter = new GroupMemberAdapter(userList, activity.isLeader, new GroupMemberAdapter.onRemoveClickListener() {</span>
+            @Override
+            public void onRemoveClick(User user) {
+<span class="nc" id="L109">                removeMember(user);</span>
+<span class="nc" id="L110">            }</span>
+
+            @Override
+            public void onMessageClick(User user) {
+<span class="nc" id="L114">                goToChatActivity(user);</span>
+<span class="nc" id="L115">            }</span>
+        });
+<span class="nc" id="L117">        recyclerView.setAdapter(adapter);</span>
+
+<span class="nc" id="L119">        return rootView;</span>
+    }
+
+    /**
+     * Starts the ChatActivity to initiate a chat session with the selected user.
+     *
+     * @param friend The user to chat with.
+     */
+    private void goToChatActivity(User friend) {
+<span class="nc" id="L128">        String url = URLManager.postChatSessionURL();</span>
+
+<span class="nc" id="L130">        SharedPreferences prefs = getActivity().getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L131">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L132">        Long id = prefs.getLong(&quot;id&quot;, -1);</span>
+
+        // Prepare the JSON body with user data
+<span class="nc" id="L135">        JSONArray usersArray = new JSONArray();</span>
+        try {
+<span class="nc" id="L137">            JSONObject currentUser = new JSONObject();</span>
+<span class="nc" id="L138">            currentUser.put(&quot;id&quot;, id);</span>
+<span class="nc" id="L139">            usersArray.put(currentUser);</span>
+
+<span class="nc" id="L141">            JSONObject userObject = new JSONObject();</span>
+<span class="nc" id="L142">            userObject.put(&quot;id&quot;, friend.getId());</span>
+<span class="nc" id="L143">            usersArray.put(userObject);</span>
+<span class="nc" id="L144">        } catch (JSONException e) {</span>
+<span class="nc" id="L145">            Log.e(&quot;FriendsFragment JSONException&quot;, &quot;Error building UserList for ChatSession POST request&quot;);</span>
+<span class="nc" id="L146">        }</span>
+
+        // Create the request body
+<span class="nc" id="L149">        final String requestBody = usersArray.toString();</span>
+
+        // Create a new StringRequest
+<span class="nc" id="L152">        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,</span>
+<span class="nc" id="L153">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L156">                        System.out.println(&quot;Response: &quot; + response);</span>
+
+                        // Enter ChatBoxActivity if a session id is given
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                        if( !response.equals(&quot;One or more users are null!&quot;)) {</span>
+<span class="nc" id="L160">                            String serverUrl = URLManager.chatURL(response, username);</span>
+<span class="nc" id="L161">                            Log.d(&quot;MessageInboxActivity&quot;, &quot;URL:  &quot; + serverUrl);</span>
+
+                            // Go to chat activity
+<span class="nc" id="L164">                            Intent intent = new Intent(getActivity(), ChatActivity.class);</span>
+<span class="nc" id="L165">                            intent.putExtra(&quot;session_id&quot;, response);</span>
+<span class="nc" id="L166">                            intent.putExtra(&quot;server_url&quot;, serverUrl);</span>
+<span class="nc" id="L167">                            intent.putExtra(&quot;group_name&quot;, friend.getUsername());</span>
+<span class="nc" id="L168">                            startActivity(intent);</span>
+                        }
+<span class="nc" id="L170">                    }</span>
+                },
+<span class="nc" id="L172">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error response (e.g., network issue)
+<span class="nc" id="L176">                        System.out.println(&quot;Error: &quot; + error.getMessage());</span>
+<span class="nc" id="L177">                    }</span>
+<span class="nc" id="L178">                }) {</span>
+            @Override
+            public byte[] getBody() throws com.android.volley.AuthFailureError {
+<span class="nc" id="L181">                return requestBody.getBytes();</span>
+            }
+
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L186">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L190">        VolleySingleton.getInstance(getActivity()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L191">    }</span>
+
+    /**
+     * Allows the user to leave the group.
+     * Sends a request to the server to leave the group and redirects the user to the home screen.
+     */
+    private void leaveGroup() {
+<span class="nc" id="L198">        SharedPreferences prefs = activity.getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L199">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+<span class="nc" id="L200">        String url = URLManager.leaveGroupURL(activity.groupId, username);</span>
+
+        // Create a StringRequest for the POST request
+<span class="nc" id="L203">        StringRequest stringRequest = new StringRequest(Request.Method.DELETE, url,</span>
+<span class="nc" id="L204">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the response from the server
+<span class="nc" id="L208">                        Log.d(&quot;VolleyResponse&quot;, &quot;Response: &quot; + response);</span>
+<span class="nc" id="L209">                        Toast.makeText(activity, &quot;Group left.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L210">                        Intent intent = new Intent(activity, HomeActivity.class);</span>
+<span class="nc" id="L211">                        startActivity(intent);</span>
+<span class="nc" id="L212">                    }</span>
+                },
+<span class="nc" id="L214">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error response
+<span class="nc" id="L218">                        Log.e(&quot;VolleyError&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc bnc" id="L219" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.statusCode == 404) {</span>
+<span class="nc" id="L220">                            Toast.makeText(activity, &quot;Group not found&quot;, Toast.LENGTH_SHORT).show();</span>
+                        } else {
+<span class="nc" id="L222">                            Toast.makeText(activity, &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L224">                    }</span>
+                });
+
+        // Add the request to the RequestQueue
+<span class="nc" id="L228">        VolleySingleton.getInstance(activity).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L229">    }</span>
+
+    /**
+     * Fetches the list of members in the group from the backend.
+     */
+    private void fetchMembers() {
+        String url;
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if( activity != null ) {</span>
+<span class="nc" id="L237">            url = URLManager.getGroupMembersURL(activity.groupId);</span>
+        } else {
+<span class="nc" id="L239">            Log.e(&quot;GroupMemberFragment&quot;, &quot;activity is null, can't access groupId&quot;);</span>
+<span class="nc" id="L240">            return;</span>
+        }
+
+<span class="nc" id="L243">        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null, // No body for GET request
+<span class="nc" id="L247">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Handle the response from the backend
+                        try {
+                            // Process the list of members here
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L254">                                User user = new User(response.getJSONObject(i));</span>
+<span class="nc" id="L255">                                userList.add(user);</span>
+                            }
+
+                            // Update adapter
+<span class="nc" id="L259">                            adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L260">                        } catch (Exception e) {</span>
+<span class="nc" id="L261">                            e.printStackTrace();</span>
+<span class="nc" id="L262">                        }</span>
+<span class="nc" id="L263">                    }</span>
+                },
+<span class="nc" id="L265">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc bnc" id="L268" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.statusCode == 404) {</span>
+<span class="nc" id="L269">                            Toast.makeText(activity, &quot;Group not found&quot;, Toast.LENGTH_SHORT).show();</span>
+                        } else {
+<span class="nc" id="L271">                            Toast.makeText(activity, &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L273">                    }</span>
+                }
+        );
+<span class="nc" id="L276">        VolleySingleton.getInstance(activity).addToRequestQueue(jsonArrayRequest);</span>
+<span class="nc" id="L277">    }</span>
+
+    /**
+     * Removes a member from the group.
+     *
+     * @param user The user to be removed from the group.
+     */
+    private void removeMember(User user) {
+<span class="nc" id="L285">        SharedPreferences prefs = activity.getSharedPreferences(&quot;MyPrefs&quot;, 0);</span>
+<span class="nc" id="L286">        String username = prefs.getString(&quot;username&quot;, &quot;&quot;);</span>
+
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if(username.equals(user.getUsername())) {</span>
+<span class="nc" id="L289">            Toast.makeText(activity, &quot;Use the leave button.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L290">            return;</span>
+        }
+
+<span class="nc" id="L293">        String url = URLManager.kickGroupMemberURL(activity.groupId, user.getUsername(), username);</span>
+
+        // Create a StringRequest for the POST request
+<span class="nc" id="L296">        StringRequest stringRequest = new StringRequest(Request.Method.DELETE, url,</span>
+<span class="nc" id="L297">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Handle the response from the server
+<span class="nc" id="L301">                        Log.d(&quot;VolleyResponse&quot;, &quot;Response: &quot; + response);</span>
+<span class="nc" id="L302">                        userList.remove(user);</span>
+<span class="nc" id="L303">                        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L304">                        Toast.makeText(activity, &quot;Member removed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L305">                    }</span>
+                },
+<span class="nc" id="L307">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error response
+<span class="nc" id="L311">                        Log.e(&quot;VolleyError&quot;, &quot;Error: &quot; + error.getMessage());</span>
+<span class="nc bnc" id="L312" title="All 4 branches missed.">                        if (error.networkResponse != null &amp;&amp; error.networkResponse.statusCode == 404) {</span>
+<span class="nc" id="L313">                            Toast.makeText(activity, &quot;Group not found&quot;, Toast.LENGTH_SHORT).show();</span>
+                        } else {
+<span class="nc" id="L315">                            Toast.makeText(activity, &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_SHORT).show();</span>
+                        }
+<span class="nc" id="L317">                    }</span>
+                });
+
+        // Add the request to the RequestQueue
+<span class="nc" id="L321">        VolleySingleton.getInstance(activity).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L322">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

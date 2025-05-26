@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Exercise.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">Exercise.java</span></div><h1>Exercise.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * Represents an Exercise entity with information about the exercise name, difficulty, muscle group, type, and ID.
+ * This class is commonly used to parse and store exercise data from JSON responses or manually created data.
+ */
+public class Exercise {
+    private long id;                 // Unique identifier of the exercise
+    private String name;            // Name of the exercise
+    private String type;            // Type of the exercise (e.g., strength, cardio)
+    private String difficultly;     // Difficulty level of the exercise (e.g., easy, medium, hard)
+    private String muscle;          // Muscle group targeted by the exercise
+
+    /**
+     * Constructs an Exercise object from a JSON object.
+     *
+     * @param obj The JSONObject containing exercise data with keys &quot;id&quot;, &quot;name&quot;, &quot;difficulty&quot;, &quot;type&quot;, and &quot;muscle&quot;.
+     */
+<span class="nc" id="L29">    public Exercise(JSONObject obj) {</span>
+        try {
+<span class="nc" id="L31">            this.id = obj.getLong(&quot;id&quot;);</span>
+<span class="nc" id="L32">            this.name = obj.getString(&quot;name&quot;);</span>
+<span class="nc" id="L33">            this.difficultly = obj.getString(&quot;difficulty&quot;);</span>
+<span class="nc" id="L34">            this.type = obj.getString(&quot;type&quot;);</span>
+<span class="nc" id="L35">            this.muscle = obj.getString(&quot;muscle&quot;);</span>
+<span class="nc" id="L36">        } catch (JSONException e) {</span>
+<span class="nc" id="L37">            Log.e(&quot;JSON to Exercise Error&quot;, e.toString());</span>
+<span class="nc" id="L38">        }</span>
+<span class="nc" id="L39">    }</span>
+
+    /**
+     * Constructs an Exercise with all parameters provided.
+     *
+     * @param name        The name of the exercise.
+     * @param difficultly The difficulty level of the exercise.
+     * @param muscle      The muscle group targeted by the exercise.
+     * @param type        The type/category of the exercise.
+     * @param id          The unique ID of the exercise.
+     */
+<span class="nc" id="L50">    public Exercise(String name, String difficultly, String muscle, String type, long id) {</span>
+<span class="nc" id="L51">        this.id = id;</span>
+<span class="nc" id="L52">        this.name = name;</span>
+<span class="nc" id="L53">        this.muscle = muscle;</span>
+<span class="nc" id="L54">        this.type = type;</span>
+<span class="nc" id="L55">        this.difficultly = difficultly;</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Constructs a basic Exercise with just a name.
+     * Useful for creating placeholder or default exercises.
+     *
+     * @param name The name of the exercise.
+     */
+<span class="nc" id="L64">    public Exercise(String name) {</span>
+<span class="nc" id="L65">        this.name = name;</span>
+<span class="nc" id="L66">        this.difficultly = &quot;&quot;;</span>
+<span class="nc" id="L67">        this.muscle = &quot;&quot;;</span>
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Gets the name of the exercise.
+     *
+     * @return The exercise name.
+     */
+    public String getName() {
+<span class="nc" id="L76">        return this.name;</span>
+    }
+
+    /**
+     * Gets the difficulty level of the exercise.
+     *
+     * @return The difficulty level.
+     */
+    public String getDifficultly() {
+<span class="nc" id="L85">        return this.difficultly;</span>
+    }
+
+    /**
+     * Gets the unique ID of the exercise.
+     *
+     * @return The exercise ID.
+     */
+    public Long getId() {
+<span class="nc" id="L94">        return this.id;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>

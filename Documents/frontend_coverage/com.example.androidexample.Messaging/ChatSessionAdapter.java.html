@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatSessionAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample.Messaging</a> &gt; <span class="el_source">ChatSessionAdapter.java</span></div><h1>ChatSessionAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample.Messaging;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.androidexample.R;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+/**
+ * The ChatSessionAdapter is a custom adapter for displaying a list of chat sessions (message threads)
+ * in a RecyclerView. Each item represents a message thread with details such as the group name,
+ * the last message sent in the thread, and the timestamp of the last message. The adapter is responsible
+ * for inflating the layout for each item, binding the data to the views, and handling item click events.
+ * &lt;p&gt;
+ * This adapter utilizes a view holder pattern to efficiently manage the views for each chat session item.
+ * The adapter also provides an interface for handling click events on individual message threads.
+ */
+public class ChatSessionAdapter extends RecyclerView.Adapter&lt;ChatSessionAdapter.MessageThreadViewHolder&gt; {
+
+    private List&lt;ChatSession&gt; threads;  // List of chat sessions (message threads)
+    private OnMessageThreadClickListener listener;  // Listener interface for handling thread clicks
+
+    /**
+     * Constructor to initialize the adapter with the list of chat sessions and the click listener.
+     *
+     * @param threads The list of chat sessions (message threads) to be displayed in the RecyclerView.
+     * @param listener The listener for handling click events on message threads.
+     */
+<span class="fc" id="L34">    public ChatSessionAdapter(List&lt;ChatSession&gt; threads, OnMessageThreadClickListener listener) {</span>
+<span class="fc" id="L35">        this.threads = threads;</span>
+<span class="fc" id="L36">        this.listener = listener;</span>
+<span class="fc" id="L37">    }</span>
+
+    /**
+     * Creates a new ViewHolder to hold the view for a message thread item.
+     * This method is called when a new item view needs to be created.
+     *
+     * @param parent The parent view group (RecyclerView) to which the item view will be added.
+     * @param viewType The type of view to create (not used in this implementation).
+     * @return A new ViewHolder for the item.
+     */
+    @Override
+    public MessageThreadViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="fc" id="L49">        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_message_thread, parent, false);</span>
+<span class="fc" id="L50">        return new MessageThreadViewHolder(view);</span>
+    }
+
+    /**
+     * Binds data to the ViewHolder. This method is called for each item in the RecyclerView to display the data.
+     *
+     * @param holder The ViewHolder for the item.
+     * @param position The position of the item in the dataset.
+     */
+    @Override
+    public void onBindViewHolder(MessageThreadViewHolder holder, int position) {
+<span class="fc" id="L61">        ChatSession thread = threads.get(position);  // Get the chat session at the current position</span>
+
+<span class="fc" id="L63">        Message lastMessage = thread.getLastMessage();  // Get the last message in the thread</span>
+
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (lastMessage != null) {</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">            if (lastMessage.getSent() != null) {</span>
+                // Format the timestamp of the last message
+<span class="fc" id="L68">                SimpleDateFormat sdf = new SimpleDateFormat(&quot;HH:mm&quot;);</span>
+<span class="fc" id="L69">                String time = sdf.format(lastMessage.getSent());</span>
+<span class="fc" id="L70">                holder.timestampTextView.setText(time);</span>
+            }
+<span class="fc" id="L72">            holder.lastMessageTextView.setText(lastMessage.getContent());</span>
+        }
+
+        // Safely set the group name (default to &quot;Unknown Group&quot; if null)
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        holder.groupNameTextView.setText(thread.getGroupName() != null ? thread.getGroupName() : &quot;Unknown Group&quot;);</span>
+
+        // Set up the click listener for the item
+<span class="fc" id="L79">        holder.itemView.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            if (listener != null) {</span>
+<span class="fc" id="L81">                listener.onMessageThreadClick(thread);  // Trigger the callback method when the item is clicked</span>
+            }
+<span class="fc" id="L83">        });</span>
+<span class="fc" id="L84">    }</span>
+
+    /**
+     * Returns the total number of items in the dataset.
+     *
+     * @return The number of chat sessions in the adapter.
+     */
+    @Override
+    public int getItemCount() {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        return threads != null ? threads.size() : 0;  // Check if threads list is null</span>
+    }
+
+    /**
+     * ViewHolder class for holding the views associated with each chat session item.
+     */
+    public static class MessageThreadViewHolder extends RecyclerView.ViewHolder {
+        TextView groupNameTextView;  // TextView for the group name
+        TextView lastMessageTextView;  // TextView for the last message content
+        TextView timestampTextView;  // TextView for the timestamp of the last message
+
+        /**
+         * Constructor to initialize the ViewHolder with the item view.
+         *
+         * @param itemView The view for a single chat session item.
+         */
+        public MessageThreadViewHolder(View itemView) {
+<span class="fc" id="L110">            super(itemView);</span>
+<span class="fc" id="L111">            groupNameTextView = itemView.findViewById(R.id.item_convo_name);</span>
+<span class="fc" id="L112">            lastMessageTextView = itemView.findViewById(R.id.textViewLastMessage);</span>
+<span class="fc" id="L113">            timestampTextView = itemView.findViewById(R.id.textViewLastMessageTime);</span>
+<span class="fc" id="L114">        }</span>
+    }
+
+    /**
+     * Interface for handling clicks on message thread items.
+     * The implementing class must define the behavior for when a message thread is clicked.
+     */
+    public interface OnMessageThreadClickListener {
+        /**
+         * Called when a message thread is clicked.
+         *
+         * @param thread The chat session (message thread) that was clicked.
+         */
+        void onMessageThreadClick(ChatSession thread);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span>Generated by the Android Gradle plugin 8.0.0</div></body></html>
