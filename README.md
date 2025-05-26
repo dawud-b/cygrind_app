@@ -2,7 +2,7 @@
 App developed for 309: Software Development. Built with SpringBoot. 
 
 CyGrind is a workout app aimed at communicating and competing with firends:  
-- REST endpoints are used for communication between frontend and backend.  
+- CRUDL endpoints are used for communication between frontend and backend.  
 - All data stored in an SQL database. Multiple tables keeps data organized, utalizing many-to-many, many-to-one, and one-to-one relationships.  
 - Users can add other users as friends and access a chat built using websockets.  
 - Users can join groups and access a group chat.  
