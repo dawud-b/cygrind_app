@@ -1,7 +1,7 @@
 # cygrind_app
 App developed for 309: Software Development. Built with SpringBoot. 
 
-CyGrind is a workout app aimed at communicating and competing with firends.  
+CyGrind is a workout app aimed at communicating and competing with firends:  
 - All data stored in an SQL database. Multiple tables keeps data organized, utalizing many-to-many, many-to-one, and one-to-one relationships.  
 - Users can add other users as friends and access a chat built using websockets.  
 - Users can join groups and access a group chat.  
@@ -11,5 +11,5 @@ CyGrind is a workout app aimed at communicating and competing with firends.
 - Premium accounts are created using Stripe payment system. Premium users have access to the nutrition tracker and more customization features.  
 
 
-Dawud Benedict and Joey Metzen on backend.
+Dawud Benedict and Joey Metzen on backend.  
 Luke Stewart and Aidan Perry on frontend.
